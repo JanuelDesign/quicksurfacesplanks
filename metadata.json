@@ -1,0 +1,7 @@
+{
+  "name": "QuickSurfaces - Luxury Vinyl Flooring",
+  "description": "Luxury vinyl flooring and turnkey installation portal tailored to South Florida communities and architectural floor plans.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
