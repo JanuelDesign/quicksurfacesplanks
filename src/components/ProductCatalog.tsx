@@ -19,12 +19,14 @@ import {
 
 interface ProductCatalogProps {
   selectedProduct: FlooringProduct;
+  productsList?: FlooringProduct[];
   onSelectProduct: (product: FlooringProduct) => void;
   onOpenBookingWithProduct?: (product: FlooringProduct) => void;
 }
 
 export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   selectedProduct,
+  productsList = FLOORING_PRODUCTS,
   onSelectProduct,
   onOpenBookingWithProduct,
 }) => {
@@ -34,7 +36,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModalProduct, setActiveModalProduct] = useState<FlooringProduct | null>(null);
 
-  const filteredProducts = FLOORING_PRODUCTS.filter((prod) => {
+  const filteredProducts = productsList.filter((prod) => {
     if (prod.category !== activeTab) return false;
     if (toneFilter !== 'all' && prod.tone !== toneFilter) return false;
     if (searchQuery.trim() && !prod.name.toLowerCase().includes(searchQuery.toLowerCase())) {

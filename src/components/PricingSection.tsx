@@ -19,12 +19,14 @@ import {
 interface PricingSectionProps {
   model: FloorPlanModel;
   selectedProduct: FlooringProduct;
+  packagesList?: PricingPackage[];
   onOpenBookingWithPackage: (pkg: PricingPackage) => void;
 }
 
 export const PricingSection: React.FC<PricingSectionProps> = ({
   model,
   selectedProduct,
+  packagesList = PRICING_PACKAGES,
   onOpenBookingWithPackage,
 }) => {
   const { lang, t } = useLanguage();
@@ -48,7 +50,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
         {/* 4 Package Cards Grid matching Slide 4 & 5 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 items-stretch">
-          {PRICING_PACKAGES.map((pkg) => {
+          {packagesList.map((pkg) => {
             const isHighlighted = pkg.isBestValue || pkg.isPremium;
 
             return (

@@ -19,6 +19,7 @@ import {
 interface RoomVisualizerProps {
   model: FloorPlanModel;
   selectedProduct: FlooringProduct;
+  productsList?: FlooringProduct[];
   onSelectProduct: (product: FlooringProduct) => void;
   onOpenBooking?: () => void;
 }
@@ -26,6 +27,7 @@ interface RoomVisualizerProps {
 export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
   model,
   selectedProduct,
+  productsList = FLOORING_PRODUCTS,
   onSelectProduct,
   onOpenBooking,
 }) => {
@@ -33,7 +35,7 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
   const [toneFilter, setToneFilter] = useState<string>('all');
   const [selectedViewMode, setSelectedViewMode] = useState<'room' | 'plank' | 'stairs'>('room');
 
-  const filteredProducts = FLOORING_PRODUCTS.filter((prod) => {
+  const filteredProducts = productsList.filter((prod) => {
     if (toneFilter !== 'all' && prod.tone !== toneFilter) return false;
     return true;
   });

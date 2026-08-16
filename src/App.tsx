@@ -184,6 +184,7 @@ export default function App() {
               <RoomVisualizer
                 model={selectedModel}
                 selectedProduct={selectedProduct}
+                productsList={liveProducts}
                 onSelectProduct={(prod) => setSelectedProduct(prod)}
                 onOpenBooking={() => setIsBookingOpen(true)}
               />
@@ -192,6 +193,7 @@ export default function App() {
               <PricingSection
                 model={selectedModel}
                 selectedProduct={selectedProduct}
+                packagesList={livePackages}
                 onOpenBookingWithPackage={handleSelectPackageAndBook}
               />
             </>
@@ -203,6 +205,7 @@ export default function App() {
           {/* Section 6: Comprehensive Product Catalog & Technical Specs */}
           <ProductCatalog
             selectedProduct={selectedProduct}
+            productsList={liveProducts}
             onSelectProduct={(prod) => {
               setSelectedProduct(prod);
               const visEl = document.getElementById('visualizer');
