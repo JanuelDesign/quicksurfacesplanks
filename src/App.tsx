@@ -10,11 +10,14 @@ import { ProductCatalog } from './components/ProductCatalog';
 import { GallerySection } from './components/GallerySection';
 import { ConversionFooter } from './components/ConversionFooter';
 import { BookingModal } from './components/BookingModal';
+import { StepWizard } from './components/StepWizard';
 import { FLOOR_PLAN_MODELS, COMMUNITIES } from './data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from './data/products';
 import { FloorPlanModel, FlooringProduct, PricingPackage, ResidentialCommunity } from './types';
+import { Sparkles, LayoutList, CheckCircle } from 'lucide-react';
 
 export default function App() {
+  const [viewMode, setViewMode] = useState<'interactive' | 'wizard'>('wizard');
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(COMMUNITIES[0]);
   const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(FLOOR_PLAN_MODELS[0]);
   const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(FLOORING_PRODUCTS[2]); // Trustable Oak default
@@ -96,30 +99,81 @@ export default function App() {
             onOpenBooking={() => setIsBookingOpen(true)}
           />
 
-          {/* Section 2: Architectural 3D Horizontal Cutaway & 2D CAD Blueprint */}
-          <div id="model-section">
-            <ModelHeaderAndRender
-              model={selectedModel}
-              selectedProduct={selectedProduct}
-              onOpenBooking={() => setIsBookingOpen(true)}
-              onSelectProduct={setSelectedProduct}
-            />
+          {/* Mode Switcher Banner: Wizard (Step by Step) vs Full Exploration */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 relative z-20 mb-8">
+            <div className="bg-[#111827] border border-[#1F2937] p-2 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 px-3">
+                <span className="w-2 h-2 rounded-full bg-[#FF8407] animate-pulse"></span>
+                <span className="text-xs font-bold text-white">
+                  ¿Cómo prefieres cotizar tu proyecto?
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 w-full sm:w-auto bg-[#000000] p-1 rounded-xl border border-white/10">
+                <button
+                  onClick={() => setViewMode('wizard')}
+                  className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    viewMode === 'wizard'
+                      ? 'bg-[#FF8407] text-black shadow-md'
+                      : 'text-[#94A3B8] hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Cotizador Paso a Paso (Recomendado)</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('interactive')}
+                  className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    viewMode === 'interactive'
+                      ? 'bg-[#FF8407] text-black shadow-md'
+                      : 'text-[#94A3B8] hover:text-white'
+                  }`}
+                >
+                  <LayoutList className="w-3.5 h-3.5" />
+                  <span>Explorar Todo en 1 Página</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Section 3: Room Color Visualizer Studio (Focused on Colors + External Tool Button) */}
-          <RoomVisualizer
-            model={selectedModel}
-            selectedProduct={selectedProduct}
-            onSelectProduct={(prod) => setSelectedProduct(prod)}
-            onOpenBooking={() => setIsBookingOpen(true)}
-          />
+          {/* Dynamic Content based on ViewMode */}
+          {viewMode === 'wizard' ? (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+              <StepWizard
+                initialCommunity={selectedCommunity}
+                initialModel={selectedModel}
+                initialProduct={selectedProduct}
+                initialPackage={selectedPackage}
+                onClose={() => setViewMode('interactive')}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Section 2: Architectural 3D Horizontal Cutaway & 2D CAD Blueprint */}
+              <div id="model-section">
+                <ModelHeaderAndRender
+                  model={selectedModel}
+                  selectedProduct={selectedProduct}
+                  onOpenBooking={() => setIsBookingOpen(true)}
+                  onSelectProduct={setSelectedProduct}
+                />
+              </div>
 
-          {/* Section 4: 4 Pricing Packages & Breakdown Table */}
-          <PricingSection
-            model={selectedModel}
-            selectedProduct={selectedProduct}
-            onOpenBookingWithPackage={handleSelectPackageAndBook}
-          />
+              {/* Section 3: Room Color Visualizer Studio (Focused on Colors + External Tool Button) */}
+              <RoomVisualizer
+                model={selectedModel}
+                selectedProduct={selectedProduct}
+                onSelectProduct={(prod) => setSelectedProduct(prod)}
+                onOpenBooking={() => setIsBookingOpen(true)}
+              />
+
+              {/* Section 4: 4 Pricing Packages & Breakdown Table */}
+              <PricingSection
+                model={selectedModel}
+                selectedProduct={selectedProduct}
+                onOpenBookingWithPackage={handleSelectPackageAndBook}
+              />
+            </>
+          )}
 
           {/* Section 5: Project Scope & 4-Step Process */}
           <ProjectScopeSection model={selectedModel} />
