@@ -276,6 +276,26 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                           8.0mm / 22 Mil
                         </span>
                       )}
+                      {prod.stockStatus === 'low_stock' && (
+                        <span className="text-[10px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-full shadow-sm">
+                          Poco Stock
+                        </span>
+                      )}
+                      {prod.stockStatus === 'out_of_stock' && (
+                        <span className="text-[10px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                          Agotado
+                        </span>
+                      )}
+                      {prod.stockStatus === 'coming_soon' && (
+                        <span className="text-[10px] font-black bg-purple-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                          Próximamente
+                        </span>
+                      )}
+                      {(!prod.stockStatus || prod.stockStatus === 'in_stock') && (
+                        <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow-sm">
+                          En Stock
+                        </span>
+                      )}
                     </div>
 
                     {isCurrentlyVisualized && (

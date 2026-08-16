@@ -151,6 +151,9 @@ export async function fetchLiveDatabase() {
         const plankImgIdx = header.indexOf('plank_image_url');
         const roomImgIdx = header.indexOf('room_preview_url');
         const stairImgIdx = header.indexOf('staircase_preview_url');
+        const stockIdx = header.findIndex(
+          (h) => h === 'in_stock' || h === 'stock' || h === 'status' || h === 'availability' || h === 'inventory'
+        );
 
         const parsedProducts: FlooringProduct[] = [];
         for (let i = 1; i < rows.length; i++) {
@@ -164,6 +167,25 @@ export async function fetchLiveDatabase() {
           const plankImg = normalizeImageUrl(r[plankImgIdx]) || DEFAULT_PRODUCTS[0].plankImageUrl;
           const roomImg = normalizeImageUrl(r[roomImgIdx]) || DEFAULT_PRODUCTS[0].roomPreviewUrl;
           const stairImg = normalizeImageUrl(r[stairImgIdx]) || DEFAULT_PRODUCTS[0].staircasePreviewUrl;
+
+          // Parse Stock Status
+          const rawStock = (stockIdx !== -1 && r[stockIdx] ? r[stockIdx].trim().toLowerCase() : 'in_stock');
+          let stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock' | 'coming_soon' = 'in_stock';
+          let inStockBool = true;
+
+          if (rawStock.includes('low') || rawStock.includes('pocas') || rawStock.includes('ultim')) {
+            stockStatus = 'low_stock';
+            inStockBool = true;
+          } else if (rawStock.includes('out') || rawStock.includes('agotad') || rawStock === 'false' || rawStock === '0' || rawStock === 'no') {
+            stockStatus = 'out_of_stock';
+            inStockBool = false;
+          } else if (rawStock.includes('soon') || rawStock.includes('proxim') || rawStock.includes('pronto')) {
+            stockStatus = 'coming_soon';
+            inStockBool = false;
+          } else {
+            stockStatus = 'in_stock';
+            inStockBool = true;
+          }
 
           parsedProducts.push({
             id: r[idIdx],
@@ -184,7 +206,10 @@ export async function fetchLiveDatabase() {
             secondaryColorHex: '#8b7355',
             grainStyle: 'Authentic European Oak',
             description: r[descIdx] || '',
-            inStock: true,
+            inStock: inStockBool,
+            stockStatus: stockStatus,
+            isLowStock: stockStatus === 'low_stock',
+            isComingSoon: stockStatus === 'coming_soon',
             plankImageUrl: plankImg,
             roomPreviewUrl: roomImg,
             staircasePreviewUrl: stairImg,

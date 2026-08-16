@@ -48,6 +48,8 @@ export type ResidentialCommunity = Community;
 
 export type FlooringCategory = '5.5mm' | '6mm' | '8mm';
 
+export type ProductStockStatus = 'in_stock' | 'low_stock' | 'out_of_stock' | 'coming_soon';
+
 export interface FlooringProduct {
   id: string;
   code: string;
@@ -68,6 +70,7 @@ export interface FlooringProduct {
   grainStyle: string;
   description: string;
   inStock: boolean;
+  stockStatus?: ProductStockStatus;
   isLowStock?: boolean;
   isComingSoon?: boolean;
   isNew?: boolean;
