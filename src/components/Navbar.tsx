@@ -29,25 +29,25 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#E2E8F0] shadow-xs font-sans transition-all">
       {/* Top micro-announcement bar */}
-      <div className="bg-[#000000] text-[#FFFFFF] text-[11px] py-1.5 px-4 font-semibold">
+      <div className="bg-[#000000] text-[#FFFFFF] text-[10px] sm:text-[11px] py-1 px-3 sm:px-4 font-semibold">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#FF8407] animate-pulse"></span>
-            <span className="font-bold text-[#FF8407]">
-              {lang === 'es' ? 'Homestead & Miami-Dade' : 'Miami-Dade & Homestead'}
+          <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF8407] animate-pulse shrink-0"></span>
+            <span className="font-bold text-[#FF8407] shrink-0">
+              {lang === 'es' ? 'Miami-Dade & Homestead' : 'Miami-Dade & Homestead'}
             </span>
-            <span className="hidden sm:inline text-[#94A3B8]">•</span>
-            <span className="hidden sm:inline text-[#CBD5E1]">
+            <span className="hidden sm:inline text-[#64748B]">•</span>
+            <span className="hidden sm:inline text-[#CBD5E1] truncate">
               {t('stairBadge')}
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-[#CBD5E1]">
+          <div className="flex items-center gap-3 text-[#CBD5E1] shrink-0">
             <a
               href="tel:7866583677"
-              className="hover:text-[#FF8407] transition-colors flex items-center gap-1 font-bold"
+              className="hover:text-[#FF8407] transition-colors flex items-center gap-1 font-bold text-[10px] sm:text-xs"
             >
-              <Phone className="w-3 h-3 text-[#FF8407]" />
+              <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FF8407]" />
               <span>(786) 658-3677</span>
             </a>
           </div>
@@ -55,14 +55,15 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo */}
-        <a href="#hero" className="flex items-center gap-3">
-          <Logo variant="dark" size="md" />
+        <a href="#hero" className="flex items-center shrink-0">
+          <Logo variant="dark" size="sm" showTagline={false} className="sm:hidden" />
+          <Logo variant="dark" size="md" showTagline={true} className="hidden sm:flex" />
         </a>
 
         {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-7 text-xs font-bold text-[#4B5563]">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs font-bold text-[#4B5563]">
           <a href="#models" className="hover:text-[#000000] transition-colors">
             {lang === 'es' ? 'Modelos & Planos' : 'Floor Plans & Models'}
           </a>
@@ -81,12 +82,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Right Controls: Language Selector + CTA */}
-        <div className="flex items-center gap-3">
-          {/* Prominent Language Switcher Button (EN / ES) */}
-          <div className="flex items-center bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Language Switcher Button (EN / ES) */}
+          <div className="flex items-center bg-[#F1F5F9] p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-[#E2E8F0] shadow-2xs">
             <button
               onClick={() => setLang('en')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
                 lang === 'en'
                   ? 'bg-[#000000] text-[#FFFFFF] shadow-xs'
                   : 'text-[#64748B] hover:text-[#000000]'
@@ -97,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => setLang('es')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
                 lang === 'es'
                   ? 'bg-[#000000] text-[#FFFFFF] shadow-xs'
                   : 'text-[#64748B] hover:text-[#000000]'
@@ -111,11 +112,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Quick Quote CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#FF8407] hover:bg-[#e67400] text-[#000000] font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-[#FF8407]/20 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#FF8407] hover:bg-[#e67400] text-[#000000] font-black text-xs flex items-center gap-1.5 shadow-sm shadow-[#FF8407]/20 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span className="hidden xs:inline">{t('getFreeQuote')}</span>
-            <span className="xs:hidden">Quote</span>
+            <span className="xs:hidden">{lang === 'es' ? 'Cotizar' : 'Quote'}</span>
           </button>
         </div>
       </div>
