@@ -26,6 +26,10 @@ interface StepWizardProps {
   initialModel?: FloorPlanModel;
   initialProduct?: FlooringProduct;
   initialPackage?: PricingPackage;
+  modelsList?: FloorPlanModel[];
+  productsList?: FlooringProduct[];
+  packagesList?: PricingPackage[];
+  isLiveSynced?: boolean;
   onClose?: () => void;
 }
 
@@ -34,6 +38,10 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   initialModel = FLOOR_PLAN_MODELS[0],
   initialProduct = FLOORING_PRODUCTS[2],
   initialPackage = PRICING_PACKAGES[2],
+  modelsList = FLOOR_PLAN_MODELS,
+  productsList = FLOORING_PRODUCTS,
+  packagesList = PRICING_PACKAGES,
+  isLiveSynced = false,
   onClose,
 }) => {
   const { lang } = useLanguage();
@@ -57,7 +65,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   });
 
   // Filter models based on community
-  const availableModels = FLOOR_PLAN_MODELS.filter((m) => m.communityId === selectedCommunity.id);
+  const availableModels = modelsList.filter((m) => m.communityId === selectedCommunity.id);
 
   // Step names
   const steps = [
@@ -246,7 +254,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 
             {/* Product Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {FLOORING_PRODUCTS.map((p) => {
+              {productsList.map((p) => {
                 const isSelected = selectedProduct.id === p.id;
                 return (
                   <div
@@ -311,7 +319,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {PRICING_PACKAGES.map((pkg) => {
+              {packagesList.map((pkg) => {
                 const isSelected = selectedPackage.id === pkg.id;
                 return (
                   <div

@@ -14,15 +14,33 @@ import { StepWizard } from './components/StepWizard';
 import { FLOOR_PLAN_MODELS, COMMUNITIES } from './data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from './data/products';
 import { FloorPlanModel, FlooringProduct, PricingPackage, ResidentialCommunity } from './types';
-import { Sparkles, LayoutList, CheckCircle } from 'lucide-react';
+import { fetchLiveDatabase } from './services/googleSheetSync';
+import { Sparkles, LayoutList, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'interactive' | 'wizard'>('wizard');
+  const [liveModels, setLiveModels] = useState<FloorPlanModel[]>(FLOOR_PLAN_MODELS);
+  const [liveProducts, setLiveProducts] = useState<FlooringProduct[]>(FLOORING_PRODUCTS);
+  const [livePackages, setLivePackages] = useState<PricingPackage[]>(PRICING_PACKAGES);
+  const [isSyncedWithSheet, setIsSyncedWithSheet] = useState<boolean>(false);
+
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(COMMUNITIES[0]);
   const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(FLOOR_PLAN_MODELS[0]);
   const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(FLOORING_PRODUCTS[2]); // Trustable Oak default
   const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(PRICING_PACKAGES[2]); // Standard Turnkey
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
+
+  // Sync with live Google Sheets on mount
+  useEffect(() => {
+    fetchLiveDatabase().then((data) => {
+      if (data.isLive) {
+        setLiveModels(data.models);
+        setLiveProducts(data.products);
+        setLivePackages(data.packages);
+        setIsSyncedWithSheet(true);
+      }
+    });
+  }, []);
 
   // Sync hash routing if present
   useEffect(() => {
@@ -143,6 +161,10 @@ export default function App() {
                 initialModel={selectedModel}
                 initialProduct={selectedProduct}
                 initialPackage={selectedPackage}
+                modelsList={liveModels}
+                productsList={liveProducts}
+                packagesList={livePackages}
+                isLiveSynced={isSyncedWithSheet}
                 onClose={() => setViewMode('interactive')}
               />
             </div>
