@@ -14,7 +14,6 @@ import {
   Layers,
   Sparkles,
   CheckCircle2,
-  ArrowRight,
   ArrowLeft,
   DollarSign,
   Phone,
@@ -22,17 +21,18 @@ import {
   Check,
   ChevronRight,
   ShieldCheck,
-  ExternalLink,
-  Maximize2,
   Eye,
   ZoomIn,
   Ruler,
-  HelpCircle,
+  Clock,
   Home,
   CheckCircle,
-  AlertCircle,
-  Clock,
+  HelpCircle,
+  FileText,
+  BadgePercent,
+  SlidersHorizontal,
   ChevronDown,
+  Info,
 } from 'lucide-react';
 
 interface StepWizardProps {
@@ -58,64 +58,71 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   isLiveSynced = false,
   onClose,
 }) => {
-  const { lang, t } = useLanguage();
+  const { lang } = useLanguage();
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Selections State
+  // Selections
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(initialCommunity);
   const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(initialModel);
   const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(initialProduct);
   const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(initialPackage);
 
-  // Visualizer Mode in Step 2: 'room' | 'plank' | 'stairs'
-  const [step2ViewMode, setStep2ViewMode] = useState<'room' | 'plank' | 'stairs'>('room');
-  const [categoryFilter, setCategoryFilter] = useState<'all' | '5.5mm' | '6mm' | '8mm'>('all');
+  // Step 1: 2D Modal / Drawer
+  const [showFloorPlanDetail, setShowFloorPlanDetail] = useState<boolean>(false);
+
+  // Step 2: View mode & Filters
+  const [viewMode3D, setViewMode3D] = useState<'room' | 'plank' | 'stairs'>('room');
+  const [thicknessFilter, setThicknessFilter] = useState<'all' | '5.5mm' | '6mm' | '8mm'>('all');
   const [toneFilter, setToneFilter] = useState<string>('all');
 
-  // Step 1: 2D plan view toggle ('diagram' | 'cad')
-  const [showFullPlan, setShowFullPlan] = useState<boolean>(false);
+  // Step 3: Package type filter
+  const [packageType, setPackageType] = useState<'all' | 'turnkey' | 'material'>('all');
 
-  // Fast Form State for final step
+  // Step 4: Booking Form
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     unitNumber: '',
-    preferredDate: '',
+    notes: '',
   });
 
-  // Filter models based on community
   const availableModels = modelsList.filter((m) => m.communityId === selectedCommunity.id);
 
-  // Filter products for Step 2
   const filteredProducts = productsList.filter((p) => {
-    if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
+    if (thicknessFilter !== 'all' && p.category !== thicknessFilter) return false;
     if (toneFilter !== 'all' && p.tone !== toneFilter) return false;
     return true;
   });
 
-  // Step metadata
-  const steps = [
-    { num: 1, label: lang === 'es' ? 'Comunidad & Modelo' : 'Community & Model', short: 'Modelo', icon: Building2 },
-    { num: 2, label: lang === 'es' ? 'Color & Render 3D' : 'Color & 3D Render', short: 'Piso 3D', icon: Layers },
-    { num: 3, label: lang === 'es' ? 'Escaleras & Paquete' : 'Stairs & Package', short: 'Paquete', icon: DollarSign },
-    { num: 4, label: lang === 'es' ? 'Resumen & WhatsApp' : 'Summary & Booking', short: 'Resumen', icon: Sparkles },
+  const filteredPackages = packagesList.filter((pkg) => {
+    if (packageType === 'turnkey') return pkg.isTurnkey;
+    if (packageType === 'material') return !pkg.isTurnkey;
+    return true;
+  });
+
+  const stepMeta = [
+    { num: 1, title: 'Comunidad & Modelo', subtitle: 'Selecciona tu casa', icon: Home },
+    { num: 2, title: 'Color & Textura SPC', subtitle: 'Prueba en render 3D', icon: Layers },
+    { num: 3, title: 'Paquete de Instalación', subtitle: 'Llave en mano o material', icon: DollarSign },
+    { num: 4, title: 'Resumen & WhatsApp', subtitle: 'Agenda muestra gratis', icon: Sparkles },
   ];
 
   const handleNext = () => {
     if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-      window.scrollTo({ top: 300, behavior: 'smooth' });
+      setCurrentStep((prev) => prev + 1);
+      const appEl = document.getElementById('step-wizard-container');
+      if (appEl) appEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      window.scrollTo({ top: 300, behavior: 'smooth' });
+      setCurrentStep((prev) => prev - 1);
+      const appEl = document.getElementById('step-wizard-container');
+      if (appEl) appEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  // Helper for stock status badge
   const renderStockBadge = (prod: FlooringProduct) => {
     const status = prod.stockStatus || (prod.inStock ? 'in_stock' : 'out_of_stock');
     switch (status) {
@@ -137,7 +144,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
         return (
           <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">
             <Clock className="w-2.5 h-2.5" />
-            <span>{lang === 'es' ? 'Próximamente' : 'Coming Soon'}</span>
+            <span>{lang === 'es' ? 'Pronto' : 'Coming Soon'}</span>
           </span>
         );
       case 'in_stock':
@@ -151,152 +158,144 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     }
   };
 
-  // WhatsApp link generation
   const generateWhatsAppUrl = () => {
     const text = encodeURIComponent(
-      `Hola Quick Surfaces! 👋 Quiero confirmar la cotización de mi piso:\n\n` +
+      `Hola Quick Surfaces! 👋 Quiero agendar la inspección gratuita de mi piso:\n\n` +
       `🏢 *Conjunto:* ${selectedCommunity.name}\n` +
       `🏠 *Modelo:* ${selectedModel.name} (${selectedModel.sqft} sq ft, ${selectedModel.stepsCount} escalones)\n` +
       `🎨 *Piso SPC:* ${selectedProduct.name} (#${selectedProduct.code}) - ${selectedProduct.thickness} (${selectedProduct.wearLayer})\n` +
-      `📦 *Paquete Elegido:* ${selectedPackage.title} - $${selectedPackage.price.toLocaleString()}\n` +
+      `📦 *Paquete:* ${selectedPackage.title} - $${selectedPackage.price.toLocaleString()}\n` +
       `👤 *Cliente:* ${formData.fullName || 'Por definir'}\n` +
-      `📍 *Unidad/Dirección:* ${formData.unitNumber || 'Homestead, FL'}\n` +
+      `📍 *Unidad:* ${formData.unitNumber || 'Homestead, FL'}\n` +
       `📞 *Teléfono:* ${formData.phone || 'N/A'}\n` +
-      `📅 *Fecha Deseada:* ${formData.preferredDate || 'Lo antes posible'}`
+      `📝 *Notas:* ${formData.notes || 'Ninguna'}`
     );
     return `https://wa.me/17866583677?text=${text}`;
   };
 
+  const progressPercentage = (currentStep / 4) * 100;
+
   return (
-    <div className="w-full max-w-5xl mx-auto bg-[#FFFFFF] text-[#111827] rounded-3xl border border-[#E2E8F0] shadow-2xl overflow-hidden font-sans">
-      {/* ================= 1. Top App Header & Segmented Stepper ================= */}
-      <div className="bg-[#F8FAFC] border-b border-[#E2E8F0] px-4 py-3 sm:px-6 sm:py-4">
-        {/* Title Bar */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#FF8407] shrink-0"></span>
-            <h2 className="text-xs sm:text-sm font-black text-[#111827] uppercase tracking-wider truncate">
-              {lang === 'es' ? 'Cotizador Paso a Paso' : 'Interactive Estimator'}
-            </h2>
+    <div
+      id="step-wizard-container"
+      className="w-full max-w-4xl mx-auto bg-[#FFFFFF] text-[#0F172A] rounded-3xl border border-[#E2E8F0] shadow-2xl overflow-hidden font-sans flex flex-col min-h-[640px]"
+    >
+      {/* ================= NATIVE APP TOP BAR ================= */}
+      <div className="bg-[#FFFFFF] border-b border-[#F1F5F9] px-4 py-3 sm:px-6 sticky top-0 z-30">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {currentStep > 1 ? (
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer shrink-0"
+                aria-label="Volver al paso anterior"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-[#FF8407]/10 flex items-center justify-center text-[#FF8407] font-black text-xs shrink-0">
+                QS
+              </div>
+            )}
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF8407] block leading-tight">
+                Paso {currentStep} de 4
+              </span>
+              <h2 className="text-sm sm:text-base font-black text-[#0F172A] truncate leading-tight">
+                {stepMeta[currentStep - 1].title}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
             {isLiveSynced && (
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Google Sheets Live
+                Google Sheets
               </span>
             )}
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] font-bold px-2.5 py-1 bg-[#FFFFFF] text-[#FF8407] rounded-full border border-[#CBD5E1] shadow-xs">
-              {lang === 'es' ? `Paso ${currentStep} de 4` : `Step ${currentStep} of 4`}
-            </span>
+            <div className="text-right">
+              <span className="text-[10px] text-[#64748B] block font-bold">Total Estimado</span>
+              <span className="text-xs sm:text-sm font-black text-[#FF8407]">
+                ${selectedPackage.price.toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Segmented Stepper Buttons (Responsive, No Overflow, Touch Targets) */}
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-          {steps.map((s) => {
-            const Icon = s.icon;
-            const isActive = currentStep === s.num;
-            const isDone = currentStep > s.num;
-            return (
-              <button
-                key={s.num}
-                onClick={() => setCurrentStep(s.num)}
-                className={`py-2 px-1.5 sm:px-3 rounded-xl border transition-all flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-left ${
-                  isActive
-                    ? 'bg-[#FFFFFF] border-[#FF8407] text-[#FF8407] shadow-sm ring-1 ring-[#FF8407]'
-                    : isDone
-                    ? 'bg-[#F0FDF4] border-emerald-200 text-emerald-800'
-                    : 'bg-[#FFFFFF] border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-                    isActive
-                      ? 'bg-[#FF8407] text-white'
-                      : isDone
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-[#E2E8F0] text-[#475569]'
-                  }`}
-                >
-                  {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : s.num}
-                </div>
-                <span className="hidden sm:inline text-xs font-bold truncate text-[#111827]">
-                  {s.label}
-                </span>
-                <span className="inline sm:hidden text-[10px] font-bold truncate text-[#111827]">
-                  {s.short}
-                </span>
-              </button>
-            );
-          })}
+        {/* Progress Bar line */}
+        <div className="w-full bg-[#F1F5F9] h-1.5 rounded-full overflow-hidden">
+          <div
+            className="bg-[#FF8407] h-full transition-all duration-300 ease-out"
+            style={{ width: `${progressPercentage}%` }}
+          ></div>
         </div>
       </div>
 
-      {/* ================= 2. Screen-by-Screen Step Body ================= */}
-      <div className="p-4 sm:p-7 min-h-[480px] bg-[#FFFFFF]">
-        {/* ================= STEP 1: Comunidad y Modelo con Plano 2D CAD ================= */}
+      {/* ================= SCREEN CONTENT (STEP BY STEP) ================= */}
+      <div className="p-4 sm:p-7 flex-grow bg-[#FAFAFA]">
+        {/* ========================================================
+            SCREEN 1: COMMUNITY & MODEL (APP VIEW)
+        ======================================================== */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-fadeIn">
-            {/* Step intro */}
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF8407] block mb-1">
-                Paso 01 / 04
-              </span>
-              <h3 className="text-lg sm:text-2xl font-black text-[#111827] tracking-tight">
-                {lang === 'es' ? 'Selecciona tu Condominio y Modelo de Casa' : 'Select Your Community & Floor Plan'}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#64748B] mt-1">
-                {lang === 'es'
-                  ? 'Calculado exactamente para los 530 sq ft del segundo piso y los 15 escalones a medida.'
-                  : 'Pre-calibrated for the 530 sq ft 2nd floor area and 15 custom staircase steps.'}
-              </p>
-            </div>
-
-            {/* Sub-step 1A: Choose Community */}
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#475569] block mb-2">
-                1. {lang === 'es' ? 'Tu Conjunto Residencial' : 'Residential Community'}
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                {COMMUNITIES.map((c) => {
-                  const isSelected = selectedCommunity.id === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedCommunity(c);
-                        const first = modelsList.find((m) => m.communityId === c.id);
-                        if (first) setSelectedModel(first);
-                      }}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-[#FFF7ED] border-[#FF8407] shadow-sm ring-1 ring-[#FF8407]'
-                          : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] hover:bg-[#F1F5F9]'
-                      }`}
-                    >
-                      <div>
-                        <div className="text-xs font-black text-[#111827] leading-snug">{c.name}</div>
-                        <div className="text-[10px] text-[#64748B] mt-0.5">{c.city}, {c.state}</div>
-                      </div>
-                      {isSelected && (
-                        <div className="mt-2 self-end text-[10px] font-bold text-[#FF8407] flex items-center gap-1">
-                          <Check className="w-3 h-3" />
-                          <span>Seleccionado</span>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+            {/* Screen Banner */}
+            <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-black text-[#0F172A]">
+                  Elige tu Conjunto Residencial en Homestead
+                </h3>
+                <p className="text-xs text-[#64748B] mt-0.5">
+                  Precios y cortes arquitectónicos calibrados para cada modelo.
+                </p>
               </div>
+              <span className="text-xs font-black px-2.5 py-1 bg-[#FFF7ED] text-[#FF8407] rounded-xl border border-[#FF8407]/30 shrink-0">
+                5 Condominios
+              </span>
             </div>
 
-            {/* Sub-step 1B: Choose Model Card */}
+            {/* 1. Community Horizontal Selector Chips */}
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {COMMUNITIES.map((c) => {
+                const isSelected = selectedCommunity.id === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      setSelectedCommunity(c);
+                      const first = modelsList.find((m) => m.communityId === c.id);
+                      if (first) setSelectedModel(first);
+                    }}
+                    className={`px-4 py-3 rounded-2xl border text-left transition-all shrink-0 cursor-pointer min-w-[140px] flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
+                        : 'bg-[#FFFFFF] text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    <div className="text-xs font-black leading-tight">{c.name}</div>
+                    <div className={`text-[10px] mt-1 ${isSelected ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
+                      {c.city}, {c.state}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 2. Model Cards Screen Grid */}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#475569] block mb-2">
-                2. {lang === 'es' ? 'Modelo de Casa (2do Piso)' : 'House Model (2nd Floor)'}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#475569]">
+                  Modelos de 2do Piso en {selectedCommunity.name} ({availableModels.length})
+                </span>
+                <button
+                  onClick={() => setShowFloorPlanDetail(!showFloorPlanDetail)}
+                  className="text-xs font-bold text-[#FF8407] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>{showFloorPlanDetail ? 'Ocultar Plano 2D' : 'Ver Plano 2D CAD'}</span>
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {availableModels.map((m) => {
                   const isSelected = selectedModel.id === m.id;
@@ -304,37 +303,44 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                     <div
                       key={m.id}
                       onClick={() => setSelectedModel(m)}
-                      className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-[#FFF7ED] border-[#FF8407] shadow-md ring-1 ring-[#FF8407]'
-                          : 'bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9]'
+                          ? 'border-[#FF8407] shadow-lg ring-2 ring-[#FF8407]'
+                          : 'border-[#E2E8F0] hover:border-[#CBD5E1] shadow-xs'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-black text-sm text-[#111827]">{m.name}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FFFFFF] text-[#FF8407] border border-[#FF8407]/40 font-bold">
-                          {m.collection}
-                        </span>
-                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-black text-sm text-[#0F172A]">{m.name}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/30">
+                            {m.collection}
+                          </span>
+                        </div>
 
-                      <div className="grid grid-cols-3 gap-1.5 text-center my-2 py-2 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0]">
-                        <div>
-                          <span className="text-[9px] text-[#64748B] block">Superficie</span>
-                          <span className="text-xs font-black text-[#111827]">{m.sqft} sq ft</span>
+                        <div className="grid grid-cols-3 gap-1.5 text-center my-2.5 py-2 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                          <div>
+                            <span className="text-[9px] text-[#64748B] block font-semibold">Superficie</span>
+                            <span className="text-xs font-black text-[#0F172A]">{m.sqft} sq ft</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-[#64748B] block font-semibold">Escaleras</span>
+                            <span className="text-xs font-black text-[#0F172A]">{m.stepsCount} Pasos</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-[#64748B] block font-semibold">Dormitorios</span>
+                            <span className="text-xs font-black text-[#0F172A]">{m.bedrooms} Hab</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-[9px] text-[#64748B] block">Escalones</span>
-                          <span className="text-xs font-black text-[#111827]">{m.stepsCount} Pasos</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-[#64748B] block">Dormitorios</span>
-                          <span className="text-xs font-black text-[#111827]">{m.bedrooms} Hab</span>
-                        </div>
-                      </div>
 
-                      <div className="text-[11px] text-[#64748B] mt-1 flex items-center justify-between">
-                        <span className="truncate">{m.address}</span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-[#FF8407] shrink-0" />}
+                        <div className="text-[11px] text-[#64748B] flex items-center justify-between">
+                          <span className="truncate">{m.address}</span>
+                          {isSelected && (
+                            <span className="text-[10px] font-black text-[#FF8407] flex items-center gap-1 shrink-0">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                              <span>Elegido</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -342,115 +348,91 @@ export const StepWizard: React.FC<StepWizardProps> = ({
               </div>
             </div>
 
-            {/* Sub-step 1C: Integrated 2D CAD Blueprint & Room Breakdown */}
-            <div className="bg-[#F8FAFC] rounded-2xl p-4 sm:p-5 border border-[#E2E8F0]">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-md bg-[#111827] text-white text-[10px] font-black">
-                    PLANO 2D CAD
-                  </span>
-                  <h4 className="text-xs sm:text-sm font-black text-[#111827]">
-                    Distribución Arquitectónica: Modelo {selectedModel.name}
-                  </h4>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-[#FF8407]">
-                  <Ruler className="w-3.5 h-3.5" />
-                  <span>{selectedModel.sqft} sq ft Net Area • {selectedModel.stepsCount} Escalones</span>
-                </div>
-              </div>
-
-              {/* Blueprint rendering component */}
-              <div className="rounded-xl overflow-hidden border border-[#CBD5E1]">
-                <FloorPlanSVG model={selectedModel} selectedProduct={selectedProduct} />
-              </div>
-
-              {/* Room list badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
-                {selectedModel.rooms.slice(0, 4).map((r, idx) => (
-                  <div key={idx} className="bg-[#FFFFFF] p-2 rounded-xl border border-[#E2E8F0] flex items-center justify-between">
-                    <span className="font-bold text-[#111827] truncate">{r.name}</span>
-                    <span className="text-[10px] text-[#64748B] font-mono shrink-0 ml-1">{r.dimensions}</span>
+            {/* 3. Expandable / Collapsible 2D Floorplan CAD Viewer */}
+            {showFloorPlanDetail && (
+              <div className="bg-[#FFFFFF] rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-md animate-fadeIn">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-[#0F172A] text-white text-[10px] font-black">
+                      PLANO ARQUITECTÓNICO 2D
+                    </span>
+                    <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
+                      Modelo {selectedModel.name}
+                    </h4>
                   </div>
-                ))}
+                  <span className="text-xs font-bold text-[#FF8407]">
+                    {selectedModel.sqft} sq ft • {selectedModel.stepsCount} Escalones
+                  </span>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-[#CBD5E1]">
+                  <FloorPlanSVG model={selectedModel} selectedProduct={selectedProduct} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
-        {/* ================= STEP 2: Color de Piso SPC & Render 3D en Vivo ================= */}
+        {/* ========================================================
+            SCREEN 2: SPC COLOR & 3D VISUALIZER (APP VIEW)
+        ======================================================== */}
         {currentStep === 2 && (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Header */}
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF8407] block mb-1">
-                Paso 02 / 04
-              </span>
-              <h3 className="text-lg sm:text-2xl font-black text-[#111827] tracking-tight">
-                {lang === 'es' ? 'Color de Piso SPC & Visualizador 3D' : 'SPC Flooring Color & 3D Visualizer'}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#64748B] mt-1">
-                {lang === 'es'
-                  ? 'Haz clic en cualquier muestra para ver el render de la habitación terminado y consultar disponibilidad en tiempo real.'
-                  : 'Click any swatch to test the room render in real-time and check live stock.'}
-              </p>
-            </div>
-
-            {/* Main Interactive 3D / Plank View Box */}
-            <div className="bg-[#F8FAFC] rounded-2xl p-4 sm:p-5 border border-[#E2E8F0]">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                {/* View switcher buttons */}
-                <div className="flex bg-[#FFFFFF] p-1 rounded-xl border border-[#CBD5E1] shadow-xs">
+          <div className="space-y-5 animate-fadeIn">
+            {/* Top Interactive App Viewport */}
+            <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                {/* View switcher tabs */}
+                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
                   <button
-                    onClick={() => setStep2ViewMode('room')}
+                    onClick={() => setViewMode3D('room')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      step2ViewMode === 'room'
-                        ? 'bg-[#111827] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#111827]'
+                      viewMode3D === 'room'
+                        ? 'bg-[#0F172A] text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-[#0F172A]'
                     }`}
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span>{lang === 'es' ? 'Render 3D Habitación' : 'Room Render'}</span>
+                    <span>Render 3D Habitación</span>
                   </button>
                   <button
-                    onClick={() => setStep2ViewMode('plank')}
+                    onClick={() => setViewMode3D('plank')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      step2ViewMode === 'plank'
-                        ? 'bg-[#111827] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#111827]'
+                      viewMode3D === 'plank'
+                        ? 'bg-[#0F172A] text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-[#0F172A]'
                     }`}
                   >
                     <ZoomIn className="w-3.5 h-3.5 text-[#FF8407]" />
-                    <span>{lang === 'es' ? 'Foto de Tablón' : 'Plank Closeup'}</span>
+                    <span>Foto Tablón</span>
                   </button>
                   <button
-                    onClick={() => setStep2ViewMode('stairs')}
+                    onClick={() => setViewMode3D('stairs')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                      step2ViewMode === 'stairs'
-                        ? 'bg-[#111827] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#111827]'
+                      viewMode3D === 'stairs'
+                        ? 'bg-[#0F172A] text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-[#0F172A]'
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    <span>{lang === 'es' ? 'Escaleras' : 'Stairs'}</span>
+                    <span>Escaleras</span>
                   </button>
                 </div>
 
-                {/* Stock Status Pill for currently selected */}
+                {/* Stock Status for Active Color */}
                 <div className="flex items-center gap-2">
                   {renderStockBadge(selectedProduct)}
-                  <span className="text-xs font-black text-[#111827] px-2.5 py-1 bg-[#FFFFFF] rounded-xl border border-[#CBD5E1]">
+                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
                     #{selectedProduct.code} {selectedProduct.name}
                   </span>
                 </div>
               </div>
 
-              {/* Viewport Image */}
-              <div className="relative h-64 sm:h-80 w-full rounded-xl overflow-hidden bg-[#E2E8F0] border border-[#CBD5E1]">
+              {/* Viewport Frame */}
+              <div className="relative h-56 sm:h-72 w-full rounded-xl overflow-hidden bg-[#E2E8F0] border border-[#CBD5E1]">
                 <img
                   src={
-                    step2ViewMode === 'room'
+                    viewMode3D === 'room'
                       ? selectedProduct.roomPreviewUrl || selectedProduct.imageUrl
-                      : step2ViewMode === 'plank'
+                      : viewMode3D === 'plank'
                       ? selectedProduct.plankImageUrl || selectedProduct.imageUrl
                       : selectedProduct.staircasePreviewUrl || selectedProduct.imageUrl
                   }
@@ -459,209 +441,213 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                   className="w-full h-full object-cover transition-all duration-300"
                 />
 
-                {/* Floating Spec Tag */}
-                <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-black/75 backdrop-blur-md text-white border border-white/10 text-xs">
+                {/* Spec Tag Overlay */}
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between p-2.5 rounded-xl bg-black/80 backdrop-blur-md text-white border border-white/10 text-xs">
                   <div className="flex items-center gap-2">
                     <span
                       className="w-4 h-4 rounded-full border border-white shrink-0 shadow-sm"
                       style={{ backgroundColor: selectedProduct.colorHex }}
                     ></span>
                     <span className="font-black truncate">{selectedProduct.name}</span>
-                    <span className="text-white/70">({selectedProduct.collectionName})</span>
+                    <span className="text-white/70 text-[11px] hidden sm:inline">({selectedProduct.collectionName})</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px]">
+                  <div className="flex items-center gap-1.5 text-[11px]">
                     <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
                     <span>•</span>
-                    <span>{selectedProduct.wearLayer} Wear Layer</span>
-                    <span>•</span>
-                    <span>{selectedProduct.padding}</span>
+                    <span>{selectedProduct.wearLayer}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Filters Bar */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                {/* Category Thickness Filter */}
-                <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] text-xs">
-                  {[
-                    { id: 'all', label: 'Todos (13)' },
-                    { id: '5.5mm', label: '5.5mm Select (8)' },
-                    { id: '6mm', label: '6.0mm XL (1)' },
-                    { id: '8mm', label: '8.0mm Luxury (4)' },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setCategoryFilter(tab.id as any)}
-                      className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                        categoryFilter === tab.id
-                          ? 'bg-[#FFFFFF] text-[#111827] shadow-xs'
-                          : 'text-[#64748B] hover:text-[#111827]'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Tone Filter */}
-                <div className="flex flex-wrap items-center gap-1 text-[11px]">
-                  {[
-                    { id: 'all', label: 'Todos' },
-                    { id: 'natural', label: 'Natural Oak' },
-                    { id: 'warm', label: 'Cálido' },
-                    { id: 'cool', label: 'Gris / Frío' },
-                    { id: 'dark', label: 'Oscuro' },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setToneFilter(t.id)}
-                      className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                        toneFilter === t.id
-                          ? 'bg-[#111827] text-white'
-                          : 'bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] hover:bg-[#F1F5F9]'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
+            {/* Thickness & Tone Filter Pills */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1 bg-[#FFFFFF] p-1 rounded-xl border border-[#E2E8F0] text-xs">
+                {[
+                  { id: 'all', label: 'Todos (13)' },
+                  { id: '5.5mm', label: '5.5mm Select (8)' },
+                  { id: '6mm', label: '6.0mm XL (1)' },
+                  { id: '8mm', label: '8.0mm Flagship (4)' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setThicknessFilter(tab.id as any)}
+                    className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                      thicknessFilter === tab.id
+                        ? 'bg-[#0F172A] text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-[#0F172A]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Responsive Swatch Grid (2-col mobile, 4-col desktop) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                {filteredProducts.map((p) => {
-                  const isSelected = selectedProduct.id === p.id;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => setSelectedProduct(p)}
-                      className={`p-2.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-[#FFF7ED] border-[#FF8407] shadow-md ring-1 ring-[#FF8407]'
-                          : 'bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9]'
-                      }`}
-                    >
-                      {/* Photo preview */}
-                      <div className="relative h-20 w-full rounded-xl overflow-hidden mb-2 bg-[#E2E8F0] border border-[#CBD5E1]">
-                        <img
-                          src={p.plankImageUrl || p.imageUrl}
-                          alt={p.name}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <div
-                          className="absolute bottom-0 left-0 right-0 h-1"
-                          style={{ backgroundColor: p.colorHex }}
-                        ></div>
-                        {isSelected && (
-                          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FF8407] text-white flex items-center justify-center shadow-sm">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
+              <div className="flex items-center gap-1 text-[11px]">
+                {[
+                  { id: 'all', label: 'Todos' },
+                  { id: 'natural', label: 'Natural' },
+                  { id: 'warm', label: 'Cálido' },
+                  { id: 'cool', label: 'Gris' },
+                  { id: 'dark', label: 'Oscuro' },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setToneFilter(t.id)}
+                    className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                      toneFilter === t.id
+                        ? 'bg-[#FF8407] text-black font-bold'
+                        : 'bg-[#FFFFFF] text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Swatches Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {filteredProducts.map((p) => {
+                const isSelected = selectedProduct.id === p.id;
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedProduct(p)}
+                    className={`p-2.5 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between ${
+                      isSelected
+                        ? 'border-[#FF8407] shadow-lg ring-2 ring-[#FF8407] bg-[#FFF7ED]'
+                        : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <div className="relative h-20 w-full rounded-xl overflow-hidden mb-2 bg-[#E2E8F0] border border-[#CBD5E1]">
+                      <img
+                        src={p.plankImageUrl || p.imageUrl}
+                        alt={p.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-1"
+                        style={{ backgroundColor: p.colorHex }}
+                      ></div>
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FF8407] text-white flex items-center justify-center shadow-sm">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-black text-[#0F172A] truncate">{p.name}</span>
+                        <span className="text-[10px] text-[#64748B] font-bold shrink-0">#{p.code}</span>
                       </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-black text-[#111827] truncate">{p.name}</span>
-                          <span className="text-[10px] text-[#64748B] font-bold shrink-0">#{p.code}</span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-1.5">
-                          <span>{p.thickness}</span>
-                          <span>{p.wearLayer}</span>
-                        </div>
-
-                        {/* Stock Badge */}
-                        <div className="pt-1.5 border-t border-[#E2E8F0] flex items-center justify-between">
-                          {renderStockBadge(p)}
-                        </div>
+                      <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-1.5">
+                        <span>{p.thickness}</span>
+                        <span>{p.wearLayer}</span>
+                      </div>
+                      <div className="pt-1.5 border-t border-[#F1F5F9] flex items-center justify-between">
+                        {renderStockBadge(p)}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* ================= STEP 3: Escaleras & Paquetes de Instalación ================= */}
+        {/* ========================================================
+            SCREEN 3: STAIRCASE & PACKAGES (APP VIEW)
+        ======================================================== */}
         {currentStep === 3 && (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Header */}
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF8407] block mb-1">
-                Paso 03 / 04
-              </span>
-              <h3 className="text-lg sm:text-2xl font-black text-[#111827] tracking-tight">
-                {lang === 'es' ? 'Escaleras & Paquete de Instalación' : 'Stairs & Installation Packages'}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#64748B] mt-1">
-                {lang === 'es'
-                  ? 'Paquetes completos Llave en Mano con mano de obra certificada o kits de Solo Material entregados a tu puerta.'
-                  : 'Turnkey all-inclusive packages with certified installation or Material-Only kits.'}
-              </p>
-            </div>
-
-            {/* Staircase Feature Spotlight Card */}
-            <div className="bg-[#FFF7ED] rounded-2xl p-4 sm:p-5 border border-[#FF8407]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
+          <div className="space-y-5 animate-fadeIn">
+            {/* Staircase Banner */}
+            <div className="bg-[#FFFFFF] rounded-2xl p-4 border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded-full bg-[#FF8407] text-white text-[10px] font-black uppercase">
-                    INCLUIDO EN TODOS LOS MODELOS
+                    15 ESCALONES INCLUIDOS
                   </span>
-                  <span className="text-xs font-bold text-[#111827]">15 Escalones a Medida</span>
+                  <span className="text-xs font-bold text-[#0F172A]">Acabado Flush Stair Nose</span>
                 </div>
-                <h4 className="text-sm sm:text-base font-black text-[#111827]">
-                  Sistema de Gradas con Nariz Flush Stair Nose Integrada
-                </h4>
-                <p className="text-xs text-[#64748B] max-w-xl">
-                  Eliminamos los bordes plásticos sobrepuestos. Nuestras narices de escalón quedan al ras, con corte a inglete en taller y pad acústico de alta densidad.
+                <p className="text-xs text-[#64748B]">
+                  Nariz de escalón al ras sin bordes sobrepuestos, con corte a inglete en taller y amortiguación EVA.
                 </p>
               </div>
-
-              <div className="flex items-center gap-2 shrink-0 bg-white px-3 py-2 rounded-xl border border-[#FF8407]/30 shadow-xs">
-                <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                <div className="text-left">
-                  <span className="text-[10px] text-[#64748B] block font-bold">Garantía Residencial</span>
-                  <span className="text-xs font-black text-[#111827]">25 Años de Fábrica</span>
-                </div>
+              <div className="flex items-center gap-1.5 bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-[#E2E8F0] shrink-0 text-xs font-bold text-[#0F172A]">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>Garantía 25 Años</span>
               </div>
             </div>
 
-            {/* Packages Grid */}
+            {/* Segmented Filter (Turnkey vs Material) */}
+            <div className="flex bg-[#FFFFFF] p-1 rounded-2xl border border-[#E2E8F0] shadow-xs">
+              <button
+                onClick={() => setPackageType('all')}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  packageType === 'all'
+                    ? 'bg-[#0F172A] text-white shadow-xs'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
+                }`}
+              >
+                Todos los Paquetes (4)
+              </button>
+              <button
+                onClick={() => setPackageType('turnkey')}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  packageType === 'turnkey'
+                    ? 'bg-[#FF8407] text-black shadow-xs'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
+                }`}
+              >
+                ✨ Llave en Mano (Instalado)
+              </button>
+              <button
+                onClick={() => setPackageType('material')}
+                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  packageType === 'material'
+                    ? 'bg-[#0F172A] text-white shadow-xs'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
+                }`}
+              >
+                📦 Solo Material
+              </button>
+            </div>
+
+            {/* Package Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {packagesList.map((pkg) => {
+              {filteredPackages.map((pkg) => {
                 const isSelected = selectedPackage.id === pkg.id;
                 return (
                   <div
                     key={pkg.id}
                     onClick={() => setSelectedPackage(pkg)}
-                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative ${
+                    className={`p-5 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between relative ${
                       isSelected
-                        ? 'bg-[#FFF7ED] border-[#FF8407] shadow-lg ring-2 ring-[#FF8407]'
-                        : 'bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9]'
+                        ? 'border-[#FF8407] shadow-xl ring-2 ring-[#FF8407] bg-[#FFF7ED]'
+                        : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
                     }`}
                   >
                     {pkg.badge && (
-                      <span className="absolute top-3 right-3 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#111827] text-[#FF8407] shadow-xs">
+                      <span className="absolute top-3 right-3 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#0F172A] text-[#FF8407] shadow-xs">
                         {pkg.badge}
                       </span>
                     )}
 
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-wider text-[#64748B] block mb-1">
-                        {pkg.isTurnkey ? (lang === 'es' ? 'Llave en Mano (Instalado)' : 'Turnkey Installed') : (lang === 'es' ? 'Solo Material' : 'Material Only')}
+                        {pkg.isTurnkey ? 'Llave en Mano (Instalado)' : 'Solo Material (Entrega a Puerta)'}
                       </span>
-                      <h4 className="text-base font-black text-[#111827]">{pkg.title}</h4>
-                      <p className="text-xs text-[#64748B] mt-1 mb-3">{pkg.tagline}</p>
+                      <h4 className="text-base font-black text-[#0F172A]">{pkg.title}</h4>
+                      <p className="text-xs text-[#64748B] mt-0.5 mb-3">{pkg.tagline}</p>
 
                       <div className="text-2xl sm:text-3xl font-black text-[#FF8407] mb-3">
                         ${pkg.price.toLocaleString()}
                         <span className="text-xs font-normal text-[#64748B] ml-1.5">
-                          {pkg.isTurnkey ? (lang === 'es' ? 'Total Instalado' : 'Total Installed') : (lang === 'es' ? 'Total Material' : 'Total Material')}
+                          {pkg.isTurnkey ? 'Total con Mano de Obra' : 'Total Materiales'}
                         </span>
                       </div>
 
@@ -676,14 +662,14 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                     </div>
 
                     <button
-                      className={`w-full py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      className={`w-full py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                         isSelected
-                          ? 'bg-[#FF8407] text-white shadow-md'
-                          : 'bg-[#FFFFFF] border border-[#CBD5E1] text-[#111827] hover:bg-[#F8FAFC]'
+                          ? 'bg-[#FF8407] text-black shadow-md'
+                          : 'bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] hover:bg-[#F1F5F9]'
                       }`}
                     >
                       {isSelected ? <Check className="w-4 h-4" /> : null}
-                      <span>{isSelected ? (lang === 'es' ? 'Paquete Seleccionado' : 'Selected Package') : (lang === 'es' ? 'Elegir Este Paquete' : 'Select Package')}</span>
+                      <span>{isSelected ? 'Paquete Seleccionado' : 'Seleccionar Este Paquete'}</span>
                     </button>
                   </div>
                 );
@@ -692,98 +678,85 @@ export const StepWizard: React.FC<StepWizardProps> = ({
           </div>
         )}
 
-        {/* ================= STEP 4: Resumen Ejecutivo & WhatsApp Instantáneo ================= */}
+        {/* ========================================================
+            SCREEN 4: SUMMARY & WHATSAPP (APP VIEW)
+        ======================================================== */}
         {currentStep === 4 && (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Header */}
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF8407] block mb-1">
-                Paso 04 / 04
-              </span>
-              <h3 className="text-lg sm:text-2xl font-black text-[#111827] tracking-tight">
-                {lang === 'es' ? 'Resumen Ejecutivo & Agendar Inspección' : 'Executive Summary & In-Home Booking'}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#64748B] mt-1">
-                {lang === 'es'
-                  ? 'Revisa los detalles de tu proyecto y envía tu solicitud directamente a nuestro equipo técnico por WhatsApp.'
-                  : 'Review project details and instantly dispatch your estimate via WhatsApp.'}
-              </p>
-            </div>
-
-            {/* Executive Receipt Card */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-5 sm:p-6 rounded-2xl">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4 mb-4">
+          <div className="space-y-5 animate-fadeIn">
+            {/* Digital Order Slip / Invoice Ticket */}
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] p-5 sm:p-6 rounded-2xl shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#F1F5F9] pb-4 mb-4">
                 <div>
                   <span className="text-xs text-[#FF8407] font-black uppercase tracking-wider block">
                     {selectedCommunity.name}
                   </span>
-                  <h4 className="text-lg sm:text-xl font-black text-[#111827]">
+                  <h4 className="text-lg sm:text-xl font-black text-[#0F172A]">
                     Modelo {selectedModel.name} (2do Piso)
                   </h4>
                   <span className="text-xs text-[#64748B]">
                     {selectedModel.address} • {selectedModel.sqft} sq ft • {selectedModel.stepsCount} Pasos de Escalera
                   </span>
                 </div>
-                <div className="text-left sm:text-right">
-                  <span className="text-xs text-[#64748B] block">Precio Total Cerrado</span>
-                  <span className="text-2xl sm:text-3xl font-black text-[#FF8407]">
+                <div className="text-left sm:text-right bg-[#FFF7ED] p-3 rounded-xl border border-[#FF8407]/30">
+                  <span className="text-[10px] text-[#64748B] block font-bold uppercase">Precio Total Cerrado</span>
+                  <span className="text-2xl font-black text-[#FF8407]">
                     ${selectedPackage.price.toLocaleString()}
                   </span>
                 </div>
               </div>
 
-              {/* Specs Breakdown Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
-                <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Piso Seleccionado</span>
-                  <span className="font-black text-[#111827]">{selectedProduct.name}</span>
+              {/* Specs Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-4">
+                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Piso Elegido</span>
+                  <span className="font-black text-[#0F172A]">{selectedProduct.name}</span>
                   <div className="mt-1">{renderStockBadge(selectedProduct)}</div>
                 </div>
-                <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Especificaciones SPC</span>
-                  <span className="font-bold text-[#111827]">{selectedProduct.thickness}</span>
+                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Especificación</span>
+                  <span className="font-bold text-[#0F172A]">{selectedProduct.thickness}</span>
                   <span className="text-[10px] text-[#64748B] block">{selectedProduct.wearLayer} Wear Layer</span>
                 </div>
-                <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0]">
+                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
                   <span className="text-[#64748B] block text-[10px] uppercase font-bold">Escaleras</span>
-                  <span className="font-bold text-[#111827]">15 Pasos Completos</span>
+                  <span className="font-bold text-[#0F172A]">15 Pasos Completos</span>
                   <span className="text-[10px] text-emerald-700 block font-semibold">Flush Stair Nose</span>
                 </div>
-                <div className="p-3 bg-[#FFFFFF] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Tipo de Paquete</span>
-                  <span className="font-black text-[#111827]">{selectedPackage.title}</span>
+                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Paquete</span>
+                  <span className="font-black text-[#0F172A] truncate block">{selectedPackage.title}</span>
                   <span className="text-[10px] text-[#64748B] block">{selectedPackage.isTurnkey ? 'Llave en Mano' : 'Material'}</span>
                 </div>
               </div>
 
-              {/* Inclusions Checklist */}
-              <div className="bg-[#FFFFFF] p-3.5 rounded-xl border border-[#E2E8F0]">
-                <span className="text-[11px] font-bold text-[#111827] block mb-2">Servicios y Garantías Incluidas:</span>
+              {/* Inclusions */}
+              <div className="bg-[#F8FAFC] p-3.5 rounded-xl border border-[#E2E8F0]">
+                <span className="text-[11px] font-bold text-[#0F172A] block mb-2">Servicios y Garantías Incluidas:</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#475569]">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Desmonte y retiro de alfombra existente</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Nivelación y preparación de subsuelo</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Instalación de molduras de cuarto de bocel</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Garantía de 25 años de fábrica en el SPC</span>
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Garantía de 25 años en piso SPC de fábrica</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Quick Contact Form */}
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-5 sm:p-6 rounded-2xl">
-              <h4 className="text-sm font-black text-[#111827] mb-3">
-                {lang === 'es' ? 'Datos para Agendar Muestra en Casa e Inspección' : 'Schedule In-Home Sample Review'}
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] p-5 rounded-2xl shadow-sm">
+              <h4 className="text-sm font-black text-[#0F172A] mb-3">
+                Datos de Contacto para Inspección y Muestra Gratuita en Casa
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
@@ -793,7 +766,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                     placeholder="Ej. Carlos Martínez"
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full bg-[#FFFFFF] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#111827] placeholder-[#94A3B8] focus:border-[#FF8407] outline-none"
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
                   />
                 </div>
                 <div>
@@ -803,7 +776,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                     placeholder="(786) 000-0000"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-[#FFFFFF] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#111827] placeholder-[#94A3B8] focus:border-[#FF8407] outline-none"
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
                   />
                 </div>
                 <div>
@@ -813,14 +786,14 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                     placeholder="Ej. Apt 204 / Calle..."
                     value={formData.unitNumber}
                     onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                    className="w-full bg-[#FFFFFF] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#111827] placeholder-[#94A3B8] focus:border-[#FF8407] outline-none"
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
               <a
                 href={generateWhatsAppUrl()}
                 target="_blank"
@@ -828,11 +801,11 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                 className="flex-1 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>{lang === 'es' ? 'Enviar Cotización por WhatsApp' : 'Send Estimate via WhatsApp'}</span>
+                <span>Enviar Cotización por WhatsApp</span>
               </a>
               <a
                 href="tel:7866583677"
-                className="py-3.5 px-6 rounded-xl bg-[#FFFFFF] hover:bg-[#F1F5F9] text-[#111827] font-black text-xs sm:text-sm flex items-center justify-center gap-2 border border-[#CBD5E1] transition-all cursor-pointer"
+                className="py-3.5 px-6 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#0F172A] font-black text-xs sm:text-sm flex items-center justify-center gap-2 border border-[#CBD5E1] transition-all cursor-pointer"
               >
                 <Phone className="w-4 h-4 text-[#FF8407]" />
                 <span>(786) 658-3677</span>
@@ -842,35 +815,35 @@ export const StepWizard: React.FC<StepWizardProps> = ({
         )}
       </div>
 
-      {/* ================= 3. Bottom Sticky Action Navigation Controls ================= */}
-      <div className="bg-[#F8FAFC] border-t border-[#E2E8F0] p-4 px-5 sm:px-7 flex items-center justify-between gap-3">
+      {/* ================= STICKY BOTTOM APP NAVIGATION ================= */}
+      <div className="bg-[#FFFFFF] border-t border-[#E2E8F0] p-3 sm:p-4 px-4 sm:px-6 flex items-center justify-between gap-3 sticky bottom-0 z-30">
         <button
           onClick={handleBack}
           disabled={currentStep === 1}
           className={`flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
             currentStep === 1
-              ? 'opacity-30 cursor-not-allowed text-[#94A3B8]'
-              : 'text-[#475569] hover:text-[#111827] bg-[#FFFFFF] border border-[#CBD5E1] hover:bg-[#F1F5F9]'
+              ? 'opacity-20 cursor-not-allowed text-[#94A3B8]'
+              : 'text-[#475569] hover:text-[#0F172A] bg-[#F8FAFC] border border-[#CBD5E1] hover:bg-[#F1F5F9]'
           }`}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{lang === 'es' ? 'Anterior' : 'Back'}</span>
+          <span className="hidden sm:inline">Anterior</span>
         </button>
 
-        {/* Center Progress summary */}
-        <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-[#64748B] truncate max-w-[300px]">
+        {/* Center Indicator */}
+        <div className="flex items-center gap-2 text-xs font-bold text-[#64748B] truncate max-w-[280px]">
           <span className="truncate">{selectedModel.name}</span>
           <span>•</span>
           <span className="truncate">{selectedProduct.name}</span>
         </div>
 
-        {/* Next / Submit Button */}
+        {/* Next / WhatsApp CTA */}
         {currentStep < 4 ? (
           <button
             onClick={handleNext}
             className="flex items-center gap-1.5 text-xs font-black px-6 py-2.5 rounded-xl bg-[#FF8407] hover:bg-[#e67400] text-black shadow-md shadow-[#FF8407]/20 transition-all cursor-pointer"
           >
-            <span>{lang === 'es' ? 'Siguiente Paso' : 'Next Step'}</span>
+            <span>Siguiente</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
@@ -880,8 +853,8 @@ export const StepWizard: React.FC<StepWizardProps> = ({
             rel="noreferrer"
             className="flex items-center gap-1.5 text-xs font-black px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-md cursor-pointer"
           >
-            <span>{lang === 'es' ? 'Confirmar por WhatsApp' : 'Confirm via WhatsApp'}</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Confirmar</span>
+            <ChevronRight className="w-4 h-4" />
           </a>
         )}
       </div>
