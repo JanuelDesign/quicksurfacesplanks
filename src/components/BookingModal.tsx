@@ -71,7 +71,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       phone,
       email: email || 'No especificado',
       community: currentModel.communityName,
-      model: `${currentModel.name} (530 sq ft + 15 escalones)`,
+      model: `${currentModel.name} ({currentModel.sqft} sq ft + 15 escalones)`,
       address: address || currentModel.address || 'Pendiente',
       package: `${currentPackage.title} ($${currentPackage.price})`,
       color: `${currentColor.name} (#${currentColor.code} - ${currentColor.category})`,
@@ -150,7 +150,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
               <div className="mt-6 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-left max-w-md mx-auto text-xs space-y-1.5 text-[#64748B]">
                 <p><strong className="text-[#000000]">{lang === 'es' ? 'Conjunto:' : 'Community:'}</strong> {currentModel.communityName}</p>
-                <p><strong className="text-[#000000]">{lang === 'es' ? 'Modelo:' : 'Model:'}</strong> {currentModel.name} (530 sq ft + 15 escalones)</p>
+                <p><strong className="text-[#000000]">{lang === 'es' ? 'Modelo:' : 'Model:'}</strong> {currentModel.name} ({currentModel.sqft} sq ft + 15 escalones)</p>
                 <p><strong className="text-[#000000]">{lang === 'es' ? 'Paquete:' : 'Selected Package:'}</strong> {currentPackage.title} (${currentPackage.price})</p>
                 <p><strong className="text-[#000000]">{lang === 'es' ? 'Acabado:' : 'Flooring Choice:'}</strong> {currentColor.name} ({currentColor.category})</p>
                 {preferredDate && <p><strong className="text-[#000000]">{lang === 'es' ? 'Fecha Preferida:' : 'Preferred Date:'}</strong> {preferredDate}</p>}

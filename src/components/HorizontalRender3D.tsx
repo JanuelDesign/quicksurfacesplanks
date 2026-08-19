@@ -36,7 +36,7 @@ export const HorizontalRender3D: React.FC<HorizontalRender3DProps> = ({
             </h3>
           </div>
           <p className="text-xs text-[#64748B] mt-0.5 font-medium">
-            {model.name} ({model.communityName}) • 530 sq ft Net Area + 15 Custom Steps
+            {model.name} ({model.communityName}) • {model.sqft} sq ft Net Area + 15 Custom Steps
           </p>
         </div>
 
@@ -397,7 +397,7 @@ export const HorizontalRender3D: React.FC<HorizontalRender3DProps> = ({
       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
         <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
           <p className="text-[#64748B] font-bold">Total Net Area</p>
-          <p className="text-[#FF8407] font-black text-base">530 sq ft</p>
+          <p className="text-[#FF8407] font-black text-base">{model.sqft} sq ft</p>
         </div>
         <div className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
           <p className="text-[#64748B] font-bold">Stairs Count</p>

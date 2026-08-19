@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+const content = `import React, { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { FLOOR_PLAN_MODELS, COMMUNITIES } from './data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from './data/products';
@@ -68,7 +69,7 @@ export default function App() {
         />
 
         {/* Main Single-Focus View Container (Rappi / Yummy Style) */}
-        <main className="w-full max-w-full mx-auto px-0 sm:px-4 pt-0 sm:pt-4">
+        <main className="w-full max-w-5xl mx-auto px-3 sm:px-6 pt-4 sm:pt-6">
           {activeTab === 'order' && (
             <div className="animate-fadeIn space-y-6">
               {/* Step Wizard is the Main App Flow */}
@@ -145,3 +146,5 @@ export default function App() {
     </LanguageProvider>
   );
 }
+`;
+fs.writeFileSync('src/App.tsx', content);

@@ -64,7 +64,7 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
 
   return (
     <section id="visualizer" className="py-16 bg-[#F8FAFC] text-[#111827] border-y border-[#E2E8F0] font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="max-w-2xl">

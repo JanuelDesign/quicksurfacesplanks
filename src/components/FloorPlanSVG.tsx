@@ -347,7 +347,7 @@ export const FloorPlanSVG: React.FC<FloorPlanSVGProps> = ({
       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
         <div className="p-2.5 rounded-xl bg-[#141414] border border-[#262626]">
           <p className="text-[#A4A4A4]">Total Net Area</p>
-          <p className="text-[#FF8407] font-bold text-sm">530 sq ft</p>
+          <p className="text-[#FF8407] font-bold text-sm">{model.sqft} sq ft</p>
         </div>
         <div className="p-2.5 rounded-xl bg-[#141414] border border-[#262626]">
           <p className="text-[#A4A4A4]">Stairs Count</p>

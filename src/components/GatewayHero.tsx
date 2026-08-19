@@ -57,7 +57,7 @@ export const GatewayHero: React.FC<GatewayHeroProps> = ({
           {/* Quick Metrics Bar */}
           <div className="mt-8 grid grid-cols-3 gap-3 max-w-lg mx-auto">
             <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] shadow-xs">
-              <span className="text-2xl sm:text-3xl font-black text-[#FF8407] block">530</span>
+              <span className="text-2xl sm:text-3xl font-black text-[#FF8407] block">{selectedModel.sqft}</span>
               <span className="text-[10px] sm:text-xs font-bold text-[#64748B] uppercase tracking-wider">
                 {t('heroSqft')}
               </span>
@@ -185,7 +185,7 @@ export const GatewayHero: React.FC<GatewayHeroProps> = ({
                           Visualizando
                         </span>
                       ) : (
-                        <span className="text-xs text-[#64748B] font-medium">530 sq ft</span>
+                        <span className="text-xs text-[#64748B] font-medium">{model.sqft} sq ft</span>
                       )}
                     </div>
 

@@ -82,7 +82,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
 
             <div className="flex flex-wrap gap-2 pt-1 text-xs">
               <span className="px-3 py-1 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] font-bold text-[#000000]">
-                📐 530 sq ft Net Area
+                📐 {model.sqft} sq ft Net Area
               </span>
               <span className="px-3 py-1 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] font-bold text-[#000000]">
                 🪜 15 Custom Step Staircase
@@ -118,7 +118,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
                   $4,500
                 </span>
                 <span className="text-xs text-[#94A3B8] font-bold">
-                  / 530 sqft + 15 stairs
+                  / {model.sqft} sqft + 15 stairs
                 </span>
               </div>
             </div>
@@ -204,7 +204,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
                     {lang === 'es' ? 'Plano CAD 2D Interactivo' : 'Interactive 2D CAD Blueprint'}
                   </h3>
                   <p className="text-xs text-[#64748B]">
-                    {model.name} • 530 sq ft Net Floor Plan
+                    {model.name} • {model.sqft} sq ft Net Floor Plan
                   </p>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
                     </div>
                   </div>
                   <p className="text-xs text-[#64748B] mt-2">
-                    Includes 530 sq ft material, calculated waste factor, and 15 matching stair nosing pieces delivered directly to your doorstep.
+                    Includes {model.sqft} sq ft material, calculated waste factor, and 15 matching stair nosing pieces delivered directly to your doorstep.
                   </p>
                 </div>
 

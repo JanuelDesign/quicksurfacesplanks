@@ -87,7 +87,7 @@ export interface PricingPackage {
   thickness: string;
   wearLayer: string;
   plankSize: string;
-  price: number;
+  price: number;  pricePerSqft?: number;
   isTurnkey: boolean;
   isBestValue?: boolean;
   isPremium?: boolean;

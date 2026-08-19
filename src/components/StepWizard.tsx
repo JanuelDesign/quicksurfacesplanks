@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { HorizontalRender3D } from './HorizontalRender3D';
 import {
   FloorPlanModel,
   FlooringProduct,
@@ -164,7 +165,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
       `🏢 *Conjunto:* ${selectedCommunity.name}\n` +
       `🏠 *Modelo:* ${selectedModel.name} (${selectedModel.sqft} sq ft, ${selectedModel.stepsCount} escalones)\n` +
       `🎨 *Piso SPC:* ${selectedProduct.name} (#${selectedProduct.code}) - ${selectedProduct.thickness} (${selectedProduct.wearLayer})\n` +
-      `📦 *Paquete:* ${selectedPackage.title} - $${selectedPackage.price.toLocaleString()}\n` +
+      `📦 *Paquete:* ${selectedPackage.title} - $${(selectedPackage.pricePerSqft ? Math.round(selectedModel.sqft * selectedPackage.pricePerSqft) : selectedPackage.price).toLocaleString()}\n` +
       `👤 *Cliente:* ${formData.fullName || 'Por definir'}\n` +
       `📍 *Unidad:* ${formData.unitNumber || 'Homestead, FL'}\n` +
       `📞 *Teléfono:* ${formData.phone || 'N/A'}\n` +
@@ -217,7 +218,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
             <div className="text-right">
               <span className="text-[10px] text-[#64748B] block font-bold">Total Estimado</span>
               <span className="text-xs sm:text-sm font-black text-[#FF8407]">
-                ${selectedPackage.price.toLocaleString()}
+                ${(selectedPackage.pricePerSqft ? Math.round(selectedModel.sqft * selectedPackage.pricePerSqft) : selectedPackage.price).toLocaleString()}
               </span>
             </div>
           </div>
@@ -348,7 +349,16 @@ export const StepWizard: React.FC<StepWizardProps> = ({
               </div>
             </div>
 
-            {/* 3. Expandable / Collapsible 2D Floorplan CAD Viewer */}
+            
+            {/* MINI LANDING / HORIZONTAL 3D PLAN */}
+            <div className="mt-8 animate-fadeIn">
+              <HorizontalRender3D 
+                model={selectedModel} 
+                selectedProduct={selectedProduct} 
+              />
+            </div>
+
+{/* 3. Expandable / Collapsible 2D Floorplan CAD Viewer */}
             {showFloorPlanDetail && (
               <div className="bg-[#FFFFFF] rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-md animate-fadeIn">
                 <div className="flex items-center justify-between mb-3">
@@ -645,7 +655,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                       <p className="text-xs text-[#64748B] mt-0.5 mb-3">{pkg.tagline}</p>
 
                       <div className="text-2xl sm:text-3xl font-black text-[#FF8407] mb-3">
-                        ${pkg.price.toLocaleString()}
+                        ${(pkg.pricePerSqft ? Math.round(selectedModel.sqft * pkg.pricePerSqft) : pkg.price).toLocaleString()}
                         <span className="text-xs font-normal text-[#64748B] ml-1.5">
                           {pkg.isTurnkey ? 'Total con Mano de Obra' : 'Total Materiales'}
                         </span>
@@ -700,7 +710,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
                 <div className="text-left sm:text-right bg-[#FFF7ED] p-3 rounded-xl border border-[#FF8407]/30">
                   <span className="text-[10px] text-[#64748B] block font-bold uppercase">Precio Total Cerrado</span>
                   <span className="text-2xl font-black text-[#FF8407]">
-                    ${selectedPackage.price.toLocaleString()}
+                    ${(selectedPackage.pricePerSqft ? Math.round(selectedModel.sqft * selectedPackage.pricePerSqft) : selectedPackage.price).toLocaleString()}
                   </span>
                 </div>
               </div>

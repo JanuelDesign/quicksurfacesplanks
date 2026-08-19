@@ -85,7 +85,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   return (
     <section id="catalog" className="py-16 bg-[#FFFFFF] text-[#111827] border-b border-[#E2E8F0] font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header matching Slide 8 */}
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF7ED] border border-[#FF8407]/40 text-[#FF8407] text-xs font-black uppercase tracking-wider mb-3">
