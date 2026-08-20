@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ExternalLink,
+  Camera,
 } from 'lucide-react';
 
 interface ProductCatalogProps {
@@ -41,6 +43,8 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   const thicknessScrollRef = useRef<HTMLDivElement>(null);
   const toneScrollRef = useRef<HTMLDivElement>(null);
+
+  const ROOMVO_VISUALIZER_URL = 'https://www.roomvo.com/my/flooringwaterproof/';
 
   const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
     if (ref.current) {
@@ -70,7 +74,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const filteredProducts = productsList.filter((prod) => {
     if (prod.category !== activeTab) return false;
     if (toneFilter !== 'all' && prod.tone !== toneFilter) return false;
-    if (searchQuery.trim() && !prod.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery.trim() && !prod.name.toLowerCase().includes(searchQuery.toLowerCase()) && !prod.code.includes(searchQuery)) {
       return false;
     }
     return true;
@@ -78,23 +82,23 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   const categorySpecs = {
     '8mm': {
-      collection: 'Waterproof Rigid Core SPC Flagship',
+      collection: lang === 'es' ? 'Colección Flagship SPC Impermeable' : 'Waterproof Rigid Core SPC Flagship',
       wearLayer: '22 Mil (Ultra Heavy Commercial)',
       thickness: '8.0 mm',
       padding: '2.0 mm HD EVA Acoustic Shield',
-      plankSize: '7" x 48" or 9" x 60"',
-      planksBox: '6 Planks',
+      plankSize: '7" x 48" / 9" x 60"',
+      planksBox: lang === 'es' ? '6 Tablones' : '6 Planks',
       sqftBox: '20.15 sq ft',
       finish: 'Satin Luxury Embossed (EIR)',
       installation: 'Precision Angle-Angle Click',
     },
     '5.5mm': {
-      collection: 'Waterproof Rigid Core SPC Classic',
+      collection: lang === 'es' ? 'Colección Clásica SPC Impermeable' : 'Waterproof Rigid Core SPC Classic',
       wearLayer: '20 Mil (Commercial Grade)',
       thickness: '5.5 mm',
       padding: '1.5 mm HD EVA Attached',
       plankSize: '7" x 48"',
-      planksBox: '9 Planks',
+      planksBox: lang === 'es' ? '9 Tablones' : '9 Planks',
       sqftBox: '24.26 sq ft',
       finish: 'Satin Embossed Texture',
       installation: 'Angle-Angle Click',
@@ -105,7 +109,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
       thickness: '6.0 mm',
       padding: '1.5 mm HD EVA Attached',
       plankSize: '9" x 60" (Grand XL)',
-      planksBox: '7 Planks',
+      planksBox: lang === 'es' ? '7 Tablones' : '7 Planks',
       sqftBox: '26.60 sq ft',
       finish: 'Satin EIR Embossed',
       installation: 'Angle-Angle Click',
@@ -115,10 +119,51 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const currentSpecs = categorySpecs[activeTab];
 
   return (
-    <section id="catalog" className="py-16 bg-[#FFFFFF] text-[#111827] border-b border-[#E2E8F0] font-sans">
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header matching Slide 8 */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
+    <section id="catalog" className="w-full py-6 sm:py-10 bg-[#FFFFFF] text-[#111827] font-sans">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* ========================================================
+            TOP ACTION: ROOM VISUALIZER (ROOMVO) CALLOUT BUTTON
+            (Placed cleanly first as requested)
+        ======================================================== */}
+        <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] p-4 sm:p-5 rounded-3xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg border border-[#334155]">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#FF8407]/20 border border-[#FF8407]/40 flex items-center justify-center shrink-0">
+              <Camera className="w-6 h-6 text-[#FF8407]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm sm:text-base font-black text-white">
+                  {lang === 'es' ? 'Room Visualizer 3D (Roomvo)' : '3D Room Visualizer Studio (Roomvo)'}
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF8407] text-black uppercase tracking-wider">
+                  Live 3D
+                </span>
+              </div>
+              <p className="text-xs text-[#CBD5E1] mt-0.5 leading-relaxed">
+                {lang === 'es'
+                  ? 'Sube una foto de tu habitación o sala para previsualizar los colores de pisos SPC en tu espacio real.'
+                  : 'Upload or snap a photo of your space to test genuine SPC vinyl plank textures in realistic 3D.'}
+              </p>
+            </div>
+          </div>
+
+          <a
+            href={ROOMVO_VISUALIZER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto min-h-[46px] px-6 py-3 rounded-2xl bg-[#FF8407] hover:bg-[#ff952a] text-black flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+          >
+            <Sparkles className="w-4 h-4 text-black shrink-0" />
+            <span className="truncate">
+              {lang === 'es' ? 'Abrir Room Visualizer 3D' : 'Open 3D Room Visualizer'}
+            </span>
+            <ExternalLink className="w-4 h-4 text-black shrink-0" />
+          </a>
+        </div>
+
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto pt-2">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF7ED] border border-[#FF8407]/40 text-[#FF8407] text-xs font-black uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5" />
             <span>{lang === 'es' ? 'COLECCIÓN & ACABADOS' : 'SHOWROOM FINISHES'}</span>
@@ -127,18 +172,24 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             Waterproof Rigid Core <span className="text-[#FF8407]">SPC Vinyl Floor</span>
           </h2>
           <p className="mt-3 text-[#4B5563] text-sm sm:text-base leading-relaxed">
-            {t('catalogHeaderSubtitle')}
+            {lang === 'es'
+              ? 'Espesor de 8.0mm con capa de desgaste de 22 Mils y 5.5mm con 20 Mils. 100% impermeable con escaleras fabricadas con los mismos tablones.'
+              : '8.0mm Flagship with 22 Mils wear layer & 5.5mm Classic with 20 Mils. 100% waterproof with stairs crafted from matching planks.'}
           </p>
         </div>
 
-        {/* Search & Filter Controls: Clean Stacked Hierarchy with No Layout Collision */}
-        <div className="space-y-4 mb-8 bg-[#F8FAFC] p-4 sm:p-5 rounded-3xl border border-[#E2E8F0] shadow-xs">
+        {/* Search & Filter Controls: Clean Stacked Hierarchy */}
+        <div className="space-y-4 bg-[#F8FAFC] p-4 sm:p-5 rounded-3xl border border-[#E2E8F0] shadow-xs">
           {/* Row 1: Search Input */}
           <div className="relative w-full">
             <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder={lang === 'es' ? 'Buscar color por nombre o código (ej: Liv Oak, #347)...' : 'Search color or code (e.g. Liv Oak, #347)...'}
+              placeholder={
+                lang === 'es'
+                  ? 'Buscar color por nombre o código (ej: Liv Oak, #347)...'
+                  : 'Search color or code (e.g. Liv Oak, #347)...'
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-10 py-2.5 rounded-2xl text-xs sm:text-sm bg-[#FFFFFF] border border-[#CBD5E1] text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8407] focus:border-[#FF8407] shadow-2xs transition-all"
@@ -148,7 +199,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#94A3B8] hover:text-[#0F172A] rounded-full hover:bg-[#F1F5F9] cursor-pointer"
-                aria-label="Clear search"
+                aria-label="Limpiar búsqueda"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -162,7 +213,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 {lang === 'es' ? '1. Espesor SPC & Capa de Desgaste:' : '1. SPC Thickness & Wear Layer:'}
               </span>
               <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                Desliza horizontalmente →
+                {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
               </span>
             </div>
 
@@ -232,7 +283,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 {lang === 'es' ? '2. Tono de Madera / Matiz:' : '2. Wood Tone & Shade:'}
               </span>
               <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                Desliza horizontalmente →
+                {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
               </span>
             </div>
 
@@ -291,12 +342,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           </div>
         </div>
 
-        {/* Technical Specs Banner matching Slide 8 Specs */}
-        <div className="mb-10 bg-[#F8FAFC] text-[#111827] rounded-3xl p-5 sm:p-7 border border-[#E2E8F0] shadow-sm">
+        {/* Technical Specs Banner */}
+        <div className="bg-[#F8FAFC] text-[#111827] rounded-3xl p-5 sm:p-7 border border-[#E2E8F0] shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
             <div>
               <span className="text-[10px] font-black text-[#FF8407] uppercase tracking-widest">
-                FICHA TÉCNICA QUICK SURFACES
+                {lang === 'es' ? 'FICHA TÉCNICA QUICK SURFACES' : 'QUICK SURFACES SPEC SHEET'}
               </span>
               <h3 className="text-xl font-black text-[#000000] tracking-tight">
                 {currentSpecs.collection} ({activeTab})
@@ -307,7 +358,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 100% Waterproof Rigid Core
               </span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#FFFFFF] text-[#000000] border border-[#E2E8F0]">
-                Muestras Físicas en Mano
+                {lang === 'es' ? 'Muestras Físicas en Mano' : 'Doorstep Samples'}
               </span>
             </div>
           </div>
@@ -318,7 +369,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
               <p className="font-black text-[#FF8407] text-sm mt-0.5">{currentSpecs.wearLayer}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
-              <p className="text-[#64748B] text-[10px]">Thickness</p>
+              <p className="text-[#64748B] text-[10px]">{lang === 'es' ? 'Espesor' : 'Thickness'}</p>
               <p className="font-black text-[#000000] text-sm mt-0.5">{currentSpecs.thickness}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
@@ -326,11 +377,11 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
               <p className="font-bold text-[#000000] text-xs mt-0.5">{currentSpecs.padding}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
-              <p className="text-[#64748B] text-[10px]">Planks / Box</p>
+              <p className="text-[#64748B] text-[10px]">{lang === 'es' ? 'Tablones / Caja' : 'Planks / Box'}</p>
               <p className="font-bold text-[#000000] text-sm mt-0.5">{currentSpecs.planksBox}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
-              <p className="text-[#64748B] text-[10px]">Plank Size</p>
+              <p className="text-[#64748B] text-[10px]">{lang === 'es' ? 'Dimensiones' : 'Plank Size'}</p>
               <p className="font-bold text-[#000000] text-xs mt-0.5">{currentSpecs.plankSize}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
@@ -338,11 +389,11 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
               <p className="font-black text-[#FF8407] text-sm mt-0.5">{currentSpecs.sqftBox}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
-              <p className="text-[#64748B] text-[10px]">Finish</p>
+              <p className="text-[#64748B] text-[10px]">{lang === 'es' ? 'Acabado' : 'Finish'}</p>
               <p className="font-bold text-[#000000] text-xs mt-0.5">{currentSpecs.finish}</p>
             </div>
             <div className="bg-[#FFFFFF] p-3 rounded-2xl border border-[#E2E8F0]">
-              <p className="text-[#64748B] text-[10px]">Installation</p>
+              <p className="text-[#64748B] text-[10px]">{lang === 'es' ? 'Instalación' : 'Installation'}</p>
               <p className="font-bold text-[#FF8407] text-xs mt-0.5">{currentSpecs.installation}</p>
             </div>
           </div>
@@ -381,7 +432,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     {/* Badges */}
                     <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
                       <span className="text-[10px] font-black uppercase tracking-wider bg-black/80 text-[#FFFFFF] px-2.5 py-0.5 rounded-full backdrop-blur-xs">
-                        {prod.code}
+                        #{prod.code}
                       </span>
                       {prod.category === '8mm' && (
                         <span className="text-[10px] font-black uppercase tracking-wider bg-[#FF8407] text-[#000000] px-2 py-0.5 rounded-full shadow-sm">
@@ -390,22 +441,22 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                       )}
                       {prod.stockStatus === 'low_stock' && (
                         <span className="text-[10px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-full shadow-sm">
-                          Poco Stock
+                          {lang === 'es' ? 'Poco Stock' : 'Low Stock'}
                         </span>
                       )}
                       {prod.stockStatus === 'out_of_stock' && (
                         <span className="text-[10px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-full shadow-sm">
-                          Agotado
+                          {lang === 'es' ? 'Agotado' : 'Out of Stock'}
                         </span>
                       )}
                       {prod.stockStatus === 'coming_soon' && (
                         <span className="text-[10px] font-black bg-purple-600 text-white px-2 py-0.5 rounded-full shadow-sm">
-                          Próximamente
+                          {lang === 'es' ? 'Próximamente' : 'Coming Soon'}
                         </span>
                       )}
                       {(!prod.stockStatus || prod.stockStatus === 'in_stock') && (
                         <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow-sm">
-                          En Stock
+                          {lang === 'es' ? 'En Stock' : 'In Stock'}
                         </span>
                       )}
                     </div>
@@ -413,7 +464,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     {isCurrentlyVisualized && (
                       <div className="absolute top-3 right-3 bg-[#FF8407] text-[#000000] text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1">
                         <Check className="w-3 h-3 stroke-[3]" />
-                        <span>Activo</span>
+                        <span>{lang === 'es' ? 'Activo' : 'Active'}</span>
                       </div>
                     )}
                   </div>
@@ -425,7 +476,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                         {prod.collectionName}
                       </span>
                       <span className="text-xs text-[#64748B] font-medium capitalize">
-                        {prod.tone} Tone
+                        {prod.tone} {lang === 'es' ? 'Tono' : 'Tone'}
                       </span>
                     </div>
 
@@ -439,11 +490,11 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
                     <div className="mt-4 pt-3 border-t border-[#E2E8F0] grid grid-cols-2 gap-2 text-[11px]">
                       <div>
-                        <span className="text-[#64748B] block">Espesor:</span>
+                        <span className="text-[#64748B] block">{lang === 'es' ? 'Espesor:' : 'Thickness:'}</span>
                         <span className="font-bold text-[#000000]">{prod.thickness}</span>
                       </div>
                       <div>
-                        <span className="text-[#64748B] block">Capa Desgaste:</span>
+                        <span className="text-[#64748B] block">{lang === 'es' ? 'Capa Desgaste:' : 'Wear Layer:'}</span>
                         <span className="font-bold text-[#FF8407]">{prod.wearLayer}</span>
                       </div>
                     </div>
@@ -461,15 +512,23 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     }`}
                   >
                     <Eye className="w-3.5 h-3.5 text-[#FF8407]" />
-                    <span>{isCurrentlyVisualized ? 'En Visualizador' : 'Ver en Modelo'}</span>
+                    <span>
+                      {isCurrentlyVisualized
+                        ? lang === 'es'
+                          ? 'En Visualizador'
+                          : 'Selected'
+                        : lang === 'es'
+                        ? 'Ver en Modelo'
+                        : 'View on Model'}
+                    </span>
                   </button>
 
                   <button
                     onClick={() => setActiveModalProduct(prod)}
                     className="px-3 py-2.5 rounded-xl border border-[#E2E8F0] hover:border-[#94A3B8] text-[#000000] text-xs font-bold bg-[#F8FAFC] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
-                    title="Ver Ficha"
+                    title={lang === 'es' ? 'Ver Ficha' : 'View Specs'}
                   >
-                    Ficha
+                    {lang === 'es' ? 'Ficha' : 'Specs'}
                   </button>
                 </div>
               </div>
@@ -483,7 +542,9 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-3xl max-w-lg w-full p-6 sm:p-7 text-[#111827] relative shadow-2xl animate-fadeIn">
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
                 <div>
-                  <span className="text-[10px] font-bold text-[#FF8407] uppercase">Ficha Técnica & Tablón Real</span>
+                  <span className="text-[10px] font-bold text-[#FF8407] uppercase">
+                    {lang === 'es' ? 'Ficha Técnica & Tablón Real' : 'Technical Specs & Genuine Plank'}
+                  </span>
                   <h4 className="text-xl font-black text-[#000000]">{activeModalProduct.name}</h4>
                 </div>
                 <button
@@ -504,7 +565,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute bottom-2 left-2 bg-black/80 text-[#FFFFFF] text-[9px] font-bold px-2 py-0.5 rounded-md">
-                    Tablón HD
+                    {lang === 'es' ? 'Tablón HD' : 'HD Plank'}
                   </span>
                 </div>
                 <div className="rounded-2xl overflow-hidden bg-[#F1F5F9] border border-[#E2E8F0] h-32 relative">
@@ -515,35 +576,37 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute bottom-2 left-2 bg-black/80 text-[#FFFFFF] text-[9px] font-bold px-2 py-0.5 rounded-md">
-                    Instalación
+                    {lang === 'es' ? 'Instalación' : 'Room View'}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Código:</span>
-                  <span className="font-mono font-bold text-[#000000]">{activeModalProduct.code}</span>
+                  <span className="text-[#64748B]">{lang === 'es' ? 'Código:' : 'Item Code:'}</span>
+                  <span className="font-mono font-bold text-[#000000]">#{activeModalProduct.code}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Espesor Total:</span>
+                  <span className="text-[#64748B]">{lang === 'es' ? 'Espesor Total:' : 'Total Thickness:'}</span>
                   <span className="font-bold text-[#000000]">{activeModalProduct.thickness}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Capa de Desgaste (Wear Layer):</span>
+                  <span className="text-[#64748B]">{lang === 'es' ? 'Capa de Desgaste (Wear Layer):' : 'Wear Layer:'}</span>
                   <span className="font-bold text-[#FF8407]">{activeModalProduct.wearLayer}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Dimensiones de Tablón:</span>
+                  <span className="text-[#64748B]">{lang === 'es' ? 'Dimensiones de Tablón:' : 'Plank Dimensions:'}</span>
                   <span className="font-bold text-[#000000]">{activeModalProduct.plankDimensions}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Bajo Piso Acústico:</span>
+                  <span className="text-[#64748B]">{lang === 'es' ? 'Bajo Piso Acústico:' : 'Acoustic Underlayment:'}</span>
                   <span className="font-bold text-[#000000]">{activeModalProduct.padding}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Instalación en Escaleras:</span>
-                  <span className="font-bold text-[#FF8407]">15 Escalones con mismos tablones</span>
+                  <span className="text-[#64748B]">{lang === 'es' ? 'Instalación en Escaleras:' : 'Staircase Match:'}</span>
+                  <span className="font-bold text-[#FF8407]">
+                    {lang === 'es' ? '15 Escalones con mismos tablones' : '15 Custom Matching Steps'}
+                  </span>
                 </div>
               </div>
 
@@ -555,13 +618,13 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
                   }}
                   className="flex-1 py-3 rounded-xl bg-[#FF8407] hover:bg-[#e67400] text-[#000000] font-black text-xs cursor-pointer shadow-md"
                 >
-                  Aplicar al Visualizador
+                  {lang === 'es' ? 'Aplicar al Visualizador / Cotizar' : 'Apply to Floor Plan / Quote'}
                 </button>
                 <button
                   onClick={() => setActiveModalProduct(null)}
                   className="px-4 py-3 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#000000] font-bold text-xs cursor-pointer"
                 >
-                  Cerrar
+                  {lang === 'es' ? 'Cerrar' : 'Close'}
                 </button>
               </div>
             </div>

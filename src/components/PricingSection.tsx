@@ -187,7 +187,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
             <div>
               <span className="text-[11px] font-black uppercase text-[#FF8407] tracking-widest block">
-                TABLA COMPARATIVA
+                {lang === 'es' ? 'TABLA COMPARATIVA' : 'COMPARATIVE TABLE'}
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-[#000000] tracking-tight">
                 {t('summaryTableTitle')}
@@ -195,7 +195,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
             </div>
             <div className="flex items-center gap-2 text-xs font-bold text-[#64748B]">
               <ShieldCheck className="w-4 h-4 text-[#FF8407]" />
-              <span>Garantía QuickSurfaces Certificada</span>
+              <span>{lang === 'es' ? 'Garantía QuickSurfaces Certificada' : 'QuickSurfaces Certified Warranty'}</span>
             </div>
           </div>
 
@@ -203,51 +203,51 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-[#E2E8F0] text-[#64748B] uppercase tracking-wider font-bold">
-                  <th className="py-3.5 px-4">Opción / Paquete</th>
-                  <th className="py-3.5 px-4">Material SPC</th>
-                  <th className="py-3.5 px-4">Capa Desgaste</th>
-                  <th className="py-3.5 px-4">Instalación & 15 Peldaños</th>
-                  <th className="py-3.5 px-4">Desinstalación Alfombra</th>
-                  <th className="py-3.5 px-4 text-right">Precio Final</th>
+                  <th className="py-3.5 px-4">{lang === 'es' ? 'Opción / Paquete' : 'Option / Package'}</th>
+                  <th className="py-3.5 px-4">{lang === 'es' ? 'Material SPC' : 'SPC Material'}</th>
+                  <th className="py-3.5 px-4">{lang === 'es' ? 'Capa Desgaste' : 'Wear Layer'}</th>
+                  <th className="py-3.5 px-4">{lang === 'es' ? 'Instalación & 15 Peldaños' : 'Installation & 15 Steps'}</th>
+                  <th className="py-3.5 px-4">{lang === 'es' ? 'Desinstalación Alfombra' : 'Carpet Removal'}</th>
+                  <th className="py-3.5 px-4 text-right">{lang === 'es' ? 'Precio Final' : 'Final Price'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0] text-[#111827]">
                 <tr className="hover:bg-[#FFFFFF] transition-colors">
-                  <td className="py-4 px-4 font-bold text-[#000000]">1. Solo Material 5.5mm</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? '1. Solo Material 5.5mm' : '1. Material Only 5.5mm'}</td>
                   <td className="py-4 px-4">5.5mm Classic SPC</td>
                   <td className="py-4 px-4 font-mono">20 Mil</td>
-                  <td className="py-4 px-4 text-[#64748B]">No Incluido</td>
-                  <td className="py-4 px-4 text-[#64748B]">No Incluido</td>
+                  <td className="py-4 px-4 text-[#64748B]">{lang === 'es' ? 'No Incluido' : 'Not Included'}</td>
+                  <td className="py-4 px-4 text-[#64748B]">{lang === 'es' ? 'No Incluido' : 'Not Included'}</td>
                   <td className="py-4 px-4 text-right font-black text-base text-[#000000]">$1,550</td>
                 </tr>
                 <tr className="hover:bg-[#FFFFFF] transition-colors">
-                  <td className="py-4 px-4 font-bold text-[#000000]">2. Solo Material 8.0mm</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? '2. Solo Material 8.0mm' : '2. Material Only 8.0mm'}</td>
                   <td className="py-4 px-4">8.0mm Flagship SPC</td>
                   <td className="py-4 px-4 font-mono text-[#FF8407] font-bold">22 Mil Ultra</td>
-                  <td className="py-4 px-4 text-[#64748B]">No Incluido</td>
-                  <td className="py-4 px-4 text-[#64748B]">No Incluido</td>
+                  <td className="py-4 px-4 text-[#64748B]">{lang === 'es' ? 'No Incluido' : 'Not Included'}</td>
+                  <td className="py-4 px-4 text-[#64748B]">{lang === 'es' ? 'No Incluido' : 'Not Included'}</td>
                   <td className="py-4 px-4 text-right font-black text-base text-[#000000]">$2,050</td>
                 </tr>
                 <tr className="bg-[#FFF7ED]/60 font-medium">
                   <td className="py-4 px-4 font-black text-[#000000] flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
-                    3. Paquete Completo 5.5mm
+                    {lang === 'es' ? '3. Paquete Completo 5.5mm' : '3. Full Turnkey Package 5.5mm'}
                   </td>
                   <td className="py-4 px-4">5.5mm Classic SPC</td>
                   <td className="py-4 px-4 font-mono">20 Mil</td>
-                  <td className="py-4 px-4 font-bold text-[#000000]">Incluida (15 escalones)</td>
-                  <td className="py-4 px-4 font-bold text-[#000000]">Incluida & Zócalos</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida (15 escalones)' : 'Included (15 steps)'}</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida & Zócalos' : 'Included & Baseboards'}</td>
                   <td className="py-4 px-4 text-right font-black text-lg text-[#000000]">$4,500</td>
                 </tr>
                 <tr className="hover:bg-[#FFFFFF] transition-colors">
                   <td className="py-4 px-4 font-black text-[#000000] flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#000000]"></span>
-                    4. Paquete Completo 8.0mm
+                    {lang === 'es' ? '4. Paquete Completo 8.0mm' : '4. Full Turnkey Package 8.0mm'}
                   </td>
                   <td className="py-4 px-4">8.0mm Flagship SPC</td>
                   <td className="py-4 px-4 font-mono text-[#FF8407] font-bold">22 Mil Ultra</td>
-                  <td className="py-4 px-4 font-bold text-[#000000]">Incluida (15 escalones)</td>
-                  <td className="py-4 px-4 font-bold text-[#000000]">Incluida & Zócalos</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida (15 escalones)' : 'Included (15 steps)'}</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida & Zócalos' : 'Included & Baseboards'}</td>
                   <td className="py-4 px-4 text-right font-black text-lg text-[#FF8407]">$5,000</td>
                 </tr>
               </tbody>

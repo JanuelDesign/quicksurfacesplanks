@@ -111,7 +111,6 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     preferredDate: '',
     notes: '',
   });
-  const [quoteSavedNotice, setQuoteSavedNotice] = useState<boolean>(false);
 
   // Dynamic Quote Calculation
   const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage);
@@ -230,10 +229,22 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   const progressPercentage = (currentStep / 4) * 100;
 
   const stepMeta = [
-    { title: 'Comunidad y Modelo', subtitle: 'Selecciona tu plano y metraje' },
-    { title: 'Color SPC y Acabado', subtitle: 'Elige tu tono de piso vinílico' },
-    { title: 'Paquete e Instalación', subtitle: 'Calcula tu presupuesto dinámico' },
-    { title: 'Resumen y Cotización', subtitle: 'Orden de trabajo lista para WhatsApp' },
+    {
+      title: lang === 'es' ? 'Comunidad y Modelo' : 'Community & Floor Plan',
+      subtitle: lang === 'es' ? 'Selecciona tu plano y metraje' : 'Select floor plan & square footage',
+    },
+    {
+      title: lang === 'es' ? 'Color SPC y Acabado' : 'SPC Color & Finish',
+      subtitle: lang === 'es' ? 'Elige tu tono de piso vinílico' : 'Choose luxury vinyl tone',
+    },
+    {
+      title: lang === 'es' ? 'Paquete e Instalación' : 'Package & Installation',
+      subtitle: lang === 'es' ? 'Calcula tu presupuesto dinámico' : 'Dynamic turnkey estimate',
+    },
+    {
+      title: lang === 'es' ? 'Resumen y Cotización' : 'Summary & Estimate',
+      subtitle: lang === 'es' ? 'Orden de trabajo lista para WhatsApp' : 'Work order ready for WhatsApp',
+    },
   ];
 
   // Stock status pill component
@@ -242,7 +253,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
       return (
         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
           <Flame className="w-2.5 h-2.5 text-amber-600" />
-          <span>Stock Bajo</span>
+          <span>{lang === 'es' ? 'Stock Bajo' : 'Low Stock'}</span>
         </span>
       );
     }
@@ -250,21 +261,21 @@ export const StepWizard: React.FC<StepWizardProps> = ({
       return (
         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
           <Clock className="w-2.5 h-2.5 text-indigo-600" />
-          <span>Próximamente</span>
+          <span>{lang === 'es' ? 'Próximamente' : 'Coming Soon'}</span>
         </span>
       );
     }
     if (product.stockStatus === 'out_of_stock' || !product.inStock) {
       return (
         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-          <span>Agotado</span>
+          <span>{lang === 'es' ? 'Agotado' : 'Out of Stock'}</span>
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span>En Stock</span>
+        <span>{lang === 'es' ? 'En Stock' : 'In Stock'}</span>
       </span>
     );
   };
@@ -272,7 +283,8 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   // WhatsApp formatted lead message
   const generateWhatsAppUrl = () => {
     const phone = '17866583677';
-    const text = `*COTIZACIÓN QUICKSURFACES - HOMESTEAD*
+    const text = lang === 'es'
+      ? `*COTIZACIÓN QUICKSURFACES - HOMESTEAD*
 ----------------------------------------
 📍 *Comunidad:* ${selectedCommunity.name} (${selectedCommunity.city}, FL ${selectedCommunity.zip})
 🏢 *Colección:* ${selectedModel.collection}
@@ -294,15 +306,44 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 📱 *Teléfono:* ${formData.phone || 'No especificado'}
 🏠 *Unidad/Dirección:* ${formData.unitNumber || 'No especificado'}
 
-_Hola QuickSurfaces! Me gustaría agendar la visita para llevar las muestras físicas a mi casa y confirmar medidas._`;
+_Hola QuickSurfaces! Me gustaría agendar la visita para llevar las muestras físicas a mi casa y confirmar medidas._`
+      : `*QUICKSURFACES ESTIMATE - HOMESTEAD*
+----------------------------------------
+📍 *Community:* ${selectedCommunity.name} (${selectedCommunity.city}, FL ${selectedCommunity.zip})
+🏢 *Collection:* ${selectedModel.collection}
+🏡 *Model:* ${selectedModel.name} (2nd Floor)
+📐 *Net Area:* ~${selectedModel.sqftNet} SF
+📦 *Recommended Material (+10%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
+🪜 *Stairs:* ${selectedModel.stepsCount} Steps (Flush Stair Nose)
+
+🎨 *Selected SPC Flooring:*
+• Product: #${selectedProduct.code} ${selectedProduct.name}
+• Collection: ${selectedProduct.collectionName}
+• Specs: ${selectedProduct.thickness} · Wear Layer ${selectedProduct.wearLayer}
+• Status: ${selectedProduct.stockStatus === 'low_stock' ? 'Low Stock' : 'In Stock'}
+
+💼 *Package:* ${selectedPackage.title}
+💰 *TOTAL ESTIMATE:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Turnkey with install & stairs)' : '(Material Only)'}
+
+👤 *Client:* ${formData.fullName || 'Not specified'}
+📱 *Phone:* ${formData.phone || 'Not specified'}
+🏠 *Address/Unit:* ${formData.unitNumber || 'Not specified'}
+
+_Hi QuickSurfaces! I would like to schedule an in-home sample review and measure verification._`;
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   };
 
   // Email format
   const generateMailtoUrl = () => {
-    const subject = encodeURIComponent(`Cotización QuickSurfaces: Modelo ${selectedModel.name} en ${selectedCommunity.name}`);
-    const body = encodeURIComponent(`Hola equipo QuickSurfaces,
+    const subject = encodeURIComponent(
+      lang === 'es'
+        ? `Cotización QuickSurfaces: Modelo ${selectedModel.name} en ${selectedCommunity.name}`
+        : `QuickSurfaces Quote: Model ${selectedModel.name} at ${selectedCommunity.name}`
+    );
+    const body = encodeURIComponent(
+      lang === 'es'
+        ? `Hola equipo QuickSurfaces,
 
 Adjunto los detalles de mi cotización:
 - Comunidad: ${selectedCommunity.name} (${selectedModel.collection})
@@ -317,7 +358,24 @@ Mis datos de contacto:
 - Teléfono: ${formData.phone}
 - Dirección / Unidad: ${formData.unitNumber}
 
-Por favor contáctenme para coordinar la inspección gratuita en casa.`);
+Por favor contáctenme para coordinar la inspección gratuita en casa.`
+        : `Hello QuickSurfaces team,
+
+Here are the details for my flooring quote:
+- Community: ${selectedCommunity.name} (${selectedModel.collection})
+- Model: ${selectedModel.name}
+- Recommended Material: ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
+- Floor: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.thickness}, ${selectedProduct.wearLayer})
+- Package: ${selectedPackage.title}
+- Total Estimate: ${formatCurrency(quoteCalc.totalPrice)}
+
+Contact Info:
+- Name: ${formData.fullName}
+- Phone: ${formData.phone}
+- Address / Unit: ${formData.unitNumber}
+
+Please contact me to schedule a free in-home sample visit.`
+    );
 
     return `mailto:sales@quicksurfaces.com?subject=${subject}&body=${body}`;
   };
@@ -339,7 +397,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               <button
                 onClick={handleBack}
                 className="w-8 h-8 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer shrink-0"
-                aria-label="Volver al paso anterior"
+                aria-label={lang === 'es' ? 'Volver al paso anterior' : 'Back to previous step'}
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
@@ -350,7 +408,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             )}
             <div className="min-w-0">
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF8407] block leading-tight">
-                Paso {currentStep} de 4
+                {lang === 'es' ? `Paso ${currentStep} de 4` : `Step ${currentStep} of 4`}
               </span>
               <h2 className="text-sm sm:text-base font-black text-[#0F172A] truncate leading-tight">
                 {stepMeta[currentStep - 1].title}
@@ -366,7 +424,9 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               </span>
             )}
             <div className="text-right bg-[#FFF7ED] px-3 py-1 rounded-xl border border-[#FF8407]/30">
-              <span className="text-[9px] text-[#64748B] block font-bold uppercase">Total Estimado</span>
+              <span className="text-[9px] text-[#64748B] block font-bold uppercase">
+                {lang === 'es' ? 'Total Estimado' : 'Estimated Total'}
+              </span>
               <span className="text-xs sm:text-sm font-black text-[#FF8407]">
                 {formatCurrency(quoteCalc.totalPrice)}
               </span>
@@ -394,10 +454,12 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm sm:text-base font-black text-[#0F172A]">
-                  Selecciona tu Comunidad y Modelo
+                  {lang === 'es' ? 'Selecciona tu Comunidad y Modelo' : 'Select Your Community & Floor Plan'}
                 </h3>
                 <p className="text-xs text-[#64748B] mt-0.5">
-                  Precios exactos y desgloses arquitectónicos calibrados para cada piso.
+                  {lang === 'es'
+                    ? 'Precios exactos y desgloses arquitectónicos calibrados para cada piso.'
+                    : 'Calibrated architectural square footages and guaranteed pricing for each model.'}
                 </p>
               </div>
 
@@ -406,7 +468,11 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                 <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Buscar ciudad o zip (ej. 33032)..."
+                  placeholder={
+                    lang === 'es'
+                      ? 'Buscar ciudad o zip (ej. 33032)...'
+                      : 'Search city or zip (e.g. 33032)...'
+                  }
                   value={communitySearch}
                   onChange={(e) => setCommunitySearch(e.target.value)}
                   className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
@@ -418,10 +484,12 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                  1. Condominios en Homestead & Miami ({filteredCommunities.length})
+                  {lang === 'es'
+                    ? `1. Condominios en Homestead & Miami (${filteredCommunities.length})`
+                    : `1. Communities in Homestead & Miami (${filteredCommunities.length})`}
                 </span>
                 <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                  Desliza horizontalmente →
+                  {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
                 </span>
               </div>
               <div className="relative group">
@@ -430,7 +498,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   type="button"
                   onClick={() => scrollHorizontally(communitiesScrollRef, -240)}
                   className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                  aria-label="Anterior comunidad"
+                  aria-label={lang === 'es' ? 'Anterior comunidad' : 'Previous community'}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -438,7 +506,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   type="button"
                   onClick={() => scrollHorizontally(communitiesScrollRef, 240)}
                   className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                  aria-label="Siguiente comunidad"
+                  aria-label={lang === 'es' ? 'Siguiente comunidad' : 'Next community'}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -475,7 +543,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                               isSelected ? 'text-[#FF8407]' : 'text-[#64748B]'
                             }`}
                           >
-                            {c.collections[0] || 'Colección'}
+                            {c.collections[0] || (lang === 'es' ? 'Colección' : 'Collection')}
                           </div>
                         </div>
                         <div
@@ -497,10 +565,13 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               <div className="flex items-center justify-between mb-2.5">
                 <div className="min-w-0">
                   <span className="text-xs font-black uppercase tracking-wider text-[#0F172A] block truncate">
-                    Modelos de 2do Piso en {selectedCommunity.name} ({availableModels.length})
+                    {lang === 'es'
+                      ? `Modelos de 2do Piso en ${selectedCommunity.name} (${availableModels.length})`
+                      : `2nd Floor Models in ${selectedCommunity.name} (${availableModels.length})`}
                   </span>
                   <span className="text-[11px] text-[#64748B] block font-medium truncate">
-                    Sub-fase: <strong className="text-[#0F172A]">{selectedModel.collection}</strong>
+                    {lang === 'es' ? 'Sub-fase:' : 'Sub-phase:'}{' '}
+                    <strong className="text-[#0F172A]">{selectedModel.collection}</strong>
                   </span>
                 </div>
                 <button
@@ -508,7 +579,15 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   className="text-xs font-bold text-[#FF8407] hover:underline flex items-center gap-1 cursor-pointer bg-[#FFF7ED] px-3 py-1.5 rounded-xl border border-[#FF8407]/30 shrink-0"
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  <span>{showFloorPlanDetail ? 'Ocultar Plano 2D' : 'Ver Plano 2D CAD'}</span>
+                  <span>
+                    {showFloorPlanDetail
+                      ? lang === 'es'
+                        ? 'Ocultar Plano 2D'
+                        : 'Hide 2D Plan'
+                      : lang === 'es'
+                      ? 'Ver Plano 2D CAD'
+                      : 'View 2D CAD Plan'}
+                  </span>
                 </button>
               </div>
 
@@ -543,16 +622,24 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                         {/* Sqft & Specs Grid */}
                         <div className="grid grid-cols-3 gap-1 text-center my-2.5 py-2 px-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
                           <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">Material (+10%)</span>
+                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">
+                              {lang === 'es' ? 'Material (+10%)' : 'Material (+10%)'}
+                            </span>
                             <span className="text-xs font-black text-[#FF8407]">{m.sqftMaterialRecommended} SF</span>
                           </div>
                           <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">Área Neta</span>
+                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">
+                              {lang === 'es' ? 'Área Neta' : 'Net Area'}
+                            </span>
                             <span className="text-xs font-black text-[#0F172A]">{m.sqftNet} SF</span>
                           </div>
                           <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">Escaleras</span>
-                            <span className="text-xs font-black text-[#0F172A]">{m.stepsCount} Pasos</span>
+                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">
+                              {lang === 'es' ? 'Escaleras' : 'Stairs'}
+                            </span>
+                            <span className="text-xs font-black text-[#0F172A]">
+                              {m.stepsCount} {lang === 'es' ? 'Pasos' : 'Steps'}
+                            </span>
                           </div>
                         </div>
 
@@ -573,14 +660,20 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                         )}
 
                         <div className="text-[11px] text-[#64748B] flex items-center justify-between pt-1.5 border-t border-[#F1F5F9]">
-                          <span className="truncate">{m.bedrooms} Hab · {m.baths} Baños</span>
+                          <span className="truncate">
+                            {lang === 'es'
+                              ? `${m.bedrooms} Hab · ${m.baths} Baños`
+                              : `${m.bedrooms} Beds · ${m.baths} Baths`}
+                          </span>
                           {isSelected ? (
                             <span className="text-[10px] font-black text-[#FF8407] flex items-center gap-1 shrink-0 whitespace-nowrap">
                               <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
-                              <span>Elegido</span>
+                              <span>{lang === 'es' ? 'Elegido' : 'Selected'}</span>
                             </span>
                           ) : (
-                            <span className="text-[10px] text-[#94A3B8] font-bold shrink-0 whitespace-nowrap">Seleccionar</span>
+                            <span className="text-[10px] text-[#94A3B8] font-bold shrink-0 whitespace-nowrap">
+                              {lang === 'es' ? 'Seleccionar' : 'Select'}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -609,14 +702,14 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded-md bg-[#0F172A] text-white text-[10px] font-black">
-                      PLANO ARQUITECTÓNICO 2D
+                      {lang === 'es' ? 'PLANO ARQUITECTÓNICO 2D' : '2D ARCHITECTURAL CAD PLAN'}
                     </span>
                     <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                      Modelo {selectedModel.name} · {selectedModel.collection}
+                      {lang === 'es' ? `Modelo ${selectedModel.name} · ${selectedModel.collection}` : `Model ${selectedModel.name} · ${selectedModel.collection}`}
                     </h4>
                   </div>
                   <span className="text-xs font-bold text-[#FF8407]">
-                    {selectedModel.sqftMaterialRecommended} SF Recomendado • {selectedModel.stepsCount} Escalones
+                    {selectedModel.sqftMaterialRecommended} SF {lang === 'es' ? 'Recomendado' : 'Recommended'} • {selectedModel.stepsCount} {lang === 'es' ? 'Escalones' : 'Steps'}
                   </span>
                 </div>
                 <div className="rounded-xl overflow-hidden border border-[#CBD5E1]">
@@ -662,7 +755,9 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                 className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-[#FF8407] hover:bg-[#ff952a] text-black flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
               >
                 <Camera className="w-4 h-4 text-black shrink-0" />
-                <span className="truncate">{lang === 'es' ? 'Visualiza el piso en tu espacio' : 'Visualize flooring in your room'}</span>
+                <span className="truncate">
+                  {lang === 'es' ? 'Visualiza el piso en tu espacio' : 'Visualize flooring in your room'}
+                </span>
                 <ChevronRight className="w-4 h-4 text-black shrink-0" />
               </a>
             </div>
@@ -681,7 +776,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     }`}
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span>Render 3D Habitación</span>
+                    <span>{lang === 'es' ? 'Render 3D Habitación' : '3D Room View'}</span>
                   </button>
                   <button
                     onClick={() => setViewMode3D('plank')}
@@ -692,7 +787,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     }`}
                   >
                     <ZoomIn className="w-3.5 h-3.5 text-[#FF8407]" />
-                    <span>Foto Tablón</span>
+                    <span>{lang === 'es' ? 'Foto Tablón' : 'Plank Closeup'}</span>
                   </button>
                   <button
                     onClick={() => setViewMode3D('stairs')}
@@ -703,7 +798,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    <span>Escaleras</span>
+                    <span>{lang === 'es' ? 'Escaleras' : 'Staircase'}</span>
                   </button>
                 </div>
 
@@ -758,23 +853,31 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                    Cálculo Automático de Cajas ({selectedModel.name})
+                    {lang === 'es'
+                      ? `Cálculo Automático de Cajas (${selectedModel.name})`
+                      : `Automatic Box Calculator (${selectedModel.name})`}
                   </h4>
                   <p className="text-[11px] text-[#64748B]">
-                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft por caja
+                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} {lang === 'es' ? 'sq ft por caja' : 'sq ft per box'}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
                 <div className="text-left sm:text-right">
-                  <span className="text-[9px] text-[#64748B] block font-bold uppercase">Material Requerido</span>
+                  <span className="text-[9px] text-[#64748B] block font-bold uppercase">
+                    {lang === 'es' ? 'Material Requerido' : 'Required Material'}
+                  </span>
                   <span className="text-xs font-black text-[#0F172A]">{quoteCalc.sqftMaterialRecommended} SF</span>
                 </div>
                 <div className="h-6 w-px bg-[#CBD5E1]"></div>
                 <div className="text-right">
-                  <span className="text-[9px] text-[#FF8407] block font-bold uppercase">Cajas a Entregar</span>
-                  <span className="text-sm font-black text-[#FF8407]">{quoteCalc.boxesCount} Cajas ({quoteCalc.totalBoxesSqft} SF)</span>
+                  <span className="text-[9px] text-[#FF8407] block font-bold uppercase">
+                    {lang === 'es' ? 'Cajas a Entregar' : 'Boxes to Deliver'}
+                  </span>
+                  <span className="text-sm font-black text-[#FF8407]">
+                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
+                  </span>
                 </div>
               </div>
             </div>
@@ -788,7 +891,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     {lang === 'es' ? '1. Espesor & Colección SPC:' : '1. SPC Thickness & Collection:'}
                   </span>
                   <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                    Desliza horizontalmente →
+                    {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
                   </span>
                 </div>
 
@@ -798,7 +901,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     type="button"
                     onClick={() => scrollHorizontally(thicknessScrollRef, -200)}
                     className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label="Anterior espesor"
+                    aria-label={lang === 'es' ? 'Anterior espesor' : 'Previous thickness'}
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
@@ -806,7 +909,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     type="button"
                     onClick={() => scrollHorizontally(thicknessScrollRef, 200)}
                     className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label="Siguiente espesor"
+                    aria-label={lang === 'es' ? 'Siguiente espesor' : 'Next thickness'}
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -819,7 +922,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                   >
                     {[
-                      { id: 'all', label: `Todos (${productsList.length})` },
+                      { id: 'all', label: lang === 'es' ? `Todos (${productsList.length})` : `All (${productsList.length})` },
                       {
                         id: '5.5mm',
                         label: `5.5mm Select (${productsList.filter((p) => p.category === '5.5mm' || p.thickness?.includes('5.5')).length})`,
@@ -860,7 +963,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     {lang === 'es' ? '2. Tono & Matiz de Madera:' : '2. Wood Tone & Shade:'}
                   </span>
                   <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                    Desliza horizontalmente →
+                    {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
                   </span>
                 </div>
 
@@ -870,7 +973,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     type="button"
                     onClick={() => scrollHorizontally(toneScrollRef, -200)}
                     className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label="Anterior tono"
+                    aria-label={lang === 'es' ? 'Anterior tono' : 'Previous tone'}
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
@@ -878,7 +981,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     type="button"
                     onClick={() => scrollHorizontally(toneScrollRef, 200)}
                     className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label="Siguiente tono"
+                    aria-label={lang === 'es' ? 'Siguiente tono' : 'Next tone'}
                   >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
@@ -932,18 +1035,26 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   <div className="w-10 h-10 rounded-full bg-[#FF8407] text-black flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <Camera className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] font-black text-[#FF8407] uppercase">Simulador 3D</span>
+                  <span className="text-[10px] font-black text-[#FF8407] uppercase">
+                    {lang === 'es' ? 'Simulador 3D' : '3D Simulator'}
+                  </span>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-xs font-black text-[#0F172A] line-clamp-1">Probar en mi casa</span>
+                    <span className="text-xs font-black text-[#0F172A] line-clamp-1">
+                      {lang === 'es' ? 'Probar en mi casa' : 'Try in my space'}
+                    </span>
                     <ExternalLink className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />
                   </div>
                   <p className="text-[10px] text-[#64748B] line-clamp-2 leading-tight">
-                    Sube una foto de tu piso y pruébalo con Roomvo 3D
+                    {lang === 'es'
+                      ? 'Sube una foto de tu piso y pruébalo con Roomvo 3D'
+                      : 'Upload a photo of your space to test with Roomvo 3D'}
                   </p>
                   <div className="pt-1.5 mt-1.5 border-t border-[#FF8407]/20 flex items-center justify-between">
-                    <span className="text-[9px] font-bold text-[#FF8407]">Abrir Roomvo →</span>
+                    <span className="text-[9px] font-bold text-[#FF8407]">
+                      {lang === 'es' ? 'Abrir Roomvo →' : 'Open Roomvo →'}
+                    </span>
                   </div>
                 </div>
               </a>
@@ -1016,17 +1127,21 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded-full bg-[#FF8407] text-white text-[10px] font-black uppercase">
-                    15 ESCALONES INCLUIDOS
+                    {lang === 'es' ? '15 ESCALONES INCLUIDOS' : '15 STAIR STEPS INCLUDED'}
                   </span>
-                  <span className="text-xs font-bold text-[#0F172A]">Acabado Flush Stair Nose</span>
+                  <span className="text-xs font-bold text-[#0F172A]">
+                    {lang === 'es' ? 'Acabado Flush Stair Nose' : 'Flush Stair Nose Finish'}
+                  </span>
                 </div>
                 <p className="text-xs text-[#64748B]">
-                  Nariz de escalón al ras sin bordes sobrepuestos, con corte a inglete en taller y amortiguación acústica.
+                  {lang === 'es'
+                    ? 'Nariz de escalón al ras sin bordes sobrepuestos, con corte a inglete en taller y amortiguación acústica.'
+                    : 'Seamless flush stair nosing with zero overlap lips, mitered workshop cuts and acoustic dampening.'}
                 </p>
               </div>
               <div className="flex items-center gap-1.5 bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-[#E2E8F0] shrink-0 text-xs font-bold text-[#0F172A]">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Garantía 25 Años</span>
+                <span>{lang === 'es' ? 'Garantía 25 Años' : '25-Year Warranty'}</span>
               </div>
             </div>
 
@@ -1040,7 +1155,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                Todos los Paquetes ({packagesList.length})
+                {lang === 'es' ? `Todos los Paquetes (${packagesList.length})` : `All Packages (${packagesList.length})`}
               </button>
               <button
                 onClick={() => setPackageType('turnkey')}
@@ -1050,7 +1165,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                ✨ Llave en Mano (Instalado)
+                {lang === 'es' ? '✨ Llave en Mano (Instalado)' : '✨ Turnkey (Installed)'}
               </button>
               <button
                 onClick={() => setPackageType('material')}
@@ -1060,7 +1175,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                📦 Solo Material
+                {lang === 'es' ? '📦 Solo Material' : '📦 Material Only'}
               </button>
             </div>
 
@@ -1088,7 +1203,13 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
 
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-wider text-[#64748B] block mb-1">
-                        {pkg.isTurnkey ? 'Llave en Mano (Instalado)' : 'Solo Material (Entrega en Homestead)'}
+                        {pkg.isTurnkey
+                          ? lang === 'es'
+                            ? 'Llave en Mano (Instalado)'
+                            : 'Turnkey (Installed)'
+                          : lang === 'es'
+                          ? 'Solo Material (Entrega en Homestead)'
+                          : 'Material Only (Local Delivery)'}
                       </span>
                       <h4 className="text-base font-black text-[#0F172A]">{pkg.title}</h4>
                       <p className="text-xs text-[#64748B] mt-0.5 mb-3">{pkg.tagline}</p>
@@ -1100,13 +1221,20 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                             {formatCurrency(dynamicQuote.totalPrice)}
                           </span>
                           <span className="text-[11px] font-bold text-[#64748B]">
-                            Calculado para {dynamicQuote.sqftMaterialRecommended} SF
+                            {lang === 'es'
+                              ? `Calculado para ${dynamicQuote.sqftMaterialRecommended} SF`
+                              : `Calculated for ${dynamicQuote.sqftMaterialRecommended} SF`}
                           </span>
                         </div>
                         <div className="text-[10px] text-[#64748B] mt-1 pt-1 border-t border-[#E2E8F0] flex justify-between">
-                          <span>Material: {formatCurrency(dynamicQuote.materialCost)}</span>
+                          <span>
+                            {lang === 'es' ? 'Material:' : 'Material:'} {formatCurrency(dynamicQuote.materialCost)}
+                          </span>
                           {pkg.isTurnkey && (
-                            <span>15 Pasos & M.O.: {formatCurrency(dynamicQuote.stairCost)}</span>
+                            <span>
+                              {lang === 'es' ? '15 Pasos & M.O.:' : '15 Steps & Labor:'}{' '}
+                              {formatCurrency(dynamicQuote.stairCost)}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1129,7 +1257,15 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                       }`}
                     >
                       {isSelected ? <Check className="w-4 h-4" /> : null}
-                      <span>{isSelected ? 'Paquete Seleccionado' : 'Seleccionar Este Paquete'}</span>
+                      <span>
+                        {isSelected
+                          ? lang === 'es'
+                            ? 'Paquete Seleccionado'
+                            : 'Package Selected'
+                          : lang === 'es'
+                          ? 'Seleccionar Este Paquete'
+                          : 'Select This Package'}
+                      </span>
                     </button>
                   </div>
                 );
@@ -1153,14 +1289,18 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     </span>
                   </div>
                   <h4 className="text-lg sm:text-xl font-black text-[#0F172A]">
-                    Modelo {selectedModel.name} (2do Piso)
+                    {lang === 'es'
+                      ? `Modelo ${selectedModel.name} (2do Piso)`
+                      : `Model ${selectedModel.name} (2nd Floor)`}
                   </h4>
                   <span className="text-xs text-[#64748B]">
-                    {selectedCommunity.city}, FL {selectedCommunity.zip} • ~{selectedModel.sqftNet} SF Neta • {selectedModel.stepsCount} Pasos de Escalera
+                    {selectedCommunity.city}, FL {selectedCommunity.zip} • ~{selectedModel.sqftNet} SF {lang === 'es' ? 'Neta' : 'Net'} • {selectedModel.stepsCount} {lang === 'es' ? 'Pasos de Escalera' : 'Stair Steps'}
                   </span>
                 </div>
                 <div className="text-left sm:text-right bg-[#FFF7ED] p-3 rounded-xl border border-[#FF8407]/30">
-                  <span className="text-[10px] text-[#64748B] block font-bold uppercase">Precio Total Cerrado</span>
+                  <span className="text-[10px] text-[#64748B] block font-bold uppercase">
+                    {lang === 'es' ? 'Precio Total Cerrado' : 'Guaranteed Total Price'}
+                  </span>
                   <span className="text-2xl font-black text-[#FF8407]">
                     {formatCurrency(quoteCalc.totalPrice)}
                   </span>
@@ -1170,46 +1310,82 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               {/* Specs Pills Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-4">
                 <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Piso Elegido</span>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
+                    {lang === 'es' ? 'Piso Elegido' : 'Selected Floor'}
+                  </span>
                   <span className="font-black text-[#0F172A]">#{selectedProduct.code} {selectedProduct.name}</span>
                   <div className="mt-1">{renderStockBadge(selectedProduct)}</div>
                 </div>
                 <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Cajas Calculadas</span>
-                  <span className="font-bold text-[#0F172A]">{quoteCalc.boxesCount} Cajas</span>
-                  <span className="text-[10px] text-[#64748B] block">{quoteCalc.totalBoxesSqft} SF Totales</span>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
+                    {lang === 'es' ? 'Cajas Calculadas' : 'Calculated Boxes'}
+                  </span>
+                  <span className="font-bold text-[#0F172A]">
+                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'}
+                  </span>
+                  <span className="text-[10px] text-[#64748B] block">
+                    {quoteCalc.totalBoxesSqft} SF {lang === 'es' ? 'Totales' : 'Total'}
+                  </span>
                 </div>
                 <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Escaleras</span>
-                  <span className="font-bold text-[#0F172A]">15 Pasos Completos</span>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
+                    {lang === 'es' ? 'Escaleras' : 'Staircase'}
+                  </span>
+                  <span className="font-bold text-[#0F172A]">
+                    15 {lang === 'es' ? 'Pasos Completos' : 'Full Steps'}
+                  </span>
                   <span className="text-[10px] text-emerald-700 block font-semibold">Flush Stair Nose</span>
                 </div>
                 <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">Paquete</span>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
+                    {lang === 'es' ? 'Paquete' : 'Package'}
+                  </span>
                   <span className="font-black text-[#0F172A] truncate block">{selectedPackage.title}</span>
-                  <span className="text-[10px] text-[#64748B] block">{selectedPackage.isTurnkey ? 'Llave en Mano' : 'Material'}</span>
+                  <span className="text-[10px] text-[#64748B] block">
+                    {selectedPackage.isTurnkey
+                      ? lang === 'es' ? 'Llave en Mano' : 'Turnkey'
+                      : lang === 'es' ? 'Solo Material' : 'Material Only'}
+                  </span>
                 </div>
               </div>
 
               {/* Inclusions */}
               <div className="bg-[#F8FAFC] p-3.5 rounded-xl border border-[#E2E8F0]">
-                <span className="text-[11px] font-bold text-[#0F172A] block mb-2">Servicios y Garantías Incluidas:</span>
+                <span className="text-[11px] font-bold text-[#0F172A] block mb-2">
+                  {lang === 'es' ? 'Servicios y Garantías Incluidas:' : 'Included Services & Guarantees:'}
+                </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#475569]">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Desmonte y retiro de alfombra vieja existente ($0 fee)</span>
+                    <span>
+                      {lang === 'es'
+                        ? 'Desmonte y retiro de alfombra vieja existente ($0 fee)'
+                        : 'Old carpet tear-out and removal ($0 fee)'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Nivelación y preparación de subsuelo</span>
+                    <span>
+                      {lang === 'es'
+                        ? 'Nivelación y preparación de subsuelo'
+                        : 'Subfloor prep and leveling check'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Instalación de molduras de cuarto de bocel</span>
+                    <span>
+                      {lang === 'es'
+                        ? 'Instalación de molduras de cuarto de bocel / zócalos'
+                        : 'Quarter-round / baseboard re-installation'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Garantía de 25 años en piso SPC de fábrica</span>
+                    <span>
+                      {lang === 'es'
+                        ? 'Garantía de 25 años en piso SPC de fábrica'
+                        : '25-year factory warranty on rigid core SPC'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1218,21 +1394,27 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             {/* Quick Contact Form */}
             <div className="bg-[#FFFFFF] border border-[#E2E8F0] p-5 rounded-2xl shadow-sm">
               <h4 className="text-sm font-black text-[#0F172A] mb-3">
-                Datos de Contacto para Inspección y Muestra Gratuita en Casa
+                {lang === 'es'
+                  ? 'Datos de Contacto para Inspección y Muestra Gratuita en Casa'
+                  : 'Contact Info for In-Home Inspection & Free Sample Delivery'}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">Nombre Completo</label>
+                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">
+                    {lang === 'es' ? 'Nombre Completo' : 'Full Name'}
+                  </label>
                   <input
                     type="text"
-                    placeholder="Ej. Carlos Martínez"
+                    placeholder={lang === 'es' ? 'Ej. Carlos Martínez' : 'e.g. John Smith'}
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                     className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">Teléfono (WhatsApp)</label>
+                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">
+                    {lang === 'es' ? 'Teléfono (WhatsApp)' : 'Phone (WhatsApp)'}
+                  </label>
                   <input
                     type="tel"
                     placeholder="(786) 000-0000"
@@ -1242,10 +1424,12 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">Unidad / Dirección en Homestead</label>
+                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">
+                    {lang === 'es' ? 'Unidad / Dirección en Homestead' : 'Unit / Address in Homestead'}
+                  </label>
                   <input
                     type="text"
-                    placeholder="Ej. Apt 204 / Calle..."
+                    placeholder={lang === 'es' ? 'Ej. Apt 204 / Calle...' : 'e.g. Unit 204 / Street...'}
                     value={formData.unitNumber}
                     onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
                     className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
@@ -1264,29 +1448,34 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   className="flex-1 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Enviar Cotización por WhatsApp</span>
+                  <span>
+                    {lang === 'es' ? 'Enviar Cotización por WhatsApp' : 'Send Quote via WhatsApp'}
+                  </span>
                 </a>
                 <a
                   href={generateMailtoUrl()}
                   className="py-3.5 px-5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>Enviar por Email</span>
+                  <span>{lang === 'es' ? 'Enviar por Email' : 'Send via Email'}</span>
                 </a>
                 <button
                   onClick={handlePrint}
                   className="py-3.5 px-4 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#0F172A] font-black text-xs sm:text-sm flex items-center justify-center gap-2 border border-[#CBD5E1] transition-all cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-[#FF8407]" />
-                  <span>Imprimir / PDF</span>
+                  <span>{lang === 'es' ? 'Imprimir / PDF' : 'Print / PDF'}</span>
                 </button>
               </div>
 
               <div className="flex items-center justify-between text-xs text-[#64748B] px-1">
-                <span>Atención inmediata en Homestead: <strong>(786) 658-3677</strong></span>
+                <span>
+                  {lang === 'es' ? 'Atención inmediata en Homestead:' : 'Direct support in Homestead:'}{' '}
+                  <strong>(786) 658-3677</strong>
+                </span>
                 <span className="text-emerald-700 font-bold flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  Cotización guardada automáticamente
+                  {lang === 'es' ? 'Cotización guardada automáticamente' : 'Quote saved automatically'}
                 </span>
               </div>
             </div>
@@ -1306,7 +1495,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
           }`}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Anterior</span>
+          <span className="hidden sm:inline">{lang === 'es' ? 'Anterior' : 'Back'}</span>
         </button>
 
         {/* Center Indicator */}
@@ -1322,7 +1511,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             onClick={handleNext}
             className="flex items-center gap-1.5 text-xs font-black px-6 py-2.5 rounded-xl bg-[#FF8407] hover:bg-[#e67400] text-black shadow-md shadow-[#FF8407]/20 transition-all cursor-pointer"
           >
-            <span>Siguiente</span>
+            <span>{lang === 'es' ? 'Siguiente' : 'Next'}</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
@@ -1332,7 +1521,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             rel="noreferrer"
             className="flex items-center gap-1.5 text-xs font-black px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-md cursor-pointer"
           >
-            <span>Confirmar</span>
+            <span>{lang === 'es' ? 'Confirmar' : 'Confirm'}</span>
             <ChevronRight className="w-4 h-4" />
           </a>
         )}

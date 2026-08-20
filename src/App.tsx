@@ -129,22 +129,8 @@ export default function App() {
           )}
 
           {activeTab === 'catalog' && (
-            <div className="animate-fadeIn space-y-8 bg-white p-4 sm:p-6 rounded-3xl border border-[#E2E8F0] shadow-sm">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-[#0F172A]">Catálogo 3D</h2>
-                <p className="text-sm text-[#64748B]">Explora los acabados para el modelo {selectedModel.name}</p>
-              </div>
-
-              {/* 3D Visualizer Room Swapper */}
-              <RoomVisualizer
-                model={selectedModel}
-                selectedProduct={selectedProduct}
-                productsList={liveProducts}
-                onSelectProduct={(prod) => setSelectedProduct(prod)}
-                onOpenBooking={() => setActiveTab('order')}
-              />
-
-              {/* Full Product Catalog */}
+            <div className="animate-fadeIn w-full">
+              {/* Full Product Catalog with Roomvo 3D Visualizer button at top */}
               <ProductCatalog
                 selectedProduct={selectedProduct}
                 productsList={liveProducts}
