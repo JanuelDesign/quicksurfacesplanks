@@ -1,8 +1,8 @@
 import React from 'react';
-import { Home, Layers, Info, MessageCircle, Sparkles } from 'lucide-react';
+import { Home, Layers, Info, MessageCircle, Sparkles, Camera } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-export type AppTab = 'order' | 'catalog' | 'about' | 'contact';
+export type AppTab = 'order' | 'gallery' | 'catalog' | 'about' | 'contact';
 
 interface AppBottomNavProps {
   activeTab: AppTab;
@@ -26,8 +26,13 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
       badge: lang === 'es' ? `Paso ${currentStep}/4` : `Step ${currentStep}/4`,
     },
     {
+      id: 'gallery' as AppTab,
+      label: lang === 'es' ? 'Trabajos' : 'Gallery',
+      icon: Camera,
+    },
+    {
       id: 'catalog' as AppTab,
-      label: lang === 'es' ? 'Catálogo 3D' : 'Catalog',
+      label: lang === 'es' ? 'Catálogo' : 'Catalog',
       icon: Layers,
     },
     {

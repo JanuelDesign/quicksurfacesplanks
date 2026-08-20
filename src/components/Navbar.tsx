@@ -17,7 +17,7 @@ interface NavbarProps {
   currentModel?: FloorPlanModel;
   onOpenBooking: () => void;
   onSelectCommunity?: () => void;
-  onSelectTab?: (tab: 'order' | 'catalog' | 'about' | 'contact') => void;
+  onSelectTab?: (tab: 'order' | 'gallery' | 'catalog' | 'about' | 'contact') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -76,6 +76,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="hover:text-[#000000] transition-colors cursor-pointer bg-transparent border-0 p-0"
           >
             {lang === 'es' ? 'Cotizador & Planos' : 'Estimator & Plans'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onSelectTab ? onSelectTab('gallery') : undefined}
+            className="hover:text-[#000000] transition-colors cursor-pointer bg-transparent border-0 p-0"
+          >
+            {lang === 'es' ? 'Trabajos Realizados' : 'Real Installs Gallery'}
           </button>
           <button
             type="button"

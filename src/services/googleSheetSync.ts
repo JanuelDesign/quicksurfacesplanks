@@ -1,6 +1,7 @@
 import { FloorPlanModel, FlooringProduct, PricingPackage } from '../types';
 import { COMMUNITIES as DEFAULT_COMMUNITIES, FLOOR_PLAN_MODELS as DEFAULT_MODELS } from '../data/communitiesAndModels';
 import { FLOORING_PRODUCTS as DEFAULT_PRODUCTS, PRICING_PACKAGES as DEFAULT_PACKAGES } from '../data/products';
+import { GalleryItem, GALLERY_ITEMS as DEFAULT_GALLERY_ITEMS } from '../components/GallerySection';
 
 const SHEET_ID = '1AMavYDq0jmyc9_8sab_5ICUGY5N860ahiCM0ignx76A';
 
@@ -72,15 +73,17 @@ function slugify(text: string): string {
 
 export async function fetchLiveDatabase() {
   try {
-    const [commRes, floorRes, priceRes] = await Promise.all([
+    const [commRes, floorRes, priceRes, galleryRes] = await Promise.all([
       fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Communities_Models`),
       fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flooring_Catalog`),
       fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Pricing_Packages`),
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Gallery_Projects`),
     ]);
 
     let models = DEFAULT_MODELS;
     let products = DEFAULT_PRODUCTS;
     let packages = DEFAULT_PACKAGES;
+    let galleryItems = DEFAULT_GALLERY_ITEMS;
 
     // 1. Parse Models
     if (commRes.ok) {
@@ -334,10 +337,80 @@ export async function fetchLiveDatabase() {
       }
     }
 
+    // 4. Parse Gallery Projects (if available)
+    if (galleryRes && galleryRes.ok) {
+      const galleryText = await galleryRes.text();
+      const rows = parseCSV(galleryText);
+      if (rows.length > 1) {
+        const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
+        const idIdx = header.indexOf('id');
+        const fileIdx = header.indexOf('file_name');
+        const titleEsIdx = header.findIndex((h) => h === 'title_es' || h === 'title');
+        const titleEnIdx = header.findIndex((h) => h === 'title_en' || h === 'titleen');
+        const spaceTypeIdx = header.indexOf('space_type');
+        const spaceLabelEsIdx = header.indexOf('space_label_es');
+        const spaceLabelEnIdx = header.indexOf('space_label_en');
+        const colIdx = header.indexOf('collection');
+        const prodCodeIdx = header.indexOf('product_code');
+        const prodNameIdx = header.indexOf('product_name');
+        const commIdx = header.indexOf('community');
+        const locIdx = header.indexOf('location');
+        const imgIdx = header.findIndex((h) => h === 'image_url' || h === 'image' || h === 'img_url');
+        const tagEsIdx = header.indexOf('tag_es');
+        const tagEnIdx = header.indexOf('tag_en');
+        const descEsIdx = header.findIndex((h) => h === 'description_es' || h === 'description');
+        const descEnIdx = header.findIndex((h) => h === 'description_en' || h === 'descriptionen');
+        const craftEsIdx = header.findIndex((h) => h === 'craft_highlights_es' || h === 'craft_highlights');
+        const craftEnIdx = header.findIndex((h) => h === 'craft_highlights_en' || h === 'craft_highlights_en');
+
+        const parsedGallery: GalleryItem[] = [];
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r[titleEsIdx] && !r[idIdx]) continue;
+
+          const rawCraftEs = r[craftEsIdx] || '';
+          const craftListEs = rawCraftEs.includes('|')
+            ? rawCraftEs.split('|').map((s) => s.trim()).filter(Boolean)
+            : rawCraftEs ? [rawCraftEs] : ['Flush Nosing integrado sin tropiezos', 'Pegado estructural de máxima adherencia'];
+
+          const rawCraftEn = r[craftEnIdx] || '';
+          const craftListEn = rawCraftEn.includes('|')
+            ? rawCraftEn.split('|').map((s) => s.trim()).filter(Boolean)
+            : rawCraftEn ? [rawCraftEn] : ['Seamless flush nosing with zero trip hazard', 'Structural polyurethane full-spread adhesion'];
+
+          const rawImg = normalizeImageUrl(r[imgIdx]);
+
+          parsedGallery.push({
+            id: r[idIdx] || `gal-${i}`,
+            fileName: r[fileIdx] || `gallery_image_${i}.webp`,
+            title: r[titleEsIdx] || 'Instalación de Pisos SPC en Homestead',
+            titleEn: r[titleEnIdx] || r[titleEsIdx] || 'Homestead SPC Flooring Installation',
+            spaceType: (r[spaceTypeIdx] as any) || 'stairs',
+            spaceLabel: r[spaceLabelEsIdx] || 'Espacio Interior',
+            spaceLabelEn: r[spaceLabelEnIdx] || r[spaceLabelEsIdx] || 'Interior Space',
+            collection: (r[colIdx] as any) || '8mm',
+            productName: r[prodNameIdx] || '8.0mm Liv Oak Flagship',
+            productCode: r[prodCodeIdx] || '347',
+            community: r[commIdx] || 'Siena Reserve',
+            location: r[locIdx] || 'Homestead, FL',
+            imageUrl: rawImg || DEFAULT_GALLERY_ITEMS[0]?.imageUrl || '',
+            tag: r[tagEsIdx] || 'Instalación Real',
+            tagEn: r[tagEnIdx] || r[tagEsIdx] || 'Real Install',
+            description: r[descEsIdx] || 'Instalación profesional con garantía de 25 años.',
+            descriptionEn: r[descEnIdx] || r[descEsIdx] || 'Professional installation with 25-year warranty.',
+            craftHighlights: craftListEs,
+            craftHighlightsEn: craftListEn,
+          });
+        }
+        if (parsedGallery.length > 0) galleryItems = parsedGallery;
+      }
+    }
+
     return {
       models,
       products,
       packages,
+      galleryItems,
       isLive: true,
     };
   } catch (error) {
@@ -346,6 +419,7 @@ export async function fetchLiveDatabase() {
       models: DEFAULT_MODELS,
       products: DEFAULT_PRODUCTS,
       packages: DEFAULT_PACKAGES,
+      galleryItems: DEFAULT_GALLERY_ITEMS,
       isLive: false,
     };
   }

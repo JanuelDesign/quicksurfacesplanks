@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FlooringCategory, FlooringProduct } from '../types';
 import { FLOORING_PRODUCTS } from '../data/products';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,6 +15,9 @@ import {
   SlidersHorizontal,
   Star,
   Info,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from 'lucide-react';
 
 interface ProductCatalogProps {
@@ -35,6 +38,34 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [toneFilter, setToneFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModalProduct, setActiveModalProduct] = useState<FlooringProduct | null>(null);
+
+  const thicknessScrollRef = useRef<HTMLDivElement>(null);
+  const toneScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
+  // Auto-scroll active filter chips into view
+  useEffect(() => {
+    if (thicknessScrollRef.current) {
+      const activeEl = thicknessScrollRef.current.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (toneScrollRef.current) {
+      const activeEl = toneScrollRef.current.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [toneFilter]);
 
   const filteredProducts = productsList.filter((prod) => {
     if (prod.category !== activeTab) return false;
@@ -100,81 +131,162 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           </p>
         </div>
 
-        {/* Thickness Category Tabs */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-          <div className="flex bg-[#F1F5F9] p-1.5 rounded-2xl border border-[#E2E8F0] w-full sm:w-auto">
-            {(['8mm', '5.5mm', '6mm'] as FlooringCategory[]).map((cat) => {
-              const isActive = activeTab === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    setActiveTab(cat);
-                    setToneFilter('all');
-                  }}
-                  className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-[#000000] text-[#FFFFFF] shadow-md'
-                      : 'text-[#64748B] hover:text-[#000000]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span>{cat} SPC</span>
-                    <span className="text-[10px] opacity-80">
-                      ({cat === '8mm' ? '22 Mils Flagship' : '20 Mils'})
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+        {/* Search & Filter Controls: Clean Stacked Hierarchy with No Layout Collision */}
+        <div className="space-y-4 mb-8 bg-[#F8FAFC] p-4 sm:p-5 rounded-3xl border border-[#E2E8F0] shadow-xs">
+          {/* Row 1: Search Input */}
+          <div className="relative w-full">
+            <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={lang === 'es' ? 'Buscar color por nombre o código (ej: Liv Oak, #347)...' : 'Search color or code (e.g. Liv Oak, #347)...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 rounded-2xl text-xs sm:text-sm bg-[#FFFFFF] border border-[#CBD5E1] text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8407] focus:border-[#FF8407] shadow-2xs transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#94A3B8] hover:text-[#0F172A] rounded-full hover:bg-[#F1F5F9] cursor-pointer"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Search & Tone Filters */}
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:flex-initial">
-              <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder={lang === 'es' ? 'Buscar color o código...' : 'Search color or code...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-2 rounded-xl text-xs bg-[#F8FAFC] border border-[#E2E8F0] text-[#000000] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#FF8407] w-full sm:w-52"
-              />
+          {/* Row 2: Thickness & Wear Layer Tabs */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5 px-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+                {lang === 'es' ? '1. Espesor SPC & Capa de Desgaste:' : '1. SPC Thickness & Wear Layer:'}
+              </span>
+              <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
+                Desliza horizontalmente →
+              </span>
             </div>
 
-            <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] text-xs">
+            <div className="relative group">
+              {/* Desktop Scroll Arrows */}
               <button
-                onClick={() => setToneFilter('all')}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                  toneFilter === 'all' ? 'bg-[#FFFFFF] text-[#000000] shadow-2xs' : 'text-[#64748B] hover:text-[#000000]'
-                }`}
+                type="button"
+                onClick={() => scrollHorizontally(thicknessScrollRef, -200)}
+                className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Anterior espesor"
               >
-                All
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => setToneFilter('warm')}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                  toneFilter === 'warm' ? 'bg-[#FFFFFF] text-[#000000] shadow-2xs' : 'text-[#64748B] hover:text-[#000000]'
-                }`}
+                type="button"
+                onClick={() => scrollHorizontally(thicknessScrollRef, 200)}
+                className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Siguiente espesor"
               >
-                Warm
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Gradient Fade Cue */}
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-[#F8FAFC] via-[#F8FAFC]/80 to-transparent z-10"></div>
+
+              <div
+                ref={thicknessScrollRef}
+                className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {(['8mm', '5.5mm', '6mm'] as FlooringCategory[]).map((cat) => {
+                  const isActive = activeTab === cat;
+                  const count = productsList.filter((p) => p.category === cat).length;
+                  return (
+                    <button
+                      key={cat}
+                      data-active={isActive ? 'true' : 'false'}
+                      onClick={() => {
+                        setActiveTab(cat);
+                        setToneFilter('all');
+                      }}
+                      className={`snap-start shrink-0 min-w-fit px-4 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer whitespace-nowrap ${
+                        isActive
+                          ? 'bg-[#000000] text-[#FFFFFF] shadow-sm ring-1 ring-black'
+                          : 'text-[#475569] bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#000000]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>{cat} SPC</span>
+                        <span className="text-[10px] opacity-85 font-bold">
+                          ({cat === '8mm' ? '22 Mils Flagship' : '20 Mils'})
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/10 text-current font-bold">
+                          {count}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 3: Wood Tone Filters */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5 px-0.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+                {lang === 'es' ? '2. Tono de Madera / Matiz:' : '2. Wood Tone & Shade:'}
+              </span>
+              <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
+                Desliza horizontalmente →
+              </span>
+            </div>
+
+            <div className="relative group">
+              {/* Desktop Scroll Arrows */}
+              <button
+                type="button"
+                onClick={() => scrollHorizontally(toneScrollRef, -200)}
+                className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Anterior tono"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => setToneFilter('cool')}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                  toneFilter === 'cool' ? 'bg-[#FFFFFF] text-[#000000] shadow-2xs' : 'text-[#64748B] hover:text-[#000000]'
-                }`}
+                type="button"
+                onClick={() => scrollHorizontally(toneScrollRef, 200)}
+                className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                aria-label="Siguiente tono"
               >
-                Cool / Gray
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
-              <button
-                onClick={() => setToneFilter('natural')}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold cursor-pointer ${
-                  toneFilter === 'natural' ? 'bg-[#FFFFFF] text-[#000000] shadow-2xs' : 'text-[#64748B] hover:text-[#000000]'
-                }`}
+
+              {/* Gradient Fade Cue */}
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-[#F8FAFC] via-[#F8FAFC]/80 to-transparent z-10"></div>
+
+              <div
+                ref={toneScrollRef}
+                className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#FFFFFF] rounded-2xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                Natural Oak
-              </button>
+                {[
+                  { id: 'all', label: lang === 'es' ? 'Todos los Tonos' : 'All Tones' },
+                  { id: 'warm', label: lang === 'es' ? 'Cálido / Roble Dorado' : 'Warm Oak' },
+                  { id: 'cool', label: lang === 'es' ? 'Gris / Loft Moderno' : 'Cool Gray' },
+                  { id: 'natural', label: lang === 'es' ? 'Roble Natural' : 'Natural Oak' },
+                  { id: 'dark', label: lang === 'es' ? 'Oscuro / Nogal' : 'Dark Walnut' },
+                  { id: 'light', label: lang === 'es' ? 'Claro / Lino Nórdico' : 'Light Nordic' },
+                ].map((t) => {
+                  const isActive = toneFilter === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      data-active={isActive ? 'true' : 'false'}
+                      onClick={() => setToneFilter(t.id)}
+                      className={`snap-start shrink-0 min-w-fit px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                        isActive
+                          ? 'bg-[#FF8407] text-black shadow-xs font-black ring-1 ring-[#FF8407]'
+                          : 'bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

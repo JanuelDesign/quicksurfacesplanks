@@ -63,6 +63,8 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 }) => {
   const { lang, t } = useLanguage();
   const communitiesScrollRef = useRef<HTMLDivElement>(null);
+  const thicknessScrollRef = useRef<HTMLDivElement>(null);
+  const toneScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
     if (ref.current) {
@@ -112,6 +114,25 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 
   // Dynamic Quote Calculation
   const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage);
+
+  // Auto-scroll active filter chips into view when filters change or view updates
+  useEffect(() => {
+    if (thicknessScrollRef.current) {
+      const activeEl = thicknessScrollRef.current.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [thicknessFilter, currentStep]);
+
+  useEffect(() => {
+    if (toneScrollRef.current) {
+      const activeEl = toneScrollRef.current.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [toneFilter, currentStep]);
 
   // Sync selected model if community changes and current model doesn't belong to it
   useEffect(() => {
@@ -733,50 +754,143 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               </div>
             </div>
 
-            {/* Thickness & Tone Filter Pills */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              <div className="flex items-center gap-1 bg-[#FFFFFF] p-1 rounded-xl border border-[#E2E8F0] text-xs overflow-x-auto [scrollbar-width:none]">
-                {[
-                  { id: 'all', label: 'Todos (26)' },
-                  { id: '5.5mm', label: '5.5mm Select (9)' },
-                  { id: '6mm', label: '6.0mm XL (5)' },
-                  { id: '8mm', label: '8.0mm Flagship (12)' },
-                ].map((tab) => (
+            {/* 2 Dedicated, Independent Scrollable Filter Rows (Espesor & Tono) */}
+            <div className="space-y-3 bg-[#FFFFFF] p-3.5 sm:p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
+              {/* Row 1: Espesor SPC */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5 px-0.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    {lang === 'es' ? '1. Espesor & Colección SPC:' : '1. SPC Thickness & Collection:'}
+                  </span>
+                  <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
+                    Desliza horizontalmente →
+                  </span>
+                </div>
+
+                <div className="relative group">
+                  {/* Desktop Prev / Next Scroll Arrows */}
                   <button
-                    key={tab.id}
-                    onClick={() => setThicknessFilter(tab.id as any)}
-                    className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                      thicknessFilter === tab.id
-                        ? 'bg-[#0F172A] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#0F172A]'
-                    }`}
+                    type="button"
+                    onClick={() => scrollHorizontally(thicknessScrollRef, -200)}
+                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                    aria-label="Anterior espesor"
                   >
-                    {tab.label}
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => scrollHorizontally(thicknessScrollRef, 200)}
+                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                    aria-label="Siguiente espesor"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Right Gradient Fade Cue */}
+                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-white via-white/80 to-transparent z-10"></div>
+
+                  <div
+                    ref={thicknessScrollRef}
+                    className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  >
+                    {[
+                      { id: 'all', label: `Todos (${productsList.length})` },
+                      {
+                        id: '5.5mm',
+                        label: `5.5mm Select (${productsList.filter((p) => p.category === '5.5mm' || p.thickness?.includes('5.5')).length})`,
+                      },
+                      {
+                        id: '6mm',
+                        label: `6.0mm XL (${productsList.filter((p) => p.category === '6mm' || p.thickness?.includes('6.0') || p.thickness?.includes('6mm')).length})`,
+                      },
+                      {
+                        id: '8mm',
+                        label: `8.0mm Flagship (${productsList.filter((p) => p.category === '8mm' || p.thickness?.includes('8.0') || p.thickness?.includes('8mm')).length})`,
+                      },
+                    ].map((tab) => {
+                      const isActive = thicknessFilter === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          data-active={isActive ? 'true' : 'false'}
+                          onClick={() => setThicknessFilter(tab.id as any)}
+                          className={`snap-start shrink-0 min-w-fit px-3.5 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                            isActive
+                              ? 'bg-[#0F172A] text-white shadow-sm ring-1 ring-[#0F172A]'
+                              : 'text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1 text-[11px] overflow-x-auto [scrollbar-width:none]">
-                {[
-                  { id: 'all', label: 'Todos' },
-                  { id: 'natural', label: 'Natural' },
-                  { id: 'warm', label: 'Cálido' },
-                  { id: 'cool', label: 'Gris' },
-                  { id: 'dark', label: 'Oscuro' },
-                  { id: 'light', label: 'Claro' },
-                ].map((t) => (
+              {/* Row 2: Tono / Matiz de Color */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5 px-0.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    {lang === 'es' ? '2. Tono & Matiz de Madera:' : '2. Wood Tone & Shade:'}
+                  </span>
+                  <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
+                    Desliza horizontalmente →
+                  </span>
+                </div>
+
+                <div className="relative group">
+                  {/* Desktop Prev / Next Scroll Arrows */}
                   <button
-                    key={t.id}
-                    onClick={() => setToneFilter(t.id)}
-                    className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                      toneFilter === t.id
-                        ? 'bg-[#FF8407] text-black font-bold'
-                        : 'bg-[#FFFFFF] text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC]'
-                    }`}
+                    type="button"
+                    onClick={() => scrollHorizontally(toneScrollRef, -200)}
+                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                    aria-label="Anterior tono"
                   >
-                    {t.label}
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => scrollHorizontally(toneScrollRef, 200)}
+                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                    aria-label="Siguiente tono"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Right Gradient Fade Cue */}
+                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-white via-white/80 to-transparent z-10"></div>
+
+                  <div
+                    ref={toneScrollRef}
+                    className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  >
+                    {[
+                      { id: 'all', label: lang === 'es' ? 'Todos los Tonos' : 'All Tones' },
+                      { id: 'natural', label: lang === 'es' ? 'Roble Natural' : 'Natural Oak' },
+                      { id: 'warm', label: lang === 'es' ? 'Tono Cálido' : 'Warm Tones' },
+                      { id: 'cool', label: lang === 'es' ? 'Gris / Loft' : 'Cool Gray' },
+                      { id: 'dark', label: lang === 'es' ? 'Oscuro / Nogal' : 'Dark / Walnut' },
+                      { id: 'light', label: lang === 'es' ? 'Claro / Lino' : 'Light / Linen' },
+                    ].map((t) => {
+                      const isActive = toneFilter === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          data-active={isActive ? 'true' : 'false'}
+                          onClick={() => setToneFilter(t.id)}
+                          className={`snap-start shrink-0 min-w-fit px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
+                            isActive
+                              ? 'bg-[#FF8407] text-black shadow-sm font-black'
+                              : 'bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 

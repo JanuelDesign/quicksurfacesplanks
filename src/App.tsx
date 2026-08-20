@@ -3,6 +3,7 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { FLOOR_PLAN_MODELS, COMMUNITIES } from './data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from './data/products';
 import { FloorPlanModel, FlooringProduct, PricingPackage, ResidentialCommunity } from './types';
+import { GalleryItem, GALLERY_ITEMS } from './components/GallerySection';
 import { fetchLiveDatabase } from './services/googleSheetSync';
 
 import { Navbar } from './components/Navbar';
@@ -10,6 +11,7 @@ import { StepWizard } from './components/StepWizard';
 import { HorizontalRender3D } from './components/HorizontalRender3D';
 import { RoomVisualizer } from './components/RoomVisualizer';
 import { ProductCatalog } from './components/ProductCatalog';
+import { GallerySection } from './components/GallerySection';
 import { BookingModal } from './components/BookingModal';
 import { AppBottomNav, AppTab } from './components/AppBottomNav';
 import { AboutModal } from './components/AboutModal';
@@ -18,6 +20,7 @@ export default function App() {
   const [liveModels, setLiveModels] = useState<FloorPlanModel[]>(FLOOR_PLAN_MODELS);
   const [liveProducts, setLiveProducts] = useState<FlooringProduct[]>(FLOORING_PRODUCTS);
   const [livePackages, setLivePackages] = useState<PricingPackage[]>(PRICING_PACKAGES);
+  const [liveGallery, setLiveGallery] = useState<GalleryItem[]>(GALLERY_ITEMS);
   const [isSyncedWithSheet, setIsSyncedWithSheet] = useState<boolean>(false);
 
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(COMMUNITIES[0]);
@@ -37,6 +40,9 @@ export default function App() {
         setLiveModels(data.models);
         setLiveProducts(data.products);
         setLivePackages(data.packages);
+        if (data.galleryItems && data.galleryItems.length > 0) {
+          setLiveGallery(data.galleryItems);
+        }
         setIsSyncedWithSheet(true);
       }
     });
@@ -97,6 +103,31 @@ export default function App() {
             </div>
           )}
 
+          {activeTab === 'gallery' && (
+            <div className="animate-fadeIn space-y-6">
+              <GallerySection
+                items={liveGallery}
+                onGoToEstimator={() => {
+                  setActiveTab('order');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onSelectFinishToQuote={(productName, collection) => {
+                  // Find matching product if possible
+                  const matched = liveProducts.find(
+                    (p) =>
+                      p.name.toLowerCase().includes(productName.toLowerCase()) ||
+                      p.category === collection
+                  );
+                  if (matched) {
+                    setSelectedProduct(matched);
+                  }
+                  setActiveTab('order');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              />
+            </div>
+          )}
+
           {activeTab === 'catalog' && (
             <div className="animate-fadeIn space-y-8 bg-white p-4 sm:p-6 rounded-3xl border border-[#E2E8F0] shadow-sm">
               <div className="text-center mb-6">
@@ -151,6 +182,9 @@ export default function App() {
           initialModel={selectedModel}
           initialProduct={selectedProduct}
           initialPackage={selectedPackage}
+          modelsList={liveModels}
+          productsList={liveProducts}
+          packagesList={livePackages}
         />
       </div>
     </LanguageProvider>
