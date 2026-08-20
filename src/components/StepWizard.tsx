@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FloorPlanModel,
   FlooringProduct,
@@ -11,9 +11,11 @@ import { FLOORING_PRODUCTS, PRICING_PACKAGES } from '../data/products';
 import { calculateQuotePrice, formatCurrency } from '../utils/pricingCalculator';
 import { FloorPlanSVG } from './FloorPlanSVG';
 import { HorizontalRender3D } from './HorizontalRender3D';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Check,
   ChevronRight,
+  ChevronLeft,
   ArrowLeft,
   MessageCircle,
   Eye,
@@ -32,6 +34,8 @@ import {
   Info,
   Clock,
   Flame,
+  Camera,
+  ExternalLink,
 } from 'lucide-react';
 
 interface StepWizardProps {
@@ -57,6 +61,15 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   isLiveSynced = false,
   onClose,
 }) => {
+  const { lang, t } = useLanguage();
+  const communitiesScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
   // Wizard active step state (1 to 4)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -362,55 +375,96 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
 
             {/* 1. Community Horizontal Selector Chips */}
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block mb-2">
-                1. Condominios en Homestead & Miami ({filteredCommunities.length})
-              </span>
-              <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-                {filteredCommunities.map((c) => {
-                  const isSelected = selectedCommunity.id === c.id;
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        setSelectedCommunity(c);
-                        const first = modelsList.find((m) => m.communityId === c.id);
-                        if (first) setSelectedModel(first);
-                      }}
-                      className={`px-4 py-3 rounded-2xl border text-left transition-all shrink-0 cursor-pointer min-w-[170px] flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
-                          : 'bg-[#FFFFFF] text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
-                      }`}
-                    >
-                      <div>
-                        <div className="text-xs font-black leading-tight">{c.name}</div>
-                        <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-[#FF8407]' : 'text-[#64748B]'}`}>
-                          {c.collections[0] || 'Colección'}
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                  1. Condominios en Homestead & Miami ({filteredCommunities.length})
+                </span>
+                <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
+                  Desliza horizontalmente →
+                </span>
+              </div>
+              <div className="relative group">
+                {/* Desktop Prev / Next Scroll Arrows */}
+                <button
+                  type="button"
+                  onClick={() => scrollHorizontally(communitiesScrollRef, -240)}
+                  className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                  aria-label="Anterior comunidad"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollHorizontally(communitiesScrollRef, 240)}
+                  className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
+                  aria-label="Siguiente comunidad"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+
+                {/* Right Gradient Fade Cue */}
+                <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-10 sm:w-16 bg-gradient-to-l from-white via-white/80 to-transparent z-10 hidden sm:block"></div>
+
+                <div
+                  ref={communitiesScrollRef}
+                  className="flex gap-2.5 sm:gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-0.5"
+                >
+                  {filteredCommunities.map((c) => {
+                    const isSelected = selectedCommunity.id === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          setSelectedCommunity(c);
+                          const first = modelsList.find((m) => m.communityId === c.id);
+                          if (first) setSelectedModel(first);
+                        }}
+                        className={`snap-start shrink-0 min-w-[155px] max-w-[210px] sm:min-w-[175px] p-3.5 sm:p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
+                            : 'bg-[#FFFFFF] text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
+                        }`}
+                      >
+                        <div className="w-full min-w-0">
+                          <div className="text-xs sm:text-sm font-black leading-snug line-clamp-2 break-words text-inherit">
+                            {c.name}
+                          </div>
+                          <div
+                            className={`text-[10px] sm:text-[11px] mt-1 font-semibold truncate whitespace-nowrap overflow-hidden block ${
+                              isSelected ? 'text-[#FF8407]' : 'text-[#64748B]'
+                            }`}
+                          >
+                            {c.collections[0] || 'Colección'}
+                          </div>
                         </div>
-                      </div>
-                      <div className={`text-[10px] mt-2 pt-2 border-t ${isSelected ? 'border-white/10 text-[#CBD5E1]' : 'border-[#F1F5F9] text-[#64748B]'}`}>
-                        {c.city}, FL {c.zip}
-                      </div>
-                    </button>
-                  );
-                })}
+                        <div
+                          className={`text-[10px] mt-2.5 pt-2 border-t w-full truncate whitespace-nowrap overflow-hidden block ${
+                            isSelected ? 'border-white/10 text-[#CBD5E1]' : 'border-[#F1F5F9] text-[#64748B]'
+                          }`}
+                        >
+                          {c.city}, FL {c.zip}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
             {/* 2. Model Cards Screen Grid */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <div>
-                  <span className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                <div className="min-w-0">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#0F172A] block truncate">
                     Modelos de 2do Piso en {selectedCommunity.name} ({availableModels.length})
                   </span>
-                  <span className="text-[11px] text-[#64748B] block font-medium">
+                  <span className="text-[11px] text-[#64748B] block font-medium truncate">
                     Sub-fase: <strong className="text-[#0F172A]">{selectedModel.collection}</strong>
                   </span>
                 </div>
                 <button
                   onClick={() => setShowFloorPlanDetail(!showFloorPlanDetail)}
-                  className="text-xs font-bold text-[#FF8407] hover:underline flex items-center gap-1 cursor-pointer bg-[#FFF7ED] px-3 py-1.5 rounded-xl border border-[#FF8407]/30"
+                  className="text-xs font-bold text-[#FF8407] hover:underline flex items-center gap-1 cursor-pointer bg-[#FFF7ED] px-3 py-1.5 rounded-xl border border-[#FF8407]/30 shrink-0"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>{showFloorPlanDetail ? 'Ocultar Plano 2D' : 'Ver Plano 2D CAD'}</span>
@@ -424,37 +478,39 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                     <div
                       key={m.id}
                       onClick={() => setSelectedModel(m)}
-                      className={`p-4 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between relative ${
+                      className={`p-3.5 sm:p-4 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between relative ${
                         isSelected
                           ? 'border-[#FF8407] shadow-lg ring-2 ring-[#FF8407] bg-[#FFFBF7]'
                           : 'border-[#E2E8F0] hover:border-[#CBD5E1] shadow-xs'
                       }`}
                     >
-                      <div>
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <div>
-                            <span className="font-black text-sm text-[#0F172A] block">{m.name}</span>
-                            <span className="text-[10px] text-[#64748B] font-semibold">
+                      <div className="min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1.5 min-w-0">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-black text-sm text-[#0F172A] block line-clamp-2 break-words">
+                              {m.name}
+                            </span>
+                            <span className="text-[10px] text-[#64748B] font-semibold truncate whitespace-nowrap overflow-hidden block">
                               {m.communityName} · {m.collection}
                             </span>
                           </div>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/30 shrink-0">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/30 shrink-0 whitespace-nowrap">
                             {m.sqftMaterialRecommended} SF
                           </span>
                         </div>
 
                         {/* Sqft & Specs Grid */}
-                        <div className="grid grid-cols-3 gap-1 text-center my-2.5 py-2 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                        <div className="grid grid-cols-3 gap-1 text-center my-2.5 py-2 px-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
                           <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold">Material (+10%)</span>
+                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">Material (+10%)</span>
                             <span className="text-xs font-black text-[#FF8407]">{m.sqftMaterialRecommended} SF</span>
                           </div>
                           <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold">Área Neta</span>
+                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">Área Neta</span>
                             <span className="text-xs font-black text-[#0F172A]">{m.sqftNet} SF</span>
                           </div>
                           <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold">Escaleras</span>
+                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">Escaleras</span>
                             <span className="text-xs font-black text-[#0F172A]">{m.stepsCount} Pasos</span>
                           </div>
                         </div>
@@ -462,28 +518,28 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                         {/* Room Dimensions Preview */}
                         {m.ownerSuiteDims && (
                           <div className="text-[10px] text-[#64748B] mb-2 bg-[#FFFFFF] p-2 rounded-lg border border-[#F1F5F9] space-y-0.5">
-                            <div className="flex justify-between">
-                              <span className="font-bold text-[#0F172A]">Owner's Suite:</span>
-                              <span className="font-mono">{m.ownerSuiteDims}</span>
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="font-bold text-[#0F172A] truncate">Owner's Suite:</span>
+                              <span className="font-mono text-[10px] shrink-0">{m.ownerSuiteDims}</span>
                             </div>
                             {m.bedroom2Dims && (
-                              <div className="flex justify-between">
-                                <span>Bedroom 2:</span>
-                                <span className="font-mono">{m.bedroom2Dims}</span>
+                              <div className="flex justify-between items-center gap-2">
+                                <span className="truncate">Bedroom 2:</span>
+                                <span className="font-mono text-[10px] shrink-0">{m.bedroom2Dims}</span>
                               </div>
                             )}
                           </div>
                         )}
 
-                        <div className="text-[11px] text-[#64748B] flex items-center justify-between pt-1 border-t border-[#F1F5F9]">
+                        <div className="text-[11px] text-[#64748B] flex items-center justify-between pt-1.5 border-t border-[#F1F5F9]">
                           <span className="truncate">{m.bedrooms} Hab · {m.baths} Baños</span>
                           {isSelected ? (
-                            <span className="text-[10px] font-black text-[#FF8407] flex items-center gap-1 shrink-0">
+                            <span className="text-[10px] font-black text-[#FF8407] flex items-center gap-1 shrink-0 whitespace-nowrap">
                               <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
                               <span>Elegido</span>
                             </span>
                           ) : (
-                            <span className="text-[10px] text-[#94A3B8] font-bold">Seleccionar</span>
+                            <span className="text-[10px] text-[#94A3B8] font-bold shrink-0 whitespace-nowrap">Seleccionar</span>
                           )}
                         </div>
                       </div>
@@ -530,14 +586,49 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
         ======================================================== */}
         {currentStep === 2 && (
           <div className="space-y-5 animate-fadeIn">
+            {/* ROOMVO 3D VISUALIZER ACTION CALLOUT */}
+            <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] p-3.5 sm:p-4 rounded-2xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md border border-[#334155]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FF8407]/20 border border-[#FF8407]/40 flex items-center justify-center shrink-0">
+                  <Camera className="w-5 h-5 text-[#FF8407]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-black text-white">
+                      {lang === 'es' ? 'Simulador 3D en tu Espacio Real' : '3D Simulator in Your Real Room'}
+                    </span>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FF8407] text-black uppercase">
+                      Roomvo
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                    {lang === 'es'
+                      ? 'Sube o toma una foto de tu habitación y previsualiza el piso instalado al instante.'
+                      : 'Upload or snap a photo of your space to test flooring installed in real-time.'}
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href="https://www.roomvo.com/my/flooringwaterproof/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-[#FF8407] hover:bg-[#ff952a] text-black flex items-center justify-center gap-2 text-xs sm:text-sm font-black shadow-md transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shrink-0"
+              >
+                <Camera className="w-4 h-4 text-black shrink-0" />
+                <span className="truncate">{lang === 'es' ? 'Visualiza el piso en tu espacio' : 'Visualize flooring in your room'}</span>
+                <ChevronRight className="w-4 h-4 text-black shrink-0" />
+              </a>
+            </div>
+
             {/* Top Interactive App Viewport */}
             <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 {/* View switcher tabs */}
-                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
+                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] overflow-x-auto [scrollbar-width:none]">
                   <button
                     onClick={() => setViewMode3D('room')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                       viewMode3D === 'room'
                         ? 'bg-[#0F172A] text-white shadow-xs'
                         : 'text-[#64748B] hover:text-[#0F172A]'
@@ -548,7 +639,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   </button>
                   <button
                     onClick={() => setViewMode3D('plank')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                       viewMode3D === 'plank'
                         ? 'bg-[#0F172A] text-white shadow-xs'
                         : 'text-[#64748B] hover:text-[#0F172A]'
@@ -559,7 +650,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   </button>
                   <button
                     onClick={() => setViewMode3D('stairs')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                       viewMode3D === 'stairs'
                         ? 'bg-[#0F172A] text-white shadow-xs'
                         : 'text-[#64748B] hover:text-[#0F172A]'
@@ -573,7 +664,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                 {/* Stock Status for Active Color */}
                 <div className="flex items-center gap-2">
                   {renderStockBadge(selectedProduct)}
-                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] truncate max-w-[200px]">
                     #{selectedProduct.code} {selectedProduct.name}
                   </span>
                 </div>
@@ -596,15 +687,15 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
 
                 {/* Spec Tag Overlay */}
                 <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between p-2.5 rounded-xl bg-black/80 backdrop-blur-md text-white border border-white/10 text-xs">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span
                       className="w-4 h-4 rounded-full border border-white shrink-0 shadow-sm"
                       style={{ backgroundColor: selectedProduct.colorHex }}
                     ></span>
                     <span className="font-black truncate">{selectedProduct.name}</span>
-                    <span className="text-white/70 text-[11px] hidden sm:inline">({selectedProduct.collectionName})</span>
+                    <span className="text-white/70 text-[11px] hidden sm:inline truncate">({selectedProduct.collectionName})</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px]">
+                  <div className="flex items-center gap-1.5 text-[11px] shrink-0">
                     <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
                     <span>•</span>
                     <span>{selectedProduct.wearLayer}</span>
@@ -643,8 +734,8 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
             </div>
 
             {/* Thickness & Tone Filter Pills */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1 bg-[#FFFFFF] p-1 rounded-xl border border-[#E2E8F0] text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-1 bg-[#FFFFFF] p-1 rounded-xl border border-[#E2E8F0] text-xs overflow-x-auto [scrollbar-width:none]">
                 {[
                   { id: 'all', label: 'Todos (26)' },
                   { id: '5.5mm', label: '5.5mm Select (9)' },
@@ -654,7 +745,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   <button
                     key={tab.id}
                     onClick={() => setThicknessFilter(tab.id as any)}
-                    className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                       thicknessFilter === tab.id
                         ? 'bg-[#0F172A] text-white shadow-xs'
                         : 'text-[#64748B] hover:text-[#0F172A]'
@@ -665,7 +756,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                 ))}
               </div>
 
-              <div className="flex items-center gap-1 text-[11px]">
+              <div className="flex items-center gap-1 text-[11px] overflow-x-auto [scrollbar-width:none]">
                 {[
                   { id: 'all', label: 'Todos' },
                   { id: 'natural', label: 'Natural' },
@@ -677,7 +768,7 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                   <button
                     key={t.id}
                     onClick={() => setToneFilter(t.id)}
-                    className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                       toneFilter === t.id
                         ? 'bg-[#FF8407] text-black font-bold'
                         : 'bg-[#FFFFFF] text-[#64748B] border border-[#E2E8F0] hover:bg-[#F8FAFC]'
@@ -691,13 +782,40 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
 
             {/* Swatches Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {/* Roomvo Interactive Swatch Card */}
+              <a
+                href="https://www.roomvo.com/my/flooringwaterproof/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 rounded-2xl border-2 border-dashed border-[#FF8407]/70 bg-[#FFF7ED]/50 hover:bg-[#FFF7ED] transition-all cursor-pointer flex flex-col justify-between text-left group"
+              >
+                <div className="relative h-24 w-full rounded-xl overflow-hidden mb-2 bg-[#0F172A] flex flex-col items-center justify-center p-2 text-center text-white">
+                  <div className="w-10 h-10 rounded-full bg-[#FF8407] text-black flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-black text-[#FF8407] uppercase">Simulador 3D</span>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-black text-[#0F172A] line-clamp-1">Probar en mi casa</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />
+                  </div>
+                  <p className="text-[10px] text-[#64748B] line-clamp-2 leading-tight">
+                    Sube una foto de tu piso y pruébalo con Roomvo 3D
+                  </p>
+                  <div className="pt-1.5 mt-1.5 border-t border-[#FF8407]/20 flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-[#FF8407]">Abrir Roomvo →</span>
+                  </div>
+                </div>
+              </a>
+
               {filteredProducts.map((p) => {
                 const isSelected = selectedProduct.id === p.id;
                 return (
                   <div
                     key={p.id}
                     onClick={() => setSelectedProduct(p)}
-                    className={`p-2.5 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between ${
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between ${
                       isSelected
                         ? 'border-[#FF8407] shadow-lg ring-2 ring-[#FF8407] bg-[#FFF7ED]'
                         : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
@@ -722,18 +840,24 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
                       )}
                     </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-black text-[#0F172A] truncate">{p.name}</span>
-                        <span className="text-[10px] text-[#64748B] font-bold shrink-0">#{p.code}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-1 mb-0.5 min-w-0">
+                        <span className="text-xs font-black text-[#0F172A] truncate whitespace-nowrap overflow-hidden block">
+                          {p.name}
+                        </span>
+                        <span className="text-[10px] text-[#64748B] font-bold shrink-0 whitespace-nowrap">
+                          #{p.code}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-1.5">
-                        <span>{p.thickness}</span>
-                        <span>{p.wearLayer}</span>
+                        <span className="truncate whitespace-nowrap">{p.thickness}</span>
+                        <span className="truncate whitespace-nowrap">{p.wearLayer}</span>
                       </div>
-                      <div className="pt-1.5 border-t border-[#F1F5F9] flex items-center justify-between">
-                        {renderStockBadge(p)}
-                        <span className="text-[9px] text-[#64748B] font-medium">{p.sqftPerBox} SF/bx</span>
+                      <div className="pt-1.5 border-t border-[#F1F5F9] flex items-center justify-between gap-1">
+                        <div className="shrink-0">{renderStockBadge(p)}</div>
+                        <span className="text-[9px] text-[#64748B] font-medium truncate whitespace-nowrap">
+                          {p.sqftPerBox} SF/bx
+                        </span>
                       </div>
                     </div>
                   </div>

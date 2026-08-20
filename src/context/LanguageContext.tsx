@@ -64,6 +64,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     compareFinishes: "Compare Vinyl Collections",
     launchVisualizerBtn: "Open Full 3D Room Visualizer Tool",
     launchVisualizerSubtitle: "Launch our dedicated interactive visualizer room studio tool at quicksurfaces.com",
+    roomvoVisualizerBtn: "Visualize flooring in your room",
+    roomvoVisualizerDesc: "Upload or snap a photo of your space to test flooring with Roomvo 3D",
     swatchHelper: "Click any color swatch below to update the floor render and see specifications:",
     viewAllSwatches: "Explore All 9 Colors",
     
@@ -168,6 +170,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     compareFinishes: "Comparar Colecciones de Vinil",
     launchVisualizerBtn: "Abrir Herramienta de Visualizador 3D Completa",
     launchVisualizerSubtitle: "Utiliza la herramienta interactiva de visualización en quicksurfaces.com",
+    roomvoVisualizerBtn: "Visualiza el piso en tu espacio",
+    roomvoVisualizerDesc: "Sube o toma una foto de tu habitación con el simulador 3D de Roomvo",
     swatchHelper: "Haz clic en cualquier muestra para actualizar el plano y ver las especificaciones:",
     viewAllSwatches: "Ver los 9 Colores Disponibles",
     

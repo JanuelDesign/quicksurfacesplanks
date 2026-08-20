@@ -31,7 +31,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<AppTab>('order');
   const [isAboutModalOpen, setIsAboutModalOpen] = useState<boolean>(false);
 
-  useEffect(() => {
+  const refreshLiveSheet = () => {
     fetchLiveDatabase().then((data) => {
       if (data.isLive) {
         setLiveModels(data.models);
@@ -40,13 +40,23 @@ export default function App() {
         setIsSyncedWithSheet(true);
       }
     });
+  };
+
+  useEffect(() => {
+    refreshLiveSheet();
   }, []);
 
   const handleSelectTab = (tab: AppTab) => {
     if (tab === 'about') {
       setIsAboutModalOpen(true);
     } else if (tab === 'contact') {
-      window.open('https://wa.me/17866583677?text=Hola%20Quick%20Surfaces!%20Quiero%20consultar%20sobre%20pisos%20SPC%20para%20la%20comunidad%20Siena%20Reserve', '_blank');
+      const link = document.createElement('a');
+      link.href = 'https://wa.me/17866583677?text=Hola%20Quick%20Surfaces!%20Quiero%20consultar%20sobre%20pisos%20SPC%20para%20la%20comunidad%20Siena%20Reserve';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } else {
       setActiveTab(tab);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -65,6 +75,7 @@ export default function App() {
           currentModel={selectedModel}
           onOpenBooking={() => setIsBookingOpen(true)}
           onSelectCommunity={() => setActiveTab('catalog')}
+          onSelectTab={handleSelectTab}
         />
 
         {/* Main Single-Focus View Container (Rappi / Yummy Style) */}

@@ -125,9 +125,9 @@ export const GatewayHero: React.FC<GatewayHeroProps> = ({
                         </span>
                       )}
                     </div>
-                    <h3 className="font-black text-sm tracking-tight">{comm.name}</h3>
+                    <h3 className="font-black text-sm tracking-tight line-clamp-2 break-words">{comm.name}</h3>
                     <p
-                      className={`text-[11px] mt-0.5 ${
+                      className={`text-[11px] mt-0.5 truncate whitespace-nowrap overflow-hidden block ${
                         isSelected ? 'text-[#94A3B8]' : 'text-[#64748B]'
                       }`}
                     >

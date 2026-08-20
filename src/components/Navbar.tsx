@@ -17,12 +17,14 @@ interface NavbarProps {
   currentModel?: FloorPlanModel;
   onOpenBooking: () => void;
   onSelectCommunity?: () => void;
+  onSelectTab?: (tab: 'order' | 'catalog' | 'about' | 'contact') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentModel,
   onOpenBooking,
   onSelectCommunity,
+  onSelectTab,
 }) => {
   const { lang, setLang, t } = useLanguage();
 
@@ -57,28 +59,38 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Main Navbar */}
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo */}
-        <a href="#hero" className="flex items-center shrink-0">
+        <button
+          type="button"
+          onClick={() => onSelectTab ? onSelectTab('order') : onSelectCommunity?.()}
+          className="flex items-center shrink-0 cursor-pointer bg-transparent border-0 p-0 text-left"
+        >
           <Logo variant="dark" size="sm" showTagline={false} className="sm:hidden" />
           <Logo variant="dark" size="md" showTagline={true} className="hidden sm:flex" />
-        </a>
+        </button>
 
         {/* Navigation Links */}
         <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-xs font-bold text-[#4B5563]">
-          <a href="#models" className="hover:text-[#000000] transition-colors">
-            {lang === 'es' ? 'Modelos & Planos' : 'Floor Plans & Models'}
-          </a>
-          <a href="#visualizer" className="hover:text-[#000000] transition-colors">
-            {lang === 'es' ? 'Colores & Visualizador' : 'Color Studio'}
-          </a>
-          <a href="#pricing" className="hover:text-[#000000] transition-colors">
-            {lang === 'es' ? '4 Paquetes' : '4 Pricing Packages'}
-          </a>
-          <a href="#scope" className="hover:text-[#000000] transition-colors">
-            {lang === 'es' ? 'Proceso & Garantía' : 'Scope & Process'}
-          </a>
-          <a href="#catalog" className="hover:text-[#000000] transition-colors">
-            {lang === 'es' ? 'Catálogo SPC' : 'SPC Specs'}
-          </a>
+          <button
+            type="button"
+            onClick={() => onSelectTab ? onSelectTab('order') : onSelectCommunity?.()}
+            className="hover:text-[#000000] transition-colors cursor-pointer bg-transparent border-0 p-0"
+          >
+            {lang === 'es' ? 'Cotizador & Planos' : 'Estimator & Plans'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onSelectTab ? onSelectTab('catalog') : onSelectCommunity?.()}
+            className="hover:text-[#000000] transition-colors cursor-pointer bg-transparent border-0 p-0"
+          >
+            {lang === 'es' ? 'Catálogo 3D SPC' : 'SPC Catalog 3D'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onSelectTab ? onSelectTab('about') : onSelectCommunity?.()}
+            className="hover:text-[#000000] transition-colors cursor-pointer bg-transparent border-0 p-0"
+          >
+            {lang === 'es' ? 'Nosotros & Garantía' : 'About & Warranty'}
+          </button>
         </nav>
 
         {/* Right Controls: Language Selector + CTA */}
