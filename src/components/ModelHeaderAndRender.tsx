@@ -1,20 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FloorPlanModel, FlooringProduct } from '../types';
 import { useLanguage } from '../context/LanguageContext';
-import { HorizontalRender3D } from './HorizontalRender3D';
-import { FloorPlanSVG } from './FloorPlanSVG';
+import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
+import { Photorealistic3DRender } from './Photorealistic3DRender';
 import {
   Sparkles,
   CheckCircle2,
   Phone,
-  Ruler,
-  Layers,
-  ArrowRight,
-  ShieldCheck,
   Building2,
   Box,
-  Truck,
-  Eye,
+  ArrowRight,
 } from 'lucide-react';
 
 interface ModelHeaderAndRenderProps {
@@ -28,10 +23,8 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
   model,
   selectedProduct,
   onOpenBooking,
-  onSelectProduct,
 }) => {
   const { lang, t } = useLanguage();
-  const [viewMode, setViewMode] = useState<'3d' | '2d'>('3d');
 
   return (
     <div className="bg-[#FFFFFF] text-[#111827] pt-8 pb-14 font-sans">
@@ -42,6 +35,11 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
             <span className="font-bold text-[#64748B]">{lang === 'es' ? 'Comunidad:' : 'Community:'}</span>
             <span className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] font-black text-[#000000]">
               {model.communityName}
+            </span>
+            <span className="text-[#CBD5E1]">/</span>
+            <span className="font-bold text-[#64748B]">{lang === 'es' ? 'Colección:' : 'Collection:'}</span>
+            <span className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] font-bold text-[#000000]">
+              {model.collection}
             </span>
             <span className="text-[#CBD5E1]">/</span>
             <span className="font-bold text-[#64748B]">{lang === 'es' ? 'Modelo:' : 'Model:'}</span>
@@ -82,10 +80,10 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
 
             <div className="flex flex-wrap gap-2 pt-1 text-xs">
               <span className="px-3 py-1 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] font-bold text-[#000000]">
-                📐 {model.sqft} sq ft Net Area
+                📐 {model.sqftNet} sq ft {lang === 'es' ? 'Área Neta Calculada' : 'Net Floor Area'}
               </span>
               <span className="px-3 py-1 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] font-bold text-[#000000]">
-                🪜 15 Custom Step Staircase
+                🪜 {model.stepsCount} {lang === 'es' ? 'Escalones a Medida' : 'Custom Stair Steps'}
               </span>
               <span className="px-3 py-1 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] font-bold text-[#FF8407]">
                 🛡️ 20-22 Mils Wear Layer
@@ -118,7 +116,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
                   $4,500
                 </span>
                 <span className="text-xs text-[#94A3B8] font-bold">
-                  / {model.sqft} sqft + 15 stairs
+                  / {model.sqftNet} sqft + {model.stepsCount} stairs
                 </span>
               </div>
             </div>
@@ -130,7 +128,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0" />
-                <span>Complete carpet removal & 15 glued stairs</span>
+                <span>Complete carpet removal & {model.stepsCount} glued stairs</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0" />
@@ -149,71 +147,25 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
           </div>
         </div>
 
-        {/* View Switcher Controls (3D Horizontal Render vs 2D CAD Blueprint) */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="inline-flex bg-[#F1F5F9] p-1.5 rounded-2xl border border-[#E2E8F0]">
-            <button
-              onClick={() => setViewMode('3d')}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
-                viewMode === '3d'
-                  ? 'bg-[#000000] text-[#FFFFFF] shadow-md'
-                  : 'text-[#64748B] hover:text-[#000000]'
-              }`}
-            >
-              <Eye className="w-4 h-4 text-[#FF8407]" />
-              <span>{t('view3DRender')}</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('2d')}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
-                viewMode === '2d'
-                  ? 'bg-[#000000] text-[#FFFFFF] shadow-md'
-                  : 'text-[#64748B] hover:text-[#000000]'
-              }`}
-            >
-              <Layers className="w-4 h-4 text-[#FF8407]" />
-              <span>{t('view2DBlueprint')}</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-[#64748B]">{t('activeTone')}:</span>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FFFFFF] border border-[#E2E8F0] shadow-xs">
-              <span
-                className="w-4 h-4 rounded-full border border-black/20"
-                style={{ backgroundColor: selectedProduct.colorHex }}
-              ></span>
-              <span className="text-xs font-black text-[#000000]">{selectedProduct.name}</span>
-            </div>
-          </div>
+        {/* ========================================================
+            1. MÓDULO PRINCIPAL: PLANO 2D INTERACTIVO
+            (100% generado por código con medidas y tonos en tiempo real)
+            ======================================================== */}
+        <div className="mb-10">
+          <InteractiveFloorPlan2D
+            model={model}
+            selectedProduct={selectedProduct}
+          />
         </div>
 
-        {/* Primary View: 3D Horizontal Render or 2D CAD Blueprint */}
-        <div className="mb-12">
-          {viewMode === '3d' ? (
-            <HorizontalRender3D
-              model={model}
-              selectedProduct={selectedProduct}
-            />
-          ) : (
-            <div className="bg-[#FFFFFF] rounded-3xl p-6 sm:p-8 border border-[#E2E8F0] shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-black text-[#000000]">
-                    {lang === 'es' ? 'Plano CAD 2D Interactivo' : 'Interactive 2D CAD Blueprint'}
-                  </h3>
-                  <p className="text-xs text-[#64748B]">
-                    {model.name} • {model.sqft} sq ft Net Floor Plan
-                  </p>
-                </div>
-              </div>
-              <FloorPlanSVG
-                model={model}
-                selectedProduct={selectedProduct}
-              />
-            </div>
-          )}
+        {/* ========================================================
+            2. MÓDULO SEPARADO: RENDER 3D FOTORREALISTA REAL
+            (Imagen fotorrealista subida por equipo de diseño / Placeholder claro)
+            ======================================================== */}
+        <div className="mb-14">
+          <Photorealistic3DRender
+            model={model}
+          />
         </div>
 
         {/* Exact PPT Breakdown: ONLY MATERIAL vs LABOR (INSTALLATION) */}
@@ -254,93 +206,118 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
                     </div>
                   </div>
                   <p className="text-xs text-[#64748B] mt-2">
-                    Includes {model.sqft} sq ft material, calculated waste factor, and 15 matching stair nosing pieces delivered directly to your doorstep.
+                    Includes {model.sqftMaterialRecommended} sq ft material, calculated waste factor, and {model.stepsCount} matching stair nosing pieces delivered directly to your doorstep.
                   </p>
                 </div>
 
-                {/* 8.0mm Flagship Option */}
-                <div className="p-4 rounded-2xl bg-[#FFF7ED] border border-[#FF8407]/50 relative">
-                  <span className="absolute -top-2.5 right-4 text-[9px] font-black uppercase bg-[#FF8407] text-[#000000] px-2 py-0.5 rounded-full shadow-xs">
-                    Ultra Premium
-                  </span>
+                {/* 8.0mm Option */}
+                <div className="p-4 rounded-2xl bg-[#FFF7ED] border border-[#FF8407]/40 shadow-xs">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-black text-[#FF8407] uppercase tracking-wider block">
-                        8.0mm SPC Vinyl Floor
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-[#FF8407] uppercase tracking-wider">
+                          8.0mm SPC Vinyl Floor
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#FF8407] text-[#000000] text-[9px] font-black uppercase">
+                          Flagship
+                        </span>
+                      </div>
                       <h4 className="text-base font-bold text-[#000000] mt-0.5">
-                        Flagship Heavy Commercial (22 Mil Wear Layer)
+                        Ultra-Heavy Duty (22 Mil Wear Layer + Premium Pad)
                       </h4>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-black text-[#000000]">$2,050</span>
+                      <span className="text-2xl font-black text-[#FF8407]">$1,950</span>
                       <span className="text-[10px] text-[#64748B] block">Total Material</span>
                     </div>
                   </div>
                   <p className="text-xs text-[#64748B] mt-2">
-                    Includes 8.0mm luxury planks, 2.0mm attached acoustic backing, and 15 premium heavy-duty stair nosings.
+                    Commercial grade 8mm SPC plank core with maximum sound dampening acoustic backing and {model.stepsCount} custom glued matching steps.
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
-              <span className="flex items-center gap-1.5 font-bold">
-                <Truck className="w-4 h-4 text-[#FF8407]" />
-                Direct Miami-Dade / Homestead Delivery
-              </span>
-              <span className="font-bold text-[#000000]">Zero Hidden Surcharges</span>
+              <span>🚚 Includes Free Curbside Freight</span>
+              <span>🔒 25-Year Warranty</span>
             </div>
           </div>
 
-          {/* Slide 3 Right: LABOR (INSTALLATION) */}
+          {/* Slide 3 Right: LABOR ONLY */}
           <div className="bg-[#FFFFFF] rounded-3xl p-6 sm:p-8 border border-[#E2E8F0] shadow-lg flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-xl bg-[#000000] text-[#FF8407] flex items-center justify-center font-black">
-                    <Ruler className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4" />
                   </div>
                   <h3 className="text-xl font-black text-[#000000] tracking-tight">
                     {t('laborTitle')}
                   </h3>
                 </div>
-                <span className="text-base font-black text-[#000000] px-3 py-1 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/40">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-[#000000] text-[#FF8407]">
                   {t('laborTotal')}
                 </span>
               </div>
 
-              {/* Exact 5 bullet scope from Slide 3 */}
-              <div className="space-y-3 text-xs sm:text-sm">
-                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-[#F8FAFC]">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0 mt-0.5" />
-                  <span className="text-[#334155] font-medium">{t('labor1')}</span>
+              {/* 5 Labor Steps matching Slide 3 */}
+              <div className="space-y-3 text-xs text-[#334155]">
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#000000] text-[#FFFFFF] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                    1
+                  </span>
+                  <div>
+                    <strong className="text-[#000000] block text-xs">Carpet & Tack Strip Removal</strong>
+                    <span className="text-[#64748B]">{t('labor1')}</span>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-[#F8FAFC]">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0 mt-0.5" />
-                  <span className="text-[#334155] font-medium">{t('labor2')}</span>
+
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#000000] text-[#FFFFFF] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                    2
+                  </span>
+                  <div>
+                    <strong className="text-[#000000] block text-xs">Subfloor Leveling & Prep</strong>
+                    <span className="text-[#64748B]">{t('labor2')}</span>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-[#F8FAFC]">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0 mt-0.5" />
-                  <span className="text-[#334155] font-medium">{t('labor3')}</span>
+
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#000000] text-[#FFFFFF] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                    3
+                  </span>
+                  <div>
+                    <strong className="text-[#000000] block text-xs">Continuous SPC Floor Installation</strong>
+                    <span className="text-[#64748B]">{t('labor3')}</span>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-[#F8FAFC]">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0 mt-0.5" />
-                  <span className="text-[#334155] font-medium">{t('labor4')}</span>
+
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#000000] text-[#FFFFFF] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                    4
+                  </span>
+                  <div>
+                    <strong className="text-[#000000] block text-xs">Baseboard Detach & Reset</strong>
+                    <span className="text-[#64748B]">{t('labor4')}</span>
+                  </div>
                 </div>
-                <div className="flex items-start gap-3 p-2.5 rounded-xl bg-[#F8FAFC]">
-                  <CheckCircle2 className="w-4 h-4 text-[#FF8407] flex-shrink-0 mt-0.5" />
-                  <span className="text-[#334155] font-medium">{t('labor5')}</span>
+
+                <div className="p-3 rounded-xl bg-[#FFF7ED] border border-[#FF8407]/40 flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#FF8407] text-[#000000] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                    5
+                  </span>
+                  <div>
+                    <strong className="text-[#000000] block text-xs">15 Custom Matching Staircase Steps</strong>
+                    <span className="text-[#64748B]">{t('labor5')}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="mt-6 pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
-              <span className="flex items-center gap-1.5 font-bold">
-                <ShieldCheck className="w-4 h-4 text-[#FF8407]" />
-                Licensed & Insured Installation
-              </span>
-              <span className="font-bold text-[#FF8407]">Garantía QuickSurfaces</span>
+              <span>⏱️ Completed in 2-3 Business Days</span>
+              <span className="text-[#FF8407] font-bold">100% Satisfaction Guarantee</span>
             </div>
           </div>
         </div>

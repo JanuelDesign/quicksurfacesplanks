@@ -51,11 +51,15 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     labor5: "Custom stair installation glued with matching planks (15 steps)",
     
     // Render & Blueprints
-    view3DRender: "3D Horizontal Architectural Render",
-    view2DBlueprint: "2D CAD Blueprint Plan",
-    renderTitle: "Realistic 3D Horizontal Cutaway View",
-    renderSubtitle: "Exact second-story layout with Owner's Suite, Bedrooms 2 & 3, dual baths, closets, and 15 custom matching stairs.",
+    view3DRender: "Render 3D Fotorrealista",
+    view2DBlueprint: "Plano 2D Interactivo",
+    renderTitle: "Interactive 2D Floor Plan",
+    renderSubtitle: "Exact second-story layout generated from architectural parameters with Owner's Suite, Bedrooms 2 & 3, dual baths, closets, and custom stairs.",
     activeTone: "Active Vinyl Finish",
+    render3dSectionTitle: "Official 3D Photorealistic Render",
+    render3dSectionSubtitle: "High-resolution commercial marketing render showcasing furniture, lighting, and natural depth.",
+    plan2dSectionTitle: "Interactive 2D Floor Plan & Live Swatches",
+    plan2dSectionSubtitle: "Code-generated architectural layout with dynamic room dimensions and real-time flooring color overlays.",
     
     // Room Visualizer / Color Showcase
     visualizerTitle: "Color & Finish Visualizer",
@@ -157,11 +161,15 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     labor5: "Instalación de 15 escalones pegados con mismos tablones",
     
     // Render & Blueprints
-    view3DRender: "Render Arquitectónico 3D Horizontal",
-    view2DBlueprint: "Plano CAD 2D",
-    renderTitle: "Vista 3D Horizontal Realista en Corte",
-    renderSubtitle: "Distribución exacta con Recámara Principal, Recámaras 2 y 3, baños, armarios y 15 escalones en el tono seleccionado.",
+    view3DRender: "Render 3D Fotorrealista",
+    view2DBlueprint: "Plano 2D Interactivo",
+    renderTitle: "Plano 2D Interactivo",
+    renderSubtitle: "Distribución exacta generada por código a partir de medidas arquitectónicas con Suite Principal, Recámaras 2 y 3, baños, armarios y escalones en el tono seleccionado.",
     activeTone: "Tono de Vinil Activo",
+    render3dSectionTitle: "Render 3D Fotorrealista Oficial",
+    render3dSectionSubtitle: "Vista comercial tipo dollhouse con mobiliario, sombras e iluminación natural subida por el equipo de diseño.",
+    plan2dSectionTitle: "Plano 2D Interactivo y Muestrario en Vivo",
+    plan2dSectionSubtitle: "Plano arquitectónico generado automáticamente por código con medidas de habitaciones y color de vinil en tiempo real.",
     
     // Room Visualizer / Color Showcase
     visualizerTitle: "Muestrario de Colores y Acabados",

@@ -25,9 +25,9 @@ export const FLOORING_PRODUCTS: FlooringProduct[] = [
     description: 'Tono gris contemporáneo frío con veta suave. Ideal para interiores modernos de alto contraste.',
     inStock: true,
     stockStatus: 'in_stock',
-    imageUrl: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?auto=format&fit=crop&w=800&q=80',
-    plankImageUrl: 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?auto=format&fit=crop&w=800&q=80',
-    roomPreviewUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/products/plank_1_moody_gray.webp',
+    plankImageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/products/plank_1_moody_gray.webp',
+    roomPreviewUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/mockups/room_1_moody_gray.webp',
     staircasePreviewUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80',
   },
   {

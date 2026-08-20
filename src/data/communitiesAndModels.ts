@@ -184,6 +184,7 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
     bedroom3Dims: 'Standard (Flex)',
     bedroom3Sqft: 110,
     stairsSqft: 45,
+    render3DImage: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/renders/bandol-3d-render.webp',
     description: '3 bd · 3 ba · 1,334 ft² - El modelo Bandol es eficiente e ideal para familias modernas, con ~565 sq ft netos de piso en el 2do piso y 15 escalones.',
     highlights: [
       'Total Construcción: 1,334 SF',

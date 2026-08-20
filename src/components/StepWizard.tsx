@@ -10,7 +10,8 @@ import { COMMUNITIES, FLOOR_PLAN_MODELS } from '../data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from '../data/products';
 import { calculateQuotePrice, formatCurrency } from '../utils/pricingCalculator';
 import { FloorPlanSVG } from './FloorPlanSVG';
-import { HorizontalRender3D } from './HorizontalRender3D';
+import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
+import { Photorealistic3DRender } from './Photorealistic3DRender';
 import { useLanguage } from '../context/LanguageContext';
 import {
   Check,
@@ -134,13 +135,32 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     }
   }, [toneFilter, currentStep]);
 
-  // Sync selected model if community changes and current model doesn't belong to it
+  // Sync selected model if community changes or when fresh live models load from Google Sheets
   useEffect(() => {
-    const matchingModel = modelsList.find((m) => m.communityId === selectedCommunity.id);
-    if (matchingModel && selectedModel.communityId !== selectedCommunity.id) {
-      setSelectedModel(matchingModel);
+    const matchingModel = modelsList.find(
+      (m) => m.id === selectedModel.id || m.slug === selectedModel.slug || (m.name.toLowerCase() === selectedModel.name.toLowerCase() && m.communityId === selectedCommunity.id)
+    );
+    if (matchingModel) {
+      if (matchingModel.render3DImage !== selectedModel.render3DImage || matchingModel !== selectedModel) {
+        setSelectedModel(matchingModel);
+      }
+    } else {
+      const firstInComm = modelsList.find((m) => m.communityId === selectedCommunity.id);
+      if (firstInComm && selectedModel.communityId !== selectedCommunity.id) {
+        setSelectedModel(firstInComm);
+      }
     }
   }, [selectedCommunity, modelsList]);
+
+  // Sync selected product when live products load from Google Sheets
+  useEffect(() => {
+    const freshProduct = productsList.find(
+      (p) => p.id === selectedProduct.id || p.name.toLowerCase() === selectedProduct.name.toLowerCase()
+    );
+    if (freshProduct && (freshProduct.plankImageUrl !== selectedProduct.plankImageUrl || freshProduct.roomPreviewUrl !== selectedProduct.roomPreviewUrl || freshProduct !== selectedProduct)) {
+      setSelectedProduct(freshProduct);
+    }
+  }, [productsList]);
 
   // Auto-save in-progress quote to localStorage for abandoned quote recovery
   useEffect(() => {
@@ -570,11 +590,16 @@ Por favor contáctenme para coordinar la inspección gratuita en casa.`);
               </div>
             </div>
 
-            {/* MINI LANDING / HORIZONTAL 3D PLAN */}
-            <div className="mt-6 animate-fadeIn">
-              <HorizontalRender3D 
+            {/* PLANO 2D INTERACTIVO CON MUESTRARIO EN TIEMPO REAL */}
+            <div className="mt-6 animate-fadeIn space-y-5">
+              <InteractiveFloorPlan2D 
                 model={selectedModel} 
                 selectedProduct={selectedProduct} 
+              />
+
+              {/* RENDER 3D FOTORREALISTA (OFICIAL) */}
+              <Photorealistic3DRender
+                model={selectedModel}
               />
             </div>
 

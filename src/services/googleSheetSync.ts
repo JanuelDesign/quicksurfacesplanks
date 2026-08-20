@@ -114,6 +114,14 @@ export async function fetchLiveDatabase() {
         const descIdx = header.indexOf('description');
         const ownerDimsIdx = header.indexOf('owner_suite_dims');
         const ownerSqftIdx = header.indexOf('owner_suite_sqft');
+        const closetSqftIdx = header.indexOf('walk_in_closet_sqft');
+        const bed2DimsIdx = header.indexOf('bedroom_2_dims');
+        const bed2SqftIdx = header.indexOf('bedroom_2_sqft');
+        const bed3DimsIdx = header.indexOf('bedroom_3_dims');
+        const bed3SqftIdx = header.indexOf('bedroom_3_sqft');
+        const bed4DimsIdx = header.indexOf('bedroom_4_dims');
+        const bed4SqftIdx = header.indexOf('bedroom_4_sqft');
+        const stairsSqftIdx = header.indexOf('stairs_sqft');
         const planImgIdx = header.indexOf('image_floorplan');
         const renderImgIdx = header.indexOf('image_3d_render');
 
@@ -135,6 +143,8 @@ export async function fetchLiveDatabase() {
           const sqftSecondFloor = sqft2ndIdx !== -1 && r[sqft2ndIdx] ? parseInt(r[sqft2ndIdx], 10) : Math.round(totalSqft * 0.5);
           const sqftNet = sqftNetIdx !== -1 && r[sqftNetIdx] ? parseInt(r[sqftNetIdx], 10) : Math.round(sqftSecondFloor * 0.85);
           const sqftMaterialRecommended = sqftMatIdx !== -1 && r[sqftMatIdx] ? parseInt(r[sqftMatIdx], 10) : Math.round(sqftNet * 1.1);
+
+          const raw3dRender = renderImgIdx !== -1 && r[renderImgIdx] ? normalizeImageUrl(r[renderImgIdx]) : undefined;
 
           parsedModels.push({
             id: uniqueId,
@@ -159,6 +169,14 @@ export async function fetchLiveDatabase() {
             floorLevel: '2nd Floor Layout',
             ownerSuiteDims: ownerDimsIdx !== -1 && r[ownerDimsIdx] ? r[ownerDimsIdx] : "12' x 12'",
             ownerSuiteSqft: ownerSqftIdx !== -1 && r[ownerSqftIdx] ? parseInt(r[ownerSqftIdx], 10) : 150,
+            walkInClosetSqft: closetSqftIdx !== -1 && r[closetSqftIdx] ? parseInt(r[closetSqftIdx], 10) : 35,
+            bedroom2Dims: bed2DimsIdx !== -1 && r[bed2DimsIdx] ? r[bed2DimsIdx] : "11' x 10'",
+            bedroom2Sqft: bed2SqftIdx !== -1 && r[bed2SqftIdx] ? parseInt(r[bed2SqftIdx], 10) : 110,
+            bedroom3Dims: bed3DimsIdx !== -1 && r[bed3DimsIdx] ? r[bed3DimsIdx] : "10' x 10'",
+            bedroom3Sqft: bed3SqftIdx !== -1 && r[bed3SqftIdx] ? parseInt(r[bed3SqftIdx], 10) : 100,
+            bedroom4Dims: bed4DimsIdx !== -1 && r[bed4DimsIdx] ? r[bed4DimsIdx] : undefined,
+            bedroom4Sqft: bed4SqftIdx !== -1 && r[bed4SqftIdx] ? parseInt(r[bed4SqftIdx], 10) : undefined,
+            stairsSqft: stairsSqftIdx !== -1 && r[stairsSqftIdx] ? parseInt(r[stairsSqftIdx], 10) : 45,
             highlights: [
               `Total Construcción: ${totalSqft} SF`,
               `Área Neta a Cubrir: ~${sqftNet} SF`,
@@ -166,8 +184,8 @@ export async function fetchLiveDatabase() {
               'Escaleras: 15 Escalones con Nosing al Ras',
             ],
             description: r[descIdx] || `${modelName} en ${communityName} · ${collectionName}`,
-            floorPlanImage: normalizeImageUrl(r[planImgIdx]) || DEFAULT_MODELS[0].floorPlanImage,
-            render3DImage: normalizeImageUrl(r[renderImgIdx]) || DEFAULT_MODELS[0].render3DImage,
+            floorPlanImage: planImgIdx !== -1 && r[planImgIdx] ? normalizeImageUrl(r[planImgIdx]) : undefined,
+            render3DImage: raw3dRender || undefined,
             rooms: DEFAULT_MODELS[0].rooms,
             svgDimensions: { width: 440, height: 740 },
           });
