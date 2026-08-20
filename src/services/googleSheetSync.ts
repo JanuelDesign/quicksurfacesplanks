@@ -48,19 +48,26 @@ function parseCSV(text: string): string[][] {
   return lines;
 }
 
-// Helper to normalize image URLs (especially GitHub raw URLs)
+// Helper to normalize image URLs
 function normalizeImageUrl(url: string | undefined): string {
   if (!url) return '';
   let cleanUrl = url.trim();
-  // Transform GitHub blob URLs to raw user content for direct, high-speed image rendering
   if (cleanUrl.includes('github.com') && cleanUrl.includes('/blob/')) {
     cleanUrl = cleanUrl
       .replace('https://github.com/', 'https://raw.githubusercontent.com/')
       .replace('/blob/', '/');
-    // strip ?raw=true if converted to raw.githubusercontent.com
     cleanUrl = cleanUrl.replace('?raw=true', '');
   }
   return cleanUrl;
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 export async function fetchLiveDatabase() {
@@ -81,50 +88,85 @@ export async function fetchLiveDatabase() {
       const rows = parseCSV(commText);
       if (rows.length > 1) {
         const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
+        
         const idIdx = header.indexOf('id');
         const slugIdx = header.indexOf('slug');
-        const nameIdx = header.indexOf('name');
-        const commIdIdx = header.indexOf('community_id');
+        const nameIdx = header.findIndex((h) => h === 'name' || h === 'model_name');
+        const commIdIdx = header.findIndex((h) => h === 'community_id' || h === 'community_slug');
         const commNameIdx = header.indexOf('community_name');
+        const colIdx = header.findIndex((h) => h === 'collection' || h === 'collection_name');
+        const colSlugIdx = header.indexOf('collection_slug');
         const cityIdx = header.indexOf('city');
         const stateIdx = header.indexOf('state');
         const zipIdx = header.indexOf('zip');
-        const collectionIdx = header.indexOf('collection');
         const addressIdx = header.indexOf('address');
-        const sqftIdx = header.indexOf('sqft');
+        const sqftIdx = header.findIndex((h) => h === 'sqft' || h === 'sqft_total');
+        const sqft2ndIdx = header.indexOf('sqft_second_floor');
+        const sqftNetIdx = header.indexOf('sqft_net');
+        const sqftMatIdx = header.findIndex((h) => h === 'sqft_material_recommended' || h === 'sqft_recommended');
+        const priceFromIdx = header.indexOf('price_from');
         const stepsIdx = header.indexOf('steps_count');
         const bedIdx = header.indexOf('bedrooms');
         const bathIdx = header.indexOf('baths');
         const descIdx = header.indexOf('description');
+        const ownerDimsIdx = header.indexOf('owner_suite_dims');
+        const ownerSqftIdx = header.indexOf('owner_suite_sqft');
         const planImgIdx = header.indexOf('image_floorplan');
         const renderImgIdx = header.indexOf('image_3d_render');
 
         const parsedModels: FloorPlanModel[] = [];
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
-          if (!r[nameIdx] || !r[idIdx]) continue;
+          if (!r[nameIdx]) continue;
+
+          const modelName = r[nameIdx];
+          const communityName = r[commNameIdx] || 'Siena Reserve';
+          const communitySlug = r[commIdIdx] || slugify(communityName);
+          const collectionName = r[colIdx] || 'Adora Collection';
+          const collectionSlug = r[colSlugIdx] || slugify(collectionName.replace('Collection', ''));
+          const modelSlug = slugify(modelName);
+
+          const uniqueId = r[idIdx] || `${communitySlug}_${collectionSlug}_${modelSlug}`;
+
+          const totalSqft = parseInt(r[sqftIdx], 10) || 1400;
+          const sqftSecondFloor = sqft2ndIdx !== -1 && r[sqft2ndIdx] ? parseInt(r[sqft2ndIdx], 10) : Math.round(totalSqft * 0.5);
+          const sqftNet = sqftNetIdx !== -1 && r[sqftNetIdx] ? parseInt(r[sqftNetIdx], 10) : Math.round(sqftSecondFloor * 0.85);
+          const sqftMaterialRecommended = sqftMatIdx !== -1 && r[sqftMatIdx] ? parseInt(r[sqftMatIdx], 10) : Math.round(sqftNet * 1.1);
+
           parsedModels.push({
-            id: r[idIdx] || `model-${i}`,
-            slug: r[slugIdx] || r[idIdx],
-            name: r[nameIdx],
-            communityId: r[commIdIdx] || 'altamira',
-            communityName: r[commNameIdx] || 'Altamira',
-            collection: r[collectionIdx] || 'Modern Collection',
-            address: r[addressIdx] || 'Homestead, FL',
+            id: uniqueId,
+            slug: r[slugIdx] || uniqueId,
+            name: modelName,
+            communityId: communitySlug,
+            communityName: communityName,
+            collection: collectionName,
+            collectionSlug: collectionSlug,
+            address: r[addressIdx] || '12705 SW 232nd St',
             city: r[cityIdx] || 'Homestead',
             state: r[stateIdx] || 'FL',
-            zip: r[zipIdx] || '33035',
-            sqft: parseInt(r[sqftIdx], 10) || 530,
+            zip: r[zipIdx] || '33032',
+            sqft: totalSqft,
+            sqftSecondFloor,
+            sqftNet,
+            sqftMaterialRecommended,
+            priceFrom: priceFromIdx !== -1 && r[priceFromIdx] ? parseInt(r[priceFromIdx], 10) : undefined,
             stepsCount: parseInt(r[stepsIdx], 10) || 15,
             bedrooms: parseInt(r[bedIdx], 10) || 3,
-            baths: parseInt(r[bathIdx], 10) || 2,
+            baths: parseFloat(r[bathIdx]) || 2.5,
             floorLevel: '2nd Floor Layout',
-            highlights: ['Sound Insulation Pad', '100% Waterproof Rigid Core', 'Staircase Transition System'],
-            description: r[descIdx] || '',
+            ownerSuiteDims: ownerDimsIdx !== -1 && r[ownerDimsIdx] ? r[ownerDimsIdx] : "12' x 12'",
+            ownerSuiteSqft: ownerSqftIdx !== -1 && r[ownerSqftIdx] ? parseInt(r[ownerSqftIdx], 10) : 150,
+            highlights: [
+              `Total Construcción: ${totalSqft} SF`,
+              `Área Neta a Cubrir: ~${sqftNet} SF`,
+              `Material Recomendado (+10% Desperdicio): ${sqftMaterialRecommended} SF`,
+              'Escaleras: 15 Escalones con Nosing al Ras',
+            ],
+            description: r[descIdx] || `${modelName} en ${communityName} · ${collectionName}`,
             floorPlanImage: normalizeImageUrl(r[planImgIdx]) || DEFAULT_MODELS[0].floorPlanImage,
             render3DImage: normalizeImageUrl(r[renderImgIdx]) || DEFAULT_MODELS[0].render3DImage,
             rooms: DEFAULT_MODELS[0].rooms,
-            svgDimensions: { width: 800, height: 600 },
+            svgDimensions: { width: 440, height: 740 },
           });
         }
         if (parsedModels.length > 0) models = parsedModels;
@@ -146,23 +188,25 @@ export async function fetchLiveDatabase() {
         const wearIdx = header.indexOf('wear_layer');
         const plankDimIdx = header.indexOf('plank_dimensions');
         const padIdx = header.indexOf('padding');
+        const sqftBoxIdx = header.indexOf('sqft_per_box');
+        const planksBoxIdx = header.indexOf('planks_per_box');
         const hexIdx = header.indexOf('color_hex');
         const descIdx = header.indexOf('description');
         const plankImgIdx = header.indexOf('plank_image_url');
         const roomImgIdx = header.indexOf('room_preview_url');
         const stairImgIdx = header.indexOf('staircase_preview_url');
         const stockIdx = header.findIndex(
-          (h) => h === 'in_stock' || h === 'stock' || h === 'status' || h === 'availability' || h === 'inventory'
+          (h) => h === 'stock_status' || h === 'in_stock' || h === 'stock' || h === 'status' || h === 'availability'
         );
 
         const parsedProducts: FlooringProduct[] = [];
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
-          if (!r[nameIdx] || !r[idIdx]) continue;
+          if (!r[nameIdx]) continue;
           
-          let collection: any = 'PulseSelect';
-          if (r[colIdx]?.includes('Shield') || r[colIdx]?.includes('XL')) collection = 'PulseShield XL';
-          if (r[colIdx]?.includes('Rigid') || r[colIdx]?.includes('8mm')) collection = 'Waterproof Rigid Core SPC';
+          let collection: any = 'Pulse Select';
+          if (r[colIdx]?.includes('Shield') || r[colIdx]?.includes('6')) collection = 'Pulse Shield XL';
+          if (r[colIdx]?.includes('Rigid') || r[colIdx]?.includes('8') || r[colIdx]?.includes('XL Pulse')) collection = 'XL Pulse';
 
           const plankImg = normalizeImageUrl(r[plankImgIdx]) || DEFAULT_PRODUCTS[0].plankImageUrl;
           const roomImg = normalizeImageUrl(r[roomImgIdx]) || DEFAULT_PRODUCTS[0].roomPreviewUrl;
@@ -173,10 +217,10 @@ export async function fetchLiveDatabase() {
           let stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock' | 'coming_soon' = 'in_stock';
           let inStockBool = true;
 
-          if (rawStock.includes('low') || rawStock.includes('pocas') || rawStock.includes('ultim')) {
+          if (rawStock.includes('low') || rawStock.includes('pocas') || rawStock.includes('limitad')) {
             stockStatus = 'low_stock';
             inStockBool = true;
-          } else if (rawStock.includes('out') || rawStock.includes('agotad') || rawStock === 'false' || rawStock === '0' || rawStock === 'no') {
+          } else if (rawStock.includes('out') || rawStock.includes('agotad') || rawStock === 'false' || rawStock === '0') {
             stockStatus = 'out_of_stock';
             inStockBool = false;
           } else if (rawStock.includes('soon') || rawStock.includes('proxim') || rawStock.includes('pronto')) {
@@ -187,23 +231,26 @@ export async function fetchLiveDatabase() {
             inStockBool = true;
           }
 
+          const sqftBox = sqftBoxIdx !== -1 && r[sqftBoxIdx] ? parseFloat(r[sqftBoxIdx]) : (collection === 'XL Pulse' ? 19.29 : collection === 'Pulse Shield XL' ? 26.6 : 24.26);
+          const planksBox = planksBoxIdx !== -1 && r[planksBoxIdx] ? parseInt(r[planksBoxIdx], 10) : (collection === 'XL Pulse' ? 5 : collection === 'Pulse Shield XL' ? 7 : 9);
+
           parsedProducts.push({
-            id: r[idIdx],
+            id: r[idIdx] || `prod-${i}`,
             code: r[codeIdx] || `0${i}`,
             name: r[nameIdx],
-            category: (r[catIdx] as any) || '5.5mm',
+            category: (r[catIdx] as any) || (collection === 'XL Pulse' ? '8mm' : collection === 'Pulse Shield XL' ? '6mm' : '5.5mm'),
             collectionName: collection,
-            thickness: r[thickIdx] || '5.5 mm',
-            wearLayer: r[wearIdx] || '20 Mil',
-            plankDimensions: r[plankDimIdx] || '7" x 48"',
-            padding: r[padIdx] || '1.5 mm HD EVA Attached',
-            planksPerBox: 9,
-            sqftPerBox: 24.26,
-            finish: 'Satin Embossed',
-            installationType: 'Click-Lock Floating Unilin Angle-Angle',
+            thickness: r[thickIdx] || (collection === 'XL Pulse' ? '8.0mm' : collection === 'Pulse Shield XL' ? '6.0mm' : '5.5mm'),
+            wearLayer: r[wearIdx] || (collection === 'XL Pulse' ? '22 mil' : '20 mil'),
+            plankDimensions: r[plankDimIdx] || (collection === 'Pulse Select' ? '7" x 48"' : '9" x 60"'),
+            padding: r[padIdx] || '1.5mm High-Density EVA Pad',
+            planksPerBox: planksBox,
+            sqftPerBox: sqftBox,
+            finish: 'EIR Real Wood Feel',
+            installationType: 'Click-Lock Floating System',
             tone: 'natural',
-            colorHex: r[hexIdx] || '#c7b299',
-            secondaryColorHex: '#8b7355',
+            colorHex: r[hexIdx] || '#C5A986',
+            secondaryColorHex: '#A28766',
             grainStyle: 'Authentic European Oak',
             description: r[descIdx] || '',
             inStock: inStockBool,
@@ -233,6 +280,10 @@ export async function fetchLiveDatabase() {
         const wearIdx = header.indexOf('wear_layer');
         const plankIdx = header.indexOf('plank_size');
         const priceIdx = header.indexOf('price');
+        const base530Idx = header.indexOf('base_price_at_530_sqft');
+        const rateMatIdx = header.indexOf('rate_per_sqft_material');
+        const rateLaborIdx = header.indexOf('rate_per_sqft_labor');
+        const stairFeeIdx = header.indexOf('stair_flat_fee');
         const turnkeyIdx = header.indexOf('is_turnkey');
         const laborIdx = header.indexOf('includes_labor');
         const badgeIdx = header.indexOf('badge');
@@ -240,27 +291,42 @@ export async function fetchLiveDatabase() {
         const parsedPackages: PricingPackage[] = [];
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
-          if (!r[titleIdx] || !r[idIdx]) continue;
+          if (!r[titleIdx]) continue;
+
+          const isTurnkey = r[turnkeyIdx]?.toUpperCase() === 'TRUE';
+          const isPrem = r[titleIdx].toLowerCase().includes('premium') || r[thickIdx]?.includes('8');
+          const basePrice = base530Idx !== -1 && r[base530Idx] ? parseInt(r[base530Idx], 10) : (parseInt(r[priceIdx], 10) || (isTurnkey ? 4500 : 1550));
+          const rateMat = rateMatIdx !== -1 && r[rateMatIdx] ? parseFloat(r[rateMatIdx]) : (isPrem ? 3.8679 : 2.9245);
+          const stairFee = stairFeeIdx !== -1 && r[stairFeeIdx] ? parseInt(r[stairFeeIdx], 10) : (isTurnkey ? 2950 : 0);
+
           parsedPackages.push({
-            id: r[idIdx],
+            id: r[idIdx] || `pkg-${i}`,
             title: r[titleIdx],
             tagline: r[taglineIdx] || '',
-            thickness: r[thickIdx] || '5.5mm',
-            wearLayer: r[wearIdx] || '20 Mils',
-            plankSize: r[plankIdx] || '7" x 48"',
-            price: parseInt(r[priceIdx], 10) || 4500,
-            isTurnkey: r[turnkeyIdx]?.toUpperCase() === 'TRUE',
-            includesLabor: r[laborIdx]?.toUpperCase() === 'TRUE',
-            badge: r[badgeIdx] || 'Popular',
+            thickness: r[thickIdx] || (isPrem ? '8.0mm' : '5.5mm'),
+            wearLayer: r[wearIdx] || (isPrem ? '22 mil' : '20 mil'),
+            plankSize: r[plankIdx] || (isPrem ? '9" x 60"' : '7" x 48"'),
+            basePriceAt530Sqft: basePrice,
+            ratePerSqftMaterial: rateMat,
+            ratePerSqftLabor: rateLaborIdx !== -1 && r[rateLaborIdx] ? parseFloat(r[rateLaborIdx]) : 0,
+            stairFlatFee: stairFee,
+            price: basePrice,
+            isTurnkey: isTurnkey,
+            includesLabor: r[laborIdx]?.toUpperCase() === 'TRUE' || isTurnkey,
+            badge: r[badgeIdx] || (isTurnkey ? 'MÁS POPULAR' : undefined),
             features: [
-              `Plank Spec: ${r[thickIdx]} (${r[wearIdx]})`,
-              `Plank Size: ${r[plankIdx]}`,
-              `Staircase fabrication included`,
-              `100% Waterproof Rigid Core`,
+              `Piso SPC ${r[thickIdx] || '5.5mm'} (${r[wearIdx] || '20 mil'})`,
+              `Formato: ${r[plankIdx] || '7" x 48"'}`,
+              isTurnkey ? '15 Escalones Flush Stair Nose incluidos' : 'Entrega directa en Homestead',
+              'Garantía de fábrica 25 años contra humedad',
+            ],
+            inclusions: [
+              'Cálculo de cajas con +10% de desperdicio',
+              'Acabado impermeable 100% rígido',
             ],
             specs: [
-              { label: 'Thickness', value: r[thickIdx] || '5.5mm' },
-              { label: 'Wear Layer', value: r[wearIdx] || '20 Mils' },
+              { label: 'Espesor', value: r[thickIdx] || '5.5mm' },
+              { label: 'Wear Layer', value: r[wearIdx] || '20 mil' },
             ],
           });
         }
