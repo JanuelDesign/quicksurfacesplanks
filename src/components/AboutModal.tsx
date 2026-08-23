@@ -188,10 +188,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 <img
                   src={currentTestimonial.localUrl}
                   onError={(e) => {
-                    // Fallback to github URL if local is missing
                     const target = e.currentTarget;
-                    if (target.src !== currentTestimonial.githubUrl) {
+                    if (target.src !== currentTestimonial.githubUrl && currentTestimonial.githubUrl) {
                       target.src = currentTestimonial.githubUrl;
+                    } else {
+                      // If remote also fails, show an architectural fallback
+                      target.src = 'https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?auto=format&fit=crop&w=800&q=80';
                     }
                   }}
                   alt={currentTestimonial.clientName}

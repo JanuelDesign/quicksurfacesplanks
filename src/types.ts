@@ -10,6 +10,7 @@ export interface FloorPlanModel {
   id: string; // Unique: {community_slug}_{collection_slug}_{model_slug}
   slug: string;
   name: string;
+  displayNameSafe?: string; // e.g. "Modelo tipo similar a Reserve"
   communityId: string;
   communityName: string;
   collection: string;
@@ -65,6 +66,7 @@ export interface Community {
   description: string;
   heroImage: string;
   badge?: string;
+  logoApproved?: boolean; // Default false until developer approval
 }
 
 export type ResidentialCommunity = Community;
@@ -126,6 +128,29 @@ export interface PricingPackage {
   specs: { label: string; value: string }[];
 }
 
+export interface ServiceProvider {
+  id: string;
+  name: string;
+  coverageZone: string;
+  phone: string;
+  email?: string;
+  rating: number;
+  reviewsCount: number;
+  specialty: string;
+  badge?: string;
+  note: string;
+  verified: boolean;
+}
+
+export interface InstallationQuestionnaire {
+  isFurnished: boolean;
+  needsCarpetRemoval: boolean;
+  baseboardOption: 'reuse' | 'replace_quarter_round';
+  stairsCount: number; // Auto-completed from model
+}
+
+export type ProductOrServiceMode = 'both' | 'product_only' | 'service_only';
+
 export interface PricingQuoteCalculation {
   sqftMaterialRecommended: number;
   sqftNet: number;
@@ -136,6 +161,7 @@ export interface PricingQuoteCalculation {
   materialCost: number;
   laborCost: number;
   stairCost: number;
+  questionnaireAdjustment?: number;
   boxesCount: number;
   sqftPerBox: number;
   totalBoxesSqft: number;
@@ -159,4 +185,17 @@ export interface BookingSubmission {
   sqftMaterial?: number;
   createdAt?: string;
   status?: 'completed' | 'abandoned' | 'pending';
+  contactConsent?: boolean;
+  installationDetails?: InstallationQuestionnaire;
+  mode?: ProductOrServiceMode;
+}
+
+// Global Legal Nomenclature Configuration (Bloque G.4 & K)
+export const USE_SAFE_MODEL_NAMES = true;
+
+export function getModelDisplayName(model: FloorPlanModel, useSafe = USE_SAFE_MODEL_NAMES): string {
+  if (useSafe && model.displayNameSafe) {
+    return model.displayNameSafe;
+  }
+  return model.name;
 }

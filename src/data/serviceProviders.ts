@@ -1,0 +1,43 @@
+import { ServiceProvider } from '../types';
+
+export const SERVICE_PROVIDERS: ServiceProvider[] = [
+  {
+    id: 'sp-01-master-craft',
+    name: 'Master Craft Flooring Miami',
+    coverageZone: 'Homestead, Kendall, Cutler Bay & Doral',
+    phone: '(786) 658-3677',
+    email: 'install@mastercraftmiami.com',
+    rating: 4.9,
+    reviewsCount: 142,
+    specialty: 'Instalación SPC rígido, 15 escalones integrados Flush Nose y retiro de alfombra',
+    badge: 'Especialista Homestead',
+    note: 'Equipo certificado con más de 120 townhomes entregados en comunidades de Homestead (Siena Reserve, Altamira, Terra Sol).',
+    verified: true,
+  },
+  {
+    id: 'sp-02-south-florida-flooring',
+    name: 'South Florida Surface Pros',
+    coverageZone: 'Homestead, Florida City, Pinecrest & Coral Gables',
+    phone: '(305) 890-4421',
+    email: 'quotes@sfsurfacepros.com',
+    rating: 4.8,
+    reviewsCount: 98,
+    specialty: 'Nivelación de contrapisos, vinilo de gran formato 8mm y molduras perimetrales',
+    badge: 'Turnkey Specialist',
+    note: 'Especialistas en montaje llave en mano en 24 a 48 horas sin cortes ni juntas intermedias.',
+    verified: true,
+  },
+  {
+    id: 'sp-03-homestead-floors',
+    name: 'Homestead Elite Installations',
+    coverageZone: 'Homestead FL (33032, 33033, 33035) & Redland',
+    phone: '(786) 410-8833',
+    email: 'service@homesteadelitefloors.com',
+    rating: 4.9,
+    reviewsCount: 76,
+    specialty: 'Escaleras artesanales en vinil y remoción ecológica de alfombras',
+    badge: 'Local Verified',
+    note: 'Taller local en Homestead con cuadrilla fija disponible de lunes a sábado.',
+    verified: true,
+  },
+];
