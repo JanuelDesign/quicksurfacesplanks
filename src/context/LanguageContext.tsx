@@ -12,7 +12,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
   en: {
     // Header & Announcement
     specialistTag: "Miami-Dade & Kendall 2nd Floor Specialists",
-    stairBadge: "Área calculada Net Area + 15 Custom Stairs",
+    stairBadge: "Calculated Net Area + 15 Custom Stairs",
     callUs: "Call (786) 658-3677",
     getFreeQuote: "Get Free Quote",
     chooseCommunity: "Choose your community: Altamira • Terra Sol • Luminara • Paradis",
@@ -20,12 +20,12 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     viewCommunities: "Explore Communities",
     
     // Gateway Hero
-    heroTitle: "Transform Your 2nd Floor with Luxury Vinyl Flooring",
+    heroTitle: "Transform Your Space with Luxury Vinyl Flooring",
     heroSubtitle: "Top-tier installation services and premium flooring products engineered specifically for homeowners in Miami-Dade, Kendall, and Homestead communities.",
     heroSqft: "SQ FT NET AREA",
     heroStairs: "CUSTOM STAIRS",
     heroPackages: "TURNKEY OPTIONS",
-    heroResidentialBadge: "2nd Floor Residential Project",
+    heroResidentialBadge: "Residential Flooring Project",
     heroResidentialTagline: "Professional Installation in Homestead & Miami-Dade",
     heroSpecsBrief: "100% Waterproof SPC Rigid Core • 20-22 Mils Wear Layer • 15 Continuous Stairs",
     
@@ -38,15 +38,15 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     viewPlanBtn: "View Floor Plan & Pricing",
     
     // Model Page Header
-    residentialProject: "2nd Floor Residential Project",
-    residentialModelDesc: "Complete second-floor luxury renovation featuring Área calculada net installation plus 15 integrated custom stairs. 100% waterproof rigid core SPC, continuous flow, and guaranteed durability.",
+    residentialProject: "Residential Flooring Project",
+    residentialModelDesc: "Complete home luxury renovation featuring precision net installation plus 15 integrated custom stairs. 100% waterproof rigid core SPC, continuous flow, and guaranteed durability.",
     onlyMaterialTitle: "ONLY MATERIAL",
     onlyMaterialSub: "Doorstep Delivery + FL Taxes Included",
     laborTitle: "LABOR (INSTALLATION)",
     laborTotal: "$2,950 FLAT LABOR",
     labor1: "Uninstall and discard existing carpet & padding",
     labor2: "Subfloor smoothing & patch repairs if necessary",
-    labor3: "Precision floor installation (Área calculada net area)",
+    labor3: "Precision floor installation across entire area",
     labor4: "Careful baseboard removal & reinstallation",
     labor5: "Custom stair installation glued with matching planks (15 steps)",
     
@@ -97,8 +97,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     gallerySubtitle: "Real installation craftsmanship on 15-step staircases, primary bedrooms, and seamless hallway transitions in your neighborhood.",
     
     // Sticky & Footer
-    footerReadyPrompt: "Ready to upgrade your 2nd floor?",
-    footerStartingFrom: "Área calculada Net + 15 Custom Stairs from $1,550 flat package",
+    footerReadyPrompt: "Ready to upgrade your home with luxury vinyl?",
+    footerStartingFrom: "Net Area + 15 Custom Stairs from $1,550 flat package",
     bookNowBtn: "Book Installation",
     warranty25: "25-Year Warranty",
     warranty25Desc: "Heavy residential wear & tear",
@@ -121,8 +121,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
   },
   es: {
     // Header & Announcement
-    specialistTag: "Especialistas en 2do Piso en Miami-Dade y Kendall",
-    stairBadge: "Área calculada Área Neta + 15 Escalones a Medida",
+    specialistTag: "Especialistas en Pisos en Miami-Dade y Kendall",
+    stairBadge: "Área Neta Calculada + 15 Escalones a Medida",
     callUs: "Llamar (786) 658-3677",
     getFreeQuote: "Cotización Gratuita",
     chooseCommunity: "Escoge tu conjunto: Altamira • Terra Sol • Luminara • Paradis",
@@ -135,7 +135,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     heroSqft: "SQ FT ÁREA NETA",
     heroStairs: "ESCALONES A MEDIDA",
     heroPackages: "OPCIONES PAQUETE",
-    heroResidentialBadge: "Proyecto Residencial 2do Piso",
+    heroResidentialBadge: "Proyecto Residencial",
     heroResidentialTagline: "Instalación Profesional en Homestead & Miami-Dade",
     heroSpecsBrief: "Vinil SPC 100% Resistente al Agua • Capa 20-22 Mils • 15 Escalones Continuos",
     
@@ -148,15 +148,15 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     viewPlanBtn: "Ver Plano y Cotización",
     
     // Model Page Header
-    residentialProject: "Proyecto Residencial 2do Piso",
-    residentialModelDesc: "Renovación completa del segundo piso con instalación profesional de Área calculada más 15 escalones a medida. Vinil SPC 100% impermeable, diseño continuo y durabilidad garantizada.",
+    residentialProject: "Proyecto Residencial de Pisos",
+    residentialModelDesc: "Renovación completa con instalación profesional en área neta calculada más 15 escalones a medida. Vinil SPC 100% impermeable, diseño continuo y durabilidad garantizada.",
     onlyMaterialTitle: "SOLO MATERIAL",
     onlyMaterialSub: "Entrega Directa en Sitio + Impuestos Incluidos",
     laborTitle: "MANO DE OBRA (LABOR)",
     laborTotal: "$2,950 TOTAL MANO DE OBRA",
     labor1: "Desinstalación y desecho de la alfombra existente",
     labor2: "Parches y nivelación menor de superficies si es necesario",
-    labor3: "Instalación profesional del piso (Área calculada área neta)",
+    labor3: "Instalación profesional del piso en toda el área",
     labor4: "Desinstalación y reinstalación cuidadosa de zócalos",
     labor5: "Instalación de 15 escalones pegados con mismos tablones",
     
@@ -207,8 +207,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     gallerySubtitle: "Resultados de instalaciones profesionales en escaleras de 15 peldaños, dormitorios y pasillos en Homestead y Miami-Dade.",
     
     // Sticky & Footer
-    footerReadyPrompt: "¿Listo para renovar el 2do piso de tu casa?",
-    footerStartingFrom: "Área calculada Netos + 15 Escalones desde $1,550 Paquete Completo",
+    footerReadyPrompt: "¿Listo para renovar los pisos de tu casa?",
+    footerStartingFrom: "Área Neta + 15 Escalones desde $1,550 Paquete Completo",
     bookNowBtn: "Reservar Instalación",
     warranty25: "Garantía 25 Años",
     warranty25Desc: "Uso residencial intensivo",

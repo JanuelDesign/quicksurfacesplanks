@@ -324,7 +324,11 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
         {/* Footer actions */}
         <div className="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex gap-3">
           <a
-            href="https://wa.me/17866583677?text=Hola%20Quick%20Surfaces!%20Quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20la%20renovaci%C3%B3n%20de%20pisos%20SPC"
+            href={`https://wa.me/17866583677?text=${encodeURIComponent(
+              lang === 'es'
+                ? 'Hola Quick Surfaces! Quiero más información sobre la renovación de pisos SPC'
+                : 'Hello Quick Surfaces! I would like more information about SPC luxury vinyl floor renovation'
+            )}`}
             target="_blank"
             rel="noreferrer"
             className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"

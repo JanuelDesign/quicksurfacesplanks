@@ -262,10 +262,14 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
   const generateMailtoUrl = () => {
     const subject = encodeURIComponent(
-      `Cotización QuickSurfaces: Siena Reserve - Modelo ${selectedModel.name}`
+      lang === 'es'
+        ? `Cotización QuickSurfaces: Siena Reserve - Modelo ${selectedModel.name}`
+        : `QuickSurfaces Quote: Siena Reserve - Model ${selectedModel.name}`
     );
     const body = encodeURIComponent(
-      `Hola equipo QuickSurfaces,\n\nAdjunto los detalles de mi cotización para Siena Reserve:\n- Modelo: ${selectedModel.name}\n- Alcance: ${floorScope}\n- Piso: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName})\n- Paquete: ${selectedPackage.title}\n- Total Estimado: ${formatCurrency(quoteCalc.totalPrice)}\n\nContacto:\n- Nombre: ${formData.fullName}\n- Teléfono: ${formData.phone}\n- Unidad: ${formData.unitNumber}\n\nPor favor contáctenme para agendar la visita.`
+      lang === 'es'
+        ? `Hola equipo QuickSurfaces,\n\nAdjunto los detalles de mi cotización para Siena Reserve:\n- Modelo: ${selectedModel.name}\n- Alcance: ${floorScope}\n- Piso: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName})\n- Paquete: ${selectedPackage.title}\n- Total Estimado: ${formatCurrency(quoteCalc.totalPrice)}\n\nContacto:\n- Nombre: ${formData.fullName}\n- Teléfono: ${formData.phone}\n- Unidad: ${formData.unitNumber}\n\nPor favor contáctenme para agendar la visita.`
+        : `Hello QuickSurfaces team,\n\nHere are the details of my quote for Siena Reserve:\n- Model: ${selectedModel.name}\n- Scope: ${floorScope}\n- Flooring: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName})\n- Package: ${selectedPackage.title}\n- Total Estimate: ${formatCurrency(quoteCalc.totalPrice)}\n\nContact Info:\n- Name: ${formData.fullName}\n- Phone: ${formData.phone}\n- Unit: ${formData.unitNumber}\n\nPlease contact me to schedule a visit.`
     );
     return `mailto:sales@quicksurfaces.com?subject=${subject}&body=${body}`;
   };
@@ -390,11 +394,11 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                           {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                         </div>
                         <span className="text-[10px] text-[#64748B] block">
-                          {m.bedrooms} Hab • {m.baths} Baños
+                          {m.bedrooms} {lang === 'es' ? 'Hab' : 'Beds'} • {m.baths} {lang === 'es' ? 'Baños' : 'Baths'}
                         </span>
                       </div>
                       <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">Recomendado:</span>
+                        <span className="text-slate-500 font-medium">{lang === 'es' ? 'Recomendado:' : 'Recommended:'}</span>
                         <span className="font-bold text-[#FF8407]">
                           {floorScope === 'floor1'
                             ? `${m.sqftFirstFloorRec || 560} SF`
@@ -568,7 +572,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                       : `Box Calculation: Model ${selectedModel.name}`}
                   </h4>
                   <p className="text-[11px] text-[#64748B]">
-                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft por caja
+                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft {lang === 'es' ? 'por caja' : 'per box'}
                   </p>
                 </div>
               </div>
@@ -588,7 +592,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {lang === 'es' ? 'Cajas Requeridas' : 'Boxes to Deliver'}
                   </span>
                   <span className="text-sm font-black text-[#FF8407]">
-                    {quoteCalc.boxesCount} Cajas ({quoteCalc.totalBoxesSqft} SF)
+                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
                   </span>
                 </div>
               </div>
@@ -615,8 +619,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     }`}
                   >
                     <div>
-                      <span className="text-xs font-black block">Pisos Vinílicos SPC</span>
-                      <span className="text-[10px] opacity-75">100% Impermeables • 5.5mm a 8.0mm</span>
+                      <span className="text-xs font-black block">
+                        {lang === 'es' ? 'Pisos Vinílicos SPC' : 'SPC Luxury Vinyl Flooring'}
+                      </span>
+                      <span className="text-[10px] opacity-75">
+                        {lang === 'es' ? '100% Impermeables • 5.5mm a 8.0mm' : '100% Waterproof • 5.5mm to 8.0mm'}
+                      </span>
                     </div>
                     {selectedProductType === 'vinyl' && <Check className="w-4 h-4 text-[#FF8407]" />}
                   </button>
@@ -634,8 +642,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     }`}
                   >
                     <div>
-                      <span className="text-xs font-black block">Piso Laminado AC4</span>
-                      <span className="text-[10px] opacity-75">12.0mm • Scratch Guard Ultra</span>
+                      <span className="text-xs font-black block">
+                        {lang === 'es' ? 'Piso Laminado AC4' : 'AC4 Laminate Flooring'}
+                      </span>
+                      <span className="text-[10px] opacity-75">
+                        {lang === 'es' ? '12.0mm • Scratch Guard Ultra' : '12.0mm • Scratch Guard Ultra'}
+                      </span>
                     </div>
                     {selectedProductType === 'laminate' && <Check className="w-4 h-4 text-[#FF8407]" />}
                   </button>
@@ -653,8 +665,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     }`}
                   >
                     <div>
-                      <span className="text-xs font-black block">Madera de Ingeniería</span>
-                      <span className="text-[10px] opacity-75">1/2&quot; Roble Europeo Genuino</span>
+                      <span className="text-xs font-black block">
+                        {lang === 'es' ? 'Madera de Ingeniería' : 'Engineered Hardwood'}
+                      </span>
+                      <span className="text-[10px] opacity-75">
+                        {lang === 'es' ? '1/2" Roble Europeo Genuino' : '1/2" Genuine European Oak'}
+                      </span>
                     </div>
                     {selectedProductType === 'hardwood' && <Check className="w-4 h-4 text-[#FF8407]" />}
                   </button>
@@ -677,7 +693,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                           : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
                       }`}
                     >
-                      Todos los Espesores
+                      {lang === 'es' ? 'Todos los Espesores' : 'All Thicknesses'}
                     </button>
                     <button
                       type="button"
@@ -723,12 +739,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { id: 'all', label: 'Todos los Tonos' },
-                    { id: 'warm', label: 'Cálido (Warm)' },
-                    { id: 'cool', label: 'Frío / Gris (Cool)' },
-                    { id: 'natural', label: 'Natural' },
-                    { id: 'light', label: 'Claro (Light)' },
-                    { id: 'dark', label: 'Oscuro (Dark)' },
+                    { id: 'all', label: lang === 'es' ? 'Todos los Tonos' : 'All Tones' },
+                    { id: 'warm', label: lang === 'es' ? 'Cálido (Warm)' : 'Warm' },
+                    { id: 'cool', label: lang === 'es' ? 'Frío / Gris (Cool)' : 'Cool / Gray' },
+                    { id: 'natural', label: lang === 'es' ? 'Natural' : 'Natural' },
+                    { id: 'light', label: lang === 'es' ? 'Claro (Light)' : 'Light' },
+                    { id: 'dark', label: lang === 'es' ? 'Oscuro (Dark)' : 'Dark' },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -751,9 +767,11 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  Colores Disponibles ({filteredProducts.length})
+                  {lang === 'es' ? `Colores Disponibles (${filteredProducts.length})` : `Available Colors (${filteredProducts.length})`}
                 </span>
-                <span className="text-xs text-[#64748B]">Toca para seleccionar y previsualizar</span>
+                <span className="text-xs text-[#64748B]">
+                  {lang === 'es' ? 'Toca para seleccionar y previsualizar' : 'Click to select and preview'}
+                </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -793,10 +811,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                         {isSelected ? (
                           <span className="font-black text-[#FF8407] flex items-center gap-0.5">
                             <CheckCircle2 className="w-3 h-3" />
-                            Elegido
+                            {lang === 'es' ? 'Elegido' : 'Selected'}
                           </span>
                         ) : (
-                          <span className="text-slate-400 font-medium">Seleccionar</span>
+                          <span className="text-slate-400 font-medium">
+                            {lang === 'es' ? 'Seleccionar' : 'Select'}
+                          </span>
                         )}
                       </div>
                     </button>
@@ -887,11 +907,19 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                       {/* Price Tag Highlight */}
                       <div className="my-3 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                         <div>
-                          <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Estimado</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase block">
+                            {lang === 'es' ? 'Total Estimado' : 'Estimated Total'}
+                          </span>
                           <span className="text-2xl font-black text-[#FF8407]">{formatCurrency(calc.totalPrice)}</span>
                         </div>
                         <span className="text-xs font-bold text-slate-700">
-                          {pkg.isTurnkey ? 'Llave en mano' : 'Solo Material'}
+                          {pkg.isTurnkey
+                            ? lang === 'es'
+                              ? 'Llave en mano'
+                              : 'Turnkey'
+                            : lang === 'es'
+                            ? 'Solo Material'
+                            : 'Material Only'}
                         </span>
                       </div>
 
@@ -908,15 +936,17 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                     <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                       <span className="text-xs text-slate-500 font-medium">
-                        {quoteCalc.sqftMaterialRecommended} SF ({calc.boxesCount} cajas)
+                        {quoteCalc.sqftMaterialRecommended} SF ({calc.boxesCount} {lang === 'es' ? 'cajas' : 'boxes'})
                       </span>
                       {isSelected ? (
                         <span className="text-xs font-black text-[#FF8407] flex items-center gap-1">
                           <CheckCircle2 className="w-4 h-4" />
-                          Seleccionado
+                          {lang === 'es' ? 'Seleccionado' : 'Selected'}
                         </span>
                       ) : (
-                        <span className="text-xs font-bold text-slate-400">Seleccionar Paquete</span>
+                        <span className="text-xs font-bold text-slate-400">
+                          {lang === 'es' ? 'Seleccionar Paquete' : 'Select Package'}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -936,18 +966,31 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200">
                 <div>
                   <span className="px-2.5 py-1 rounded-md bg-[#0F172A] text-[#FF8407] text-[10px] font-black tracking-wider uppercase">
-                    Resumen de Cotización
+                    {lang === 'es' ? 'Resumen de Cotización' : 'Quote Summary'}
                   </span>
                   <h3 className="text-xl font-black text-[#0F172A] mt-1.5">
-                    Siena Reserve — Modelo {selectedModel.name}
+                    Siena Reserve — {lang === 'es' ? 'Modelo' : 'Model'} {selectedModel.name}
                   </h3>
                   <p className="text-xs text-[#64748B]">
-                    Alcance: {floorScope === 'floor1' ? 'Solo 1er Piso' : floorScope === 'floor2' ? 'Solo 2do Piso' : 'Casa Completa (Ambos Pisos)'}
+                    {lang === 'es' ? 'Alcance:' : 'Scope:'}{' '}
+                    {floorScope === 'floor1'
+                      ? lang === 'es'
+                        ? 'Solo 1er Piso'
+                        : '1st Floor Only'
+                      : floorScope === 'floor2'
+                      ? lang === 'es'
+                        ? 'Solo 2do Piso'
+                        : '2nd Floor Only'
+                      : lang === 'es'
+                      ? 'Casa Completa (Ambos Pisos)'
+                      : 'Entire Home (Both Floors)'}
                   </p>
                 </div>
 
                 <div className="text-left sm:text-right">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Garantizado</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">
+                    {lang === 'es' ? 'Total Garantizado' : 'Guaranteed Total'}
+                  </span>
                   <span className="text-3xl font-black text-[#FF8407]">{formatCurrency(quoteCalc.totalPrice)}</span>
                 </div>
               </div>
@@ -955,41 +998,71 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               {/* Grid Breakdown */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-5">
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-slate-500 font-medium block">Piso Seleccionado</span>
+                  <span className="text-slate-500 font-medium block">
+                    {lang === 'es' ? 'Piso Seleccionado' : 'Selected Flooring'}
+                  </span>
                   <strong className="text-slate-900 block mt-0.5">{selectedProduct.name}</strong>
                   <span className="text-[11px] text-[#FF8407]">{selectedProduct.collectionName} ({selectedProduct.thickness})</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-slate-500 font-medium block">Metraje de Material</span>
+                  <span className="text-slate-500 font-medium block">
+                    {lang === 'es' ? 'Metraje de Material' : 'Material Coverage'}
+                  </span>
                   <strong className="text-slate-900 block mt-0.5">{quoteCalc.sqftMaterialRecommended} SF</strong>
-                  <span className="text-[11px] text-slate-500">{quoteCalc.boxesCount} Cajas ({quoteCalc.totalBoxesSqft} SF)</span>
+                  <span className="text-[11px] text-slate-500">
+                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
+                  </span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-slate-500 font-medium block">Escaleras</span>
-                  <strong className="text-slate-900 block mt-0.5">{quoteCalc.stepsCount} Pasos</strong>
-                  <span className="text-[11px] text-slate-500">Flush Stair Nose al ras</span>
+                  <span className="text-slate-500 font-medium block">
+                    {lang === 'es' ? 'Escaleras' : 'Stairs'}
+                  </span>
+                  <strong className="text-slate-900 block mt-0.5">
+                    {quoteCalc.stepsCount} {lang === 'es' ? 'Pasos' : 'Steps'}
+                  </strong>
+                  <span className="text-[11px] text-slate-500">
+                    {lang === 'es' ? 'Flush Stair Nose al ras' : 'Flush Stair Nose'}
+                  </span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                  <span className="text-slate-500 font-medium block">Paquete</span>
+                  <span className="text-slate-500 font-medium block">
+                    {lang === 'es' ? 'Paquete' : 'Package'}
+                  </span>
                   <strong className="text-slate-900 block mt-0.5">{selectedPackage.title}</strong>
-                  <span className="text-[11px] text-emerald-600 font-bold">{selectedPackage.isTurnkey ? 'Llave en Mano' : 'Material'}</span>
+                  <span className="text-[11px] text-emerald-600 font-bold">
+                    {selectedPackage.isTurnkey
+                      ? lang === 'es'
+                        ? 'Llave en Mano'
+                        : 'Turnkey'
+                      : lang === 'es'
+                      ? 'Material'
+                      : 'Material Only'}
+                  </span>
                 </div>
               </div>
 
               {/* Contact Lead Form */}
               <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
-                <h4 className="text-sm font-black text-slate-900 mb-1">Datos para Confirmación de Medidas</h4>
-                <p className="text-xs text-slate-500 mb-3">Llevamos las muestras físicas a tu hogar en Siena Reserve sin compromiso.</p>
+                <h4 className="text-sm font-black text-slate-900 mb-1">
+                  {lang === 'es' ? 'Datos para Confirmación de Medidas' : 'Information for Measurement Verification'}
+                </h4>
+                <p className="text-xs text-slate-500 mb-3">
+                  {lang === 'es'
+                    ? 'Llevamos las muestras físicas a tu hogar en Siena Reserve sin compromiso.'
+                    : 'We bring physical samples right to your home in Siena Reserve with no obligation.'}
+                </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Nombre Completo</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                      {lang === 'es' ? 'Nombre Completo' : 'Full Name'}
+                    </label>
                     <input
                       type="text"
-                      placeholder="Ej. Carlos Mendoza"
+                      placeholder={lang === 'es' ? 'Ej. Carlos Mendoza' : 'e.g. John Smith'}
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
@@ -997,7 +1070,9 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Teléfono</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                      {lang === 'es' ? 'Teléfono' : 'Phone'}
+                    </label>
                     <input
                       type="tel"
                       placeholder="(786) 000-0000"
@@ -1008,10 +1083,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Unidad / Lote en Siena Reserve</label>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">
+                      {lang === 'es' ? 'Unidad / Lote en Siena Reserve' : 'Unit / Lot in Siena Reserve'}
+                    </label>
                     <input
                       type="text"
-                      placeholder="Ej. Unidad 104"
+                      placeholder={lang === 'es' ? 'Ej. Unidad 104' : 'e.g. Unit 104'}
                       value={formData.unitNumber}
                       onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
                       className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
@@ -1029,7 +1106,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   className="flex-1 py-3.5 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>Enviar Cotización por WhatsApp</span>
+                  <span>{lang === 'es' ? 'Enviar Cotización por WhatsApp' : 'Send Quote via WhatsApp'}</span>
                 </a>
 
                 <a
@@ -1037,7 +1114,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   className="py-3.5 px-5 rounded-2xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>Enviar por Email</span>
+                  <span>{lang === 'es' ? 'Enviar por Email' : 'Send via Email'}</span>
                 </a>
 
                 <button
@@ -1046,7 +1123,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   className="py-3.5 px-5 rounded-2xl bg-white hover:bg-slate-50 text-slate-900 font-black text-sm flex items-center justify-center gap-2 border border-slate-300 transition-all cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-[#FF8407]" />
-                  <span>Imprimir / PDF</span>
+                  <span>{lang === 'es' ? 'Imprimir / PDF' : 'Print / PDF'}</span>
                 </button>
               </div>
             </div>

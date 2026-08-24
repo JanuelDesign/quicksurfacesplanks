@@ -625,7 +625,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                   {lang === 'es' ? '1er Piso (Planta Baja)' : '1st Floor (Ground Level)'}
                 </span>
                 <span className="text-xs font-bold text-slate-300 font-mono">
-                  ~{model.sqftFirstFloor || 510} SF Neto
+                  ~{model.sqftFirstFloor || 510} SF {lang === 'es' ? 'Neto' : 'Net'}
                 </span>
               </div>
 
@@ -658,7 +658,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                 <g>
                   <rect x="180" y="25" width="160" height="50" fill="#1E293B" stroke="#64748B" strokeWidth="2" strokeDasharray="4 4" rx="4" />
                   <text x="260" y="55" fill="#94A3B8" fontSize="14" fontWeight="800" textAnchor="middle">
-                    PATIO EXTERIOR
+                    {lang === 'es' ? 'PATIO EXTERIOR' : 'OUTDOOR PATIO'}
                   </text>
                 </g>
 
@@ -685,7 +685,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                   {lang === 'es' ? '2do Piso (Planta Alta)' : '2nd Floor (Upper Level)'}
                 </span>
                 <span className="text-xs font-bold text-slate-300 font-mono">
-                  ~{model.sqftSecondFloor || 465} SF + 15 Escalones
+                  ~{model.sqftSecondFloor || 465} SF {lang === 'es' ? '+ 15 Escalones' : '+ 15 Custom Stairs'}
                 </span>
               </div>
 
@@ -718,27 +718,27 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                 style={{ backgroundColor: woodBaseColor }}
               ></span>
               <span className="font-bold text-white">
-                Piso {selectedProduct.name} ({selectedProduct.thickness || '5.5mm'})
+                {lang === 'es' ? 'Piso' : 'Flooring'} {selectedProduct.name} ({selectedProduct.thickness || '5.5mm'})
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded-sm bg-[#1F2937] border border-slate-500"></span>
               <span className="text-slate-400">
-                Baños / Patio (Área existente no incluida)
+                {lang === 'es' ? 'Baños / Patio (Área existente no incluida)' : 'Baths / Patio (Existing Tile Area)'}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="w-4 h-4 rounded-sm bg-[#FF8407]"></span>
               <span className="font-bold text-[#FF8407]">
-                15 Escalones Flush Nose
+                {lang === 'es' ? '15 Escalones Flush Nose' : '15 Custom Flush Stairs'}
               </span>
             </div>
           </div>
 
           <span className="text-[11px] text-slate-400 font-mono">
-            *Toca cualquier habitación para ver detalles
+            {lang === 'es' ? '*Toca cualquier habitación para ver detalles' : '*Tap any room to view details'}
           </span>
         </div>
       </div>
@@ -749,10 +749,14 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#FF8407]" />
-              <span className="font-black text-sm text-[#FF8407] uppercase">Habitación Seleccionada: {selectedRoomModal}</span>
+              <span className="font-black text-sm text-[#FF8407] uppercase">
+                {lang === 'es' ? 'Habitación Seleccionada:' : 'Selected Room:'} {selectedRoomModal}
+              </span>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Instalación continua con tablones {selectedProduct.name} de {selectedProduct.thickness || '5.5mm'} sin transiciones intermedias antiestéticas.
+              {lang === 'es'
+                ? `Instalación continua con tablones ${selectedProduct.name} de ${selectedProduct.thickness || '5.5mm'} sin transiciones intermedias antiestéticas.`
+                : `Seamless installation with ${selectedProduct.name} ${selectedProduct.thickness || '5.5mm'} planks without unsightly transition strips.`}
             </p>
           </div>
 
@@ -761,7 +765,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             onClick={() => setSelectedRoomModal(null)}
             className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-all cursor-pointer shrink-0"
           >
-            Cerrar
+            {lang === 'es' ? 'Cerrar' : 'Close'}
           </button>
         </div>
       )}

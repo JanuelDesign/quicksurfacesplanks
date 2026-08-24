@@ -223,16 +223,27 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hola QuickSurfaces! 👋 Acabo de solicitar la cotización para mi casa:\n\n` +
-      `👤 Cliente: ${fullName || 'Cliente'}\n` +
-      `📞 Teléfono: ${phone || 'N/A'}\n` +
-      `🏡 Comunidad: ${currentModel.communityName}\n` +
-      `📐 Modelo: ${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} sq ft)\n` +
-      `📦 Paquete: ${currentPackage.title}\n` +
-      `🎨 Color SPC: ${currentColor.name} (#${currentColor.code})\n` +
-      `💰 Tarifa Estimada: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
-      `📅 Fecha Deseada: ${getResolvedPreferredDate()}\n\n` +
-      `¿Podemos confirmar disponibilidad de instalación? Gracias!`
+    lang === 'es'
+      ? `Hola QuickSurfaces! 👋 Acabo de solicitar la cotización para mi casa:\n\n` +
+        `👤 Cliente: ${fullName || 'Cliente'}\n` +
+        `📞 Teléfono: ${phone || 'N/A'}\n` +
+        `🏡 Comunidad: ${currentModel.communityName}\n` +
+        `📐 Modelo: ${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} sq ft)\n` +
+        `📦 Paquete: ${currentPackage.title}\n` +
+        `🎨 Color SPC: ${currentColor.name} (#${currentColor.code})\n` +
+        `💰 Tarifa Estimada: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
+        `📅 Fecha Deseada: ${getResolvedPreferredDate()}\n\n` +
+        `¿Podemos confirmar disponibilidad de instalación? Gracias!`
+      : `Hello QuickSurfaces! 👋 I just requested a quote for my home:\n\n` +
+        `👤 Client: ${fullName || 'Customer'}\n` +
+        `📞 Phone: ${phone || 'N/A'}\n` +
+        `🏡 Community: ${currentModel.communityName}\n` +
+        `📐 Model: ${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} sq ft)\n` +
+        `📦 Package: ${currentPackage.title}\n` +
+        `🎨 SPC Color: ${currentColor.name} (#${currentColor.code})\n` +
+        `💰 Estimated Rate: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
+        `📅 Target Timeline: ${getResolvedPreferredDate()}\n\n` +
+        `Can we confirm installation availability? Thank you!`
   );
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${whatsappMessage}`;
@@ -313,7 +324,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Escaleras Integradas:' : 'Custom Staircase:'}</span>
-                  <span className="font-bold text-[#0F172A]">15 Peldaños Flush Stair Nosing</span>
+                  <span className="font-bold text-[#0F172A]">{lang === 'es' ? '15 Peldaños Flush Stair Nosing' : '15 Custom Flush Stair Treads'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Piso SPC Seleccionado:' : 'Selected SPC Floor:'}</span>
@@ -347,7 +358,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                 <div className="flex flex-col sm:flex-row gap-2">
                   <a
-                    href={`mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(`Reserva QuickSurfaces: ${currentModel.name} - ${fullName}`)}&body=${encodeURIComponent(`Cliente: ${fullName}\nTeléfono: ${phone}\nModelo: ${currentModel.name}\nTotal: $${quoteCalculation.totalPrice}`)}`}
+                    href={`mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(lang === 'es' ? `Reserva QuickSurfaces: ${currentModel.name} - ${fullName}` : `QuickSurfaces Reservation: ${currentModel.name} - ${fullName}`)}&body=${encodeURIComponent(`Client: ${fullName}\nPhone: ${phone}\nModel: ${currentModel.name}\nTotal: $${quoteCalculation.totalPrice}`)}`}
                     className="flex-1 py-2.5 px-3 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5 text-[#FF8407]" />
@@ -375,7 +386,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     {lang === 'es' ? 'Configuración de la Cotización:' : 'Quote Configuration:'}
                   </span>
                   <span className="text-[10px] font-bold text-[#FF8407] bg-[#FFF7ED] px-2 py-0.5 rounded-full border border-[#FF8407]/20">
-                    Recálculo Automático
+                    {lang === 'es' ? 'Recálculo Automático' : 'Auto-Calculated'}
                   </span>
                 </div>
 
@@ -414,7 +425,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     >
                       {activePackages.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.title} {p.isTurnkey ? '(Llave en Mano)' : '(Solo Material)'}
+                          {p.title} {p.isTurnkey ? (lang === 'es' ? '(Llave en Mano)' : '(Turnkey)') : (lang === 'es' ? '(Solo Material)' : '(Material Only)')}
                         </option>
                       ))}
                     </select>
@@ -443,14 +454,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <div className="mt-2 pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="space-y-0.5">
                     <div className="text-[11px] text-[#64748B]">
-                      <strong>{currentModel.name}</strong> (~{quoteCalculation.sqftMaterialRecommended} sq ft) + 15 Peldaños
+                      <strong>{currentModel.name}</strong> (~{quoteCalculation.sqftMaterialRecommended} sq ft) {lang === 'es' ? '+ 15 Peldaños' : '+ 15 Custom Stairs'}
                     </div>
                     <div className="text-[10px] text-[#94A3B8]">
-                      Color: <span className="font-semibold text-[#0F172A]">{currentColor.name}</span> ({currentColor.thickness} - {currentColor.wearLayer})
+                      {lang === 'es' ? 'Color:' : 'Color:'} <span className="font-semibold text-[#0F172A]">{currentColor.name}</span> ({currentColor.thickness} - {currentColor.wearLayer})
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-[#64748B] block font-bold uppercase">Tarifa Calculada:</span>
+                    <span className="text-[10px] text-[#64748B] block font-bold uppercase">{lang === 'es' ? 'Tarifa Calculada:' : 'Estimated Rate:'}</span>
                     <span className="text-lg font-black text-[#0F172A]">
                       ${quoteCalculation.totalPrice.toLocaleString()}
                     </span>
@@ -646,10 +657,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className="flex items-center justify-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] text-[#64748B] pt-1 font-bold">
                 <span className="flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#FF8407]" />
-                  25-Year Warranty
+                  {lang === 'es' ? 'Garantía de 25 Años' : '25-Year Warranty'}
                 </span>
                 <span>•</span>
-                <span>Licensed & Insured</span>
+                <span>{lang === 'es' ? 'Licenciados y Asegurados' : 'Licensed & Insured'}</span>
                 <span>•</span>
                 <a
                   href={`tel:${WHATSAPP_PHONE}`}
