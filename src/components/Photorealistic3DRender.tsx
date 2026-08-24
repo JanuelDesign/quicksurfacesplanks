@@ -57,16 +57,10 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
     }
   };
 
-// Robust image source resolution: prioritizes imported assets for local/fallback resilience
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-
-  const handleImgError = (key: string) => {
-    setImgErrors(prev => ({ ...prev, [key]: true }));
-  };
-
-  const floor1Src = !imgErrors['floor1'] && model.render3DImageFloor1 ? model.render3DImageFloor1 : defaultFloor1Render;
-  const floor2Src = !imgErrors['floor2'] && model.render3DImageFloor2 ? model.render3DImageFloor2 : defaultFloor2Render;
-  const bothSrc = !imgErrors['both'] && (model.render3DImageBoth || model.render3DImage) ? (model.render3DImageBoth || model.render3DImage) : defaultBothRenders;
+  // Robust image source resolution: ALWAYS use bundled 3D render assets directly to guarantee instant loading
+  const floor1Src = defaultFloor1Render;
+  const floor2Src = defaultFloor2Render;
+  const bothSrc = defaultBothRenders;
 
   // Active rooms for current view
   const floor1Rooms = model.firstFloorRooms || [
@@ -179,7 +173,6 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
                   className="w-full h-[280px] sm:h-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   loading="lazy"
                   referrerPolicy="no-referrer"
-                  onError={() => handleImgError('floor1')}
                 />
                 <button
                   type="button"
@@ -219,7 +212,6 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
                   className="w-full h-[280px] sm:h-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   loading="lazy"
                   referrerPolicy="no-referrer"
-                  onError={() => handleImgError('floor2')}
                 />
                 <button
                   type="button"
@@ -263,7 +255,6 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
               className="w-full h-auto max-h-[500px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
               loading="lazy"
               referrerPolicy="no-referrer"
-              onError={() => handleImgError('floor1')}
             />
 
             {/* Top controls */}
@@ -318,7 +309,6 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
               className="w-full h-auto max-h-[500px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
               loading="lazy"
               referrerPolicy="no-referrer"
-              onError={() => handleImgError('floor2')}
             />
 
             {/* Top controls */}
@@ -373,7 +363,6 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
               className="w-full h-auto max-h-[520px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
               loading="lazy"
               referrerPolicy="no-referrer"
-              onError={() => handleImgError('both')}
             />
 
             {/* Top controls */}
