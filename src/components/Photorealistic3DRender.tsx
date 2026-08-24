@@ -1,158 +1,473 @@
-import React, { useState } from 'react';
-import { FloorPlanModel } from '../types';
+import React, { useState, useEffect } from 'react';
+import { FloorPlanModel, FloorScope } from '../types';
 import { useLanguage } from '../context/LanguageContext';
-import { Sparkles, Maximize2, X, Box, CheckCircle2 } from 'lucide-react';
-import sample3dRender from '../assets/images/dollhouse_3d_render_1787189566024.jpg';
+import {
+  Sparkles,
+  Maximize2,
+  X,
+  Layers,
+  CheckCircle2,
+  Columns,
+  Eye,
+  Home,
+} from 'lucide-react';
+
+import defaultBothRenders from '../assets/images/dollhouse_3d_render_1787189566024.jpg';
+import defaultFloor1Render from '../assets/images/floor1_dollhouse_3d_1787536531871.jpg';
+import defaultFloor2Render from '../assets/images/floor2_dollhouse_3d_1787536546939.jpg';
 
 interface Photorealistic3DRenderProps {
   model: FloorPlanModel;
+  floorScope?: FloorScope;
+  onChangeFloorScope?: (scope: FloorScope) => void;
 }
 
-export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({ model }) => {
-  const { lang } = useLanguage();
-  const [isZoomed, setIsZoomed] = useState<boolean>(false);
+type RenderViewMode = 'both' | 'floor1' | 'floor2' | 'dual';
 
-  const hasCustomRender = Boolean(model.render3DImage && model.render3DImage.trim().length > 0);
-  const renderSrc = hasCustomRender ? model.render3DImage! : sample3dRender;
+export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
+  model,
+  floorScope,
+  onChangeFloorScope,
+}) => {
+  const { lang } = useLanguage();
+
+  // Internal tab state, synchronized with floorScope when prop changes
+  const [activeTab, setActiveTab] = useState<RenderViewMode>(() => {
+    if (floorScope === 'floor1') return 'floor1';
+    if (floorScope === 'floor2') return 'floor2';
+    return 'both';
+  });
+
+  const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string; subtitle: string } | null>(null);
+
+  useEffect(() => {
+    if (floorScope) {
+      if (floorScope === 'floor1') setActiveTab('floor1');
+      else if (floorScope === 'floor2') setActiveTab('floor2');
+      else if (floorScope === 'both' && activeTab !== 'dual') setActiveTab('both');
+    }
+  }, [floorScope]);
+
+  const handleTabChange = (tab: RenderViewMode) => {
+    setActiveTab(tab);
+    if (onChangeFloorScope) {
+      if (tab === 'floor1') onChangeFloorScope('floor1');
+      else if (tab === 'floor2') onChangeFloorScope('floor2');
+      else if (tab === 'both') onChangeFloorScope('both');
+    }
+  };
+
+  // Image source resolution with solid fallbacks
+  const floor1Src = model.render3DImageFloor1 || defaultFloor1Render;
+  const floor2Src = model.render3DImageFloor2 || defaultFloor2Render;
+  const bothSrc = model.render3DImageBoth || model.render3DImage || defaultBothRenders;
+
+  // Active rooms for current view
+  const floor1Rooms = model.firstFloorRooms || [
+    { name: 'Covered Entry & Foyer', dimensions: "6' 0\" x 14' 0\"", sqft: 84 },
+    { name: 'Family Room & Dining', dimensions: "14' 2\" x 22' 0\"", sqft: 260 },
+    { name: 'Chef Kitchen Island', dimensions: "7' 10\" x 11' 4\"", sqft: 89 },
+    { name: 'Bedroom 3 / Flex Room', dimensions: "10' 0\" x 11' 10\"", sqft: 118 },
+  ];
+
+  const floor2Rooms = model.secondFloorRooms || [
+    { name: "Owner's Suite", dimensions: "12' 0\" x 10' 10\"", sqft: 130 },
+    { name: 'Walk-In Closet', dimensions: 'Standard', sqft: 36 },
+    { name: 'Bedroom 2', dimensions: "12' 0\" x 10' 0\"", sqft: 120 },
+    { name: '15 Flush Stairs & Hall', dimensions: '15 Treads', sqft: 101 },
+  ];
 
   return (
-    <div className="bg-[#FFFFFF] text-[#111827] rounded-3xl p-4 sm:p-7 border border-[#E2E8F0] shadow-xl relative overflow-hidden font-sans">
-      {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 relative z-10">
+    <div id="render-3d-section" className="bg-[#FFFFFF] text-[#111827] rounded-3xl p-4 sm:p-7 border border-[#E2E8F0] shadow-xl relative overflow-hidden font-sans">
+      {/* Top Bar with Badge, Title, and Action Controls */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 pb-5 border-b border-[#E2E8F0] relative z-10">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-[#FF8407] text-[#000000] text-xs font-black tracking-wider uppercase">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FF8407] text-[#000000] text-xs font-black tracking-wider uppercase shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 fill-black" />
               {lang === 'es' ? 'Render 3D Fotorrealista' : 'Photorealistic 3D Render'}
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-bold text-[#64748B]">
-              {lang === 'es' ? 'Vista Dollhouse Comercial' : 'Commercial Dollhouse View'}
+              {lang === 'es' ? 'Corte Dollhouse Arquitectónico' : 'Architectural Dollhouse Cutaway'}
             </span>
           </div>
-          <h3 className="text-xl font-black text-[#000000] tracking-tight mt-1.5">
-            {lang === 'es' ? `Render 3D: Modelo ${model.name}` : `3D Dollhouse Render: Model ${model.name}`}
+
+          <h3 className="text-xl sm:text-2xl font-black text-[#000000] tracking-tight mt-1.5">
+            {lang === 'es' ? `Render 3D Interactivo: Modelo ${model.name}` : `Interactive 3D Render: Model ${model.name}`}
           </h3>
-          <p className="text-xs text-[#64748B] mt-0.5 font-medium">
-            {model.communityName} · {model.collection} • {lang === 'es' ? 'Corte tipo dollhouse con mobiliario, recámaras y piso continuo de vinil SPC' : 'Dollhouse cutaway with bedroom furniture, natural depth and continuous SPC vinyl'}
+          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5 font-medium">
+            {model.communityName} · {model.collection} • {lang === 'es' ? 'Visualización fotorrealista con piso continuo de vinil SPC, mobiliario y profundidad real' : 'Photorealistic visualization with continuous SPC vinyl flooring, furniture, and realistic lighting'}
           </p>
         </div>
 
-        {hasCustomRender && (
+        {/* Floor Selection Switcher Buttons */}
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#F1F5F9] rounded-2xl border border-[#E2E8F0] self-start lg:self-center">
           <button
-            onClick={() => setIsZoomed(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] text-xs font-bold text-[#000000] flex items-center gap-1.5 transition-colors cursor-pointer"
+            type="button"
+            onClick={() => handleTabChange('both')}
+            className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'both'
+                ? 'bg-[#000000] text-[#FF8407] shadow-sm'
+                : 'text-[#475569] hover:text-[#000000] hover:bg-white/60'
+            }`}
           >
-            <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
-            <span>{lang === 'es' ? 'Ampliar Render' : 'Expand View'}</span>
+            <Home className="w-3.5 h-3.5" />
+            <span>{lang === 'es' ? 'Casa Completa' : 'Full Home'}</span>
           </button>
-        )}
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('floor1')}
+            className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'floor1'
+                ? 'bg-[#000000] text-[#FF8407] shadow-sm'
+                : 'text-[#475569] hover:text-[#000000] hover:bg-white/60'
+            }`}
+          >
+            <span className="w-4 h-4 rounded-full bg-[#FF8407] text-black flex items-center justify-center text-[10px] font-black">1</span>
+            <span>{lang === 'es' ? '1er Piso (Planta Baja)' : '1st Floor'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('floor2')}
+            className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'floor2'
+                ? 'bg-[#000000] text-[#FF8407] shadow-sm'
+                : 'text-[#475569] hover:text-[#000000] hover:bg-white/60'
+            }`}
+          >
+            <span className="w-4 h-4 rounded-full bg-[#FF8407] text-black flex items-center justify-center text-[10px] font-black">2</span>
+            <span>{lang === 'es' ? '2do Piso (Planta Alta)' : '2nd Floor'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange('dual')}
+            className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'dual'
+                ? 'bg-[#FF8407] text-[#000000] shadow-sm'
+                : 'text-[#475569] hover:text-[#000000] hover:bg-white/60'
+            }`}
+          >
+            <Columns className="w-3.5 h-3.5" />
+            <span>{lang === 'es' ? 'Ver Ambos (Dual)' : 'Dual View'}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Main Visual Display */}
-      {hasCustomRender ? (
-        <>
-          <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] group shadow-inner">
-            <img
-              src={renderSrc}
-              alt={`Render 3D Fotorrealista - ${model.name}`}
-              className="w-full h-auto max-h-[520px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
+      {/* ========================================================
+          RENDER DISPLAY SECTION
+      ======================================================== */}
 
-            {/* Badge Overlay */}
-            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-              <div className="px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-white text-[11px] font-bold flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#FF8407]" />
-                <span>{lang === 'es' ? 'Render Oficial de Marketing' : 'Official Marketing 3D Render'}</span>
+      {/* 1. DUAL VIEW (Both floors side by side) */}
+      {activeTab === 'dual' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Floor 1 Box */}
+            <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] group shadow-inner flex flex-col justify-between">
+              <div className="relative">
+                <img
+                  src={floor1Src}
+                  alt={`Render 3D 1er Piso - ${model.name}`}
+                  className="w-full h-[280px] sm:h-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setZoomedImage({
+                    src: floor1Src,
+                    title: `${model.name} — 1er Piso (Planta Baja)`,
+                    subtitle: `Área Recomendada: ${model.sqftFirstFloorRec || 560} SF · Gran Sala, Cocina abierta, Comedor y Foyer`,
+                  })}
+                  className="absolute top-3 right-3 px-2.5 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-colors cursor-pointer"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                  <span>{lang === 'es' ? 'Ampliar' : 'Zoom'}</span>
+                </button>
+
+                <div className="absolute bottom-3 left-3 px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 text-white text-xs font-black flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
+                  <span>1er Piso · ~{model.sqftFirstFloorRec || 560} SF</span>
+                </div>
               </div>
-              <span className="hidden sm:inline-block px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-[#CBD5E1] text-[10px] font-medium">
-                {model.name} · {model.floorLevel || '2nd Floor'}
-              </span>
+
+              {/* Room tags */}
+              <div className="p-3 bg-[#1E293B] border-t border-white/10 flex flex-wrap gap-1.5">
+                {floor1Rooms.map((r, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded-md bg-white/10 text-[#E2E8F0] text-[11px] font-medium">
+                    {r.name} ({r.dimensions})
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Specs / Info Bar below render */}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B] pt-3 border-t border-[#E2E8F0]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
-              <span>{lang === 'es' ? 'Piso continuo de vinil SPC sin molduras T intermedias' : 'Continuous SPC vinyl without intermediate T-moldings'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#22C55E]"></span>
-              <span>{lang === 'es' ? 'Escaleras integradas con nosing a tono' : 'Integrated matching stair nosings'}</span>
-            </div>
-          </div>
-        </>
-      ) : (
-        /* Polished Placeholder when 3D render is pending from design team */
-        <div className="relative rounded-2xl p-8 sm:p-12 text-center bg-gradient-to-b from-[#F8FAFC] to-[#F1F5F9] border border-dashed border-[#CBD5E1] flex flex-col items-center justify-center min-h-[300px]">
-          <div className="w-16 h-16 rounded-2xl bg-[#FFF7ED] border border-[#FF8407]/30 text-[#FF8407] flex items-center justify-center mb-4 shadow-sm">
-            <Box className="w-8 h-8" />
-          </div>
+            {/* Floor 2 Box */}
+            <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] group shadow-inner flex flex-col justify-between">
+              <div className="relative">
+                <img
+                  src={floor2Src}
+                  alt={`Render 3D 2do Piso - ${model.name}`}
+                  className="w-full h-[280px] sm:h-[340px] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setZoomedImage({
+                    src: floor2Src,
+                    title: `${model.name} — 2do Piso (Planta Alta)`,
+                    subtitle: `Área Recomendada: ${model.sqftSecondFloorRec || 520} SF + 15 Escalones Flush Stair Nose`,
+                  })}
+                  className="absolute top-3 right-3 px-2.5 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-bold flex items-center gap-1.5 backdrop-blur-md border border-white/20 transition-colors cursor-pointer"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                  <span>{lang === 'es' ? 'Ampliar' : 'Zoom'}</span>
+                </button>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E2E8F0] text-[#475569] text-xs font-black uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF8407]" />
-            <span>{lang === 'es' ? 'Render 3D Próximamente' : '3D Render Coming Soon'}</span>
-          </div>
+                <div className="absolute bottom-3 left-3 px-3 py-1 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 text-white text-xs font-black flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#22C55E]"></span>
+                  <span>2do Piso · ~{model.sqftSecondFloorRec || 520} SF + 15 Escalones</span>
+                </div>
+              </div>
 
-          <h4 className="text-lg font-black text-[#0F172A] mb-1">
-            {lang === 'es'
-              ? `El render fotorrealista 3D para el modelo ${model.name} está en preparación`
-              : `The 3D photorealistic render for model ${model.name} is currently in production`}
-          </h4>
-
-          <p className="text-xs sm:text-sm text-[#64748B] max-w-lg leading-relaxed mb-5">
-            {lang === 'es'
-              ? 'Nuestro equipo de diseño está finalizando el corte fotorrealista tipo dollhouse con mobiliario y sombras reales. Mientras tanto, puedes usar el Plano 2D Interactivo superior para ver dimensiones exactas y probar acabados en tiempo real.'
-              : 'Our design studio is finalizing the dollhouse cutaway view with realistic furniture, depth, and lighting. In the meantime, use the Interactive 2D Floor Plan above to inspect exact measurements and live swatches.'}
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFFFFF] border border-[#E2E8F0] text-[#0F172A] font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
-              <span>{model.sqftNet} SF {lang === 'es' ? 'Área Neta' : 'Net Area'}</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFFFFF] border border-[#E2E8F0] text-[#0F172A] font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
-              <span>{model.stepsCount} {lang === 'es' ? 'Escalones a Medida' : 'Custom Stairs'}</span>
+              {/* Room tags */}
+              <div className="p-3 bg-[#1E293B] border-t border-white/10 flex flex-wrap gap-1.5">
+                {floor2Rooms.map((r, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded-md bg-white/10 text-[#E2E8F0] text-[11px] font-medium">
+                    {r.name} ({r.dimensions})
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Lightbox Modal */}
-      {isZoomed && (
+      {/* 2. FLOOR 1 INDIVIDUAL VIEW */}
+      {activeTab === 'floor1' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] group shadow-inner">
+            <img
+              src={floor1Src}
+              alt={`Render 3D 1er Piso - ${model.name}`}
+              className="w-full h-auto max-h-[500px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+
+            {/* Top controls */}
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setZoomedImage({
+                  src: floor1Src,
+                  title: `${model.name} — Render 3D 1er Piso (Planta Baja)`,
+                  subtitle: `Área Recomendada: ${model.sqftFirstFloorRec || 560} SF · Gran Sala, Cocina, Comedor y Foyer`,
+                })}
+                className="px-3.5 py-1.5 rounded-xl bg-[#000000]/80 hover:bg-[#000000] border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-colors cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                <span>{lang === 'es' ? 'Pantalla Completa' : 'Fullscreen'}</span>
+              </button>
+            </div>
+
+            {/* Badge Overlay */}
+            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+              <div className="px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-white text-xs font-bold flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FF8407]"></span>
+                <span>{lang === 'es' ? '1er Piso · Planta Baja Completa' : '1st Floor · Ground Level'}</span>
+              </div>
+              <span className="px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-[#CBD5E1] text-[11px] font-medium">
+                {model.sqftFirstFloorRec || 560} SF Recomendados
+              </span>
+            </div>
+          </div>
+
+          {/* Quick room pill highlights */}
+          <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold text-[#000000]">{lang === 'es' ? 'Ambientes 1er Piso:' : '1st Floor Rooms:'}</span>
+              {floor1Rooms.map((r, i) => (
+                <span key={i} className="px-2.5 py-1 rounded-lg bg-white border border-[#CBD5E1] text-[#334155] font-semibold">
+                  {r.name} · {r.dimensions}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. FLOOR 2 INDIVIDUAL VIEW */}
+      {activeTab === 'floor2' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] group shadow-inner">
+            <img
+              src={floor2Src}
+              alt={`Render 3D 2do Piso - ${model.name}`}
+              className="w-full h-auto max-h-[500px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+
+            {/* Top controls */}
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setZoomedImage({
+                  src: floor2Src,
+                  title: `${model.name} — Render 3D 2do Piso (Planta Alta)`,
+                  subtitle: `Área Recomendada: ${model.sqftSecondFloorRec || 520} SF + 15 Escalones con Nosing al Ras`,
+                })}
+                className="px-3.5 py-1.5 rounded-xl bg-[#000000]/80 hover:bg-[#000000] border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-colors cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                <span>{lang === 'es' ? 'Pantalla Completa' : 'Fullscreen'}</span>
+              </button>
+            </div>
+
+            {/* Badge Overlay */}
+            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+              <div className="px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-white text-xs font-bold flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]"></span>
+                <span>{lang === 'es' ? '2do Piso · Planta Alta con Habitaciones' : '2nd Floor · Upper Bedrooms Level'}</span>
+              </div>
+              <span className="px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-[#CBD5E1] text-[11px] font-medium">
+                {model.sqftSecondFloorRec || 520} SF + 15 Escalones
+              </span>
+            </div>
+          </div>
+
+          {/* Quick room pill highlights */}
+          <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold text-[#000000]">{lang === 'es' ? 'Ambientes 2do Piso:' : '2nd Floor Rooms:'}</span>
+              {floor2Rooms.map((r, i) => (
+                <span key={i} className="px-2.5 py-1 rounded-lg bg-white border border-[#CBD5E1] text-[#334155] font-semibold">
+                  {r.name} · {r.dimensions}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. BOTH FLOORS (Full Dollhouse Perspective) */}
+      {activeTab === 'both' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="relative rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] group shadow-inner">
+            <img
+              src={bothSrc}
+              alt={`Render 3D Dollhouse Completo - ${model.name}`}
+              className="w-full h-auto max-h-[520px] object-cover sm:object-contain mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+
+            {/* Top controls */}
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setZoomedImage({
+                  src: bothSrc,
+                  title: `${model.name} — Render 3D Dollhouse Casa Completa`,
+                  subtitle: `Área Total Recomendada: ${model.sqftMaterialRecommended || 1080} SF (1er y 2do Piso con 15 Escalones)`,
+                })}
+                className="px-3.5 py-1.5 rounded-xl bg-[#000000]/80 hover:bg-[#000000] border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 backdrop-blur-md transition-colors cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                <span>{lang === 'es' ? 'Pantalla Completa' : 'Fullscreen'}</span>
+              </button>
+            </div>
+
+            {/* Badge Overlay */}
+            <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+              <div className="px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-white text-[11px] font-bold flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#FF8407]" />
+                <span>{lang === 'es' ? 'Render Oficial de Marketing — Casa Completa' : 'Official Marketing 3D Render — Full Home'}</span>
+              </div>
+              <span className="hidden sm:inline-block px-3 py-1.5 rounded-xl bg-[#000000]/80 backdrop-blur-md border border-white/10 text-[#CBD5E1] text-[10px] font-medium">
+                {model.name} · {model.sqftMaterialRecommended || 1080} SF Material Total
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Dual Switch prompt */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#FFF7ED] border border-[#FF8407]/30 text-xs text-[#000000]">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FF8407] shrink-0" />
+              <span className="font-semibold">
+                {lang === 'es'
+                  ? '¿Quieres ver los detalles de cada planta por separado? Usa los botones superiores "1er Piso", "2do Piso" o "Ver Ambos (Dual)".'
+                  : 'Want to view each floor individually? Click the "1st Floor", "2nd Floor", or "Dual View" buttons above.'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleTabChange('dual')}
+              className="px-3 py-1 rounded-xl bg-[#000000] text-[#FF8407] font-bold text-xs hover:bg-slate-900 transition-colors cursor-pointer"
+            >
+              {lang === 'es' ? 'Ver Pisos en Paralelo' : 'View Side-by-Side'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Specs / Quality Warranty footer */}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B] pt-4 border-t border-[#E2E8F0]">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
+          <span>{lang === 'es' ? 'Instalación continua de piso vinílico SPC sin transiciones incómodas' : 'Continuous SPC vinyl without intermediate T-moldings'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#22C55E]"></span>
+          <span>{lang === 'es' ? '15 escalones a medida con Flush Stair Nose a juego' : '15 custom steps with matching flush stair nosings'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#3B82F6]"></span>
+          <span>{lang === 'es' ? 'Remoción y reinstalación cuidadosa de rodapiés (baseboards)' : 'Baseboard removal & precision reinstallation'}</span>
+        </div>
+      </div>
+
+      {/* ========================================================
+          FULLSCREEN LIGHTBOX MODAL
+      ======================================================== */}
+      {zoomedImage && (
         <div
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setIsZoomed(false)}
+          onClick={() => setZoomedImage(null)}
         >
           <div
-            className="relative max-w-5xl w-full bg-[#0F172A] rounded-3xl p-4 border border-white/10 shadow-2xl"
+            className="relative max-w-5xl w-full bg-[#0F172A] rounded-3xl p-4 sm:p-6 border border-white/10 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 mb-2 border-b border-white/10">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
               <div>
-                <h4 className="text-white font-black text-base">
-                  {lang === 'es' ? `Render 3D Fotorrealista: ${model.name}` : `3D Dollhouse Render: ${model.name}`}
+                <h4 className="text-white font-black text-lg">
+                  {zoomedImage.title}
                 </h4>
-                <p className="text-xs text-[#94A3B8]">
-                  {model.communityName} · {model.collection}
+                <p className="text-xs sm:text-sm text-[#94A3B8] mt-0.5">
+                  {zoomedImage.subtitle}
                 </p>
               </div>
               <button
-                onClick={() => setIsZoomed(false)}
+                type="button"
+                onClick={() => setZoomedImage(null)}
                 className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <img
-              src={renderSrc}
-              alt={`Render 3D Fotorrealista - ${model.name}`}
-              className="w-full h-auto max-h-[80vh] object-contain rounded-2xl mx-auto"
-              referrerPolicy="no-referrer"
-            />
+            <div className="relative rounded-2xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
+              <img
+                src={zoomedImage.src}
+                alt={zoomedImage.title}
+                className="w-full h-auto max-h-[75vh] object-contain rounded-2xl mx-auto"
+                referrerPolicy="no-referrer"
+              />
+            </div>
           </div>
         </div>
       )}

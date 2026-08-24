@@ -1,4 +1,4 @@
-import { FloorPlanModel, FlooringProduct, PricingPackage, PricingQuoteCalculation } from '../types';
+import { FloorPlanModel, FlooringProduct, PricingPackage, PricingQuoteCalculation, FloorScope } from '../types';
 
 /**
  * Standard baseline constants
@@ -8,11 +8,22 @@ export const STAIRCASE_FLAT_FEE = 2950; // PPT master stair nose fabrication & l
 export function calculateQuotePrice(
   model: FloorPlanModel,
   product: FlooringProduct,
-  pkg: PricingPackage
+  pkg: PricingPackage,
+  floorScope: FloorScope = 'both'
 ): PricingQuoteCalculation {
-  const sqft = model.sqftMaterialRecommended || model.sqft || 530;
-  const sqftNet = model.sqftNet || Math.round(sqft / 1.1);
-  const stepsCount = model.stepsCount || 15;
+  let sqft = model.sqftMaterialRecommended || 1080;
+  let sqftNet = model.sqftNet || 975;
+  let stepsCount = model.stepsCount || 15;
+
+  if (floorScope === 'floor1') {
+    sqft = model.sqftFirstFloorRec || 560;
+    sqftNet = model.sqftFirstFloor || 510;
+    stepsCount = 0; // No stairs on floor 1 only
+  } else if (floorScope === 'floor2') {
+    sqft = model.sqftSecondFloorRec || 520;
+    sqftNet = model.sqftSecondFloor || 465;
+    stepsCount = model.stepsCount || 15;
+  }
 
   const sqftPerBox = product.sqftPerBox || 24.26;
   const boxesCount = Math.ceil(sqft / sqftPerBox);
@@ -26,8 +37,8 @@ export function calculateQuotePrice(
   let totalPrice = materialCost;
 
   if (pkg.isTurnkey) {
-    stairCost = pkg.stairFlatFee || STAIRCASE_FLAT_FEE;
-    const laborRate = pkg.ratePerSqftLabor || 0;
+    stairCost = stepsCount > 0 ? (pkg.stairFlatFee || STAIRCASE_FLAT_FEE) : 0;
+    const laborRate = pkg.ratePerSqftLabor || (stepsCount === 0 ? 2.5 : 0);
     laborCost = Math.round(sqft * laborRate);
     totalPrice = materialCost + stairCost + laborCost;
   }

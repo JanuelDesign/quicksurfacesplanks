@@ -3,106 +3,86 @@ import {
   FloorPlanModel,
   FlooringProduct,
   PricingPackage,
-  ResidentialCommunity,
   BookingSubmission,
+  FloorScope,
+  ProductType,
 } from '../types';
-import { COMMUNITIES, FLOOR_PLAN_MODELS } from '../data/communitiesAndModels';
+import { COMMUNITIES, SIENA_RESERVE_MODELS } from '../data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from '../data/products';
 import { calculateQuotePrice, formatCurrency } from '../utils/pricingCalculator';
-import { FloorPlanSVG } from './FloorPlanSVG';
+import { useLanguage } from '../context/LanguageContext';
+import { SienaReserveHero } from './SienaReserveHero';
 import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
 import { Photorealistic3DRender } from './Photorealistic3DRender';
-import { useLanguage } from '../context/LanguageContext';
+import { FloorPlanSVG } from './FloorPlanSVG';
 import {
-  Check,
+  ArrowLeft,
   ChevronRight,
   ChevronLeft,
-  ArrowLeft,
-  MessageCircle,
   Eye,
-  ShieldCheck,
-  Layers,
-  Sparkles,
-  CheckCircle,
   CheckCircle2,
   Phone,
-  ZoomIn,
-  Search,
-  Printer,
+  MessageCircle,
   Mail,
+  Printer,
+  Sparkles,
+  Layers,
   Box,
-  AlertCircle,
-  Info,
-  Clock,
   Flame,
+  Clock,
   Camera,
-  ExternalLink,
+  ShieldCheck,
+  Building,
+  Check,
+  Info,
+  Calendar,
+  User,
+  MapPin,
+  Search,
+  ZoomIn,
 } from 'lucide-react';
 
-interface StepWizardProps {
-  initialCommunity?: ResidentialCommunity;
-  initialModel?: FloorPlanModel;
-  initialProduct?: FlooringProduct;
-  initialPackage?: PricingPackage;
-  modelsList?: FloorPlanModel[];
-  productsList?: FlooringProduct[];
-  packagesList?: PricingPackage[];
-  isLiveSynced?: boolean;
-  onClose?: () => void;
-}
+export const StepWizard: React.FC = () => {
+  const { lang } = useLanguage();
 
-export const StepWizard: React.FC<StepWizardProps> = ({
-  initialCommunity = COMMUNITIES[0],
-  initialModel,
-  initialProduct,
-  initialPackage,
-  modelsList = FLOOR_PLAN_MODELS,
-  productsList = FLOORING_PRODUCTS,
-  packagesList = PRICING_PACKAGES,
-  isLiveSynced = false,
-  onClose,
-}) => {
-  const { lang, t } = useLanguage();
-  const communitiesScrollRef = useRef<HTMLDivElement>(null);
-  const thicknessScrollRef = useRef<HTMLDivElement>(null);
-  const toneScrollRef = useRef<HTMLDivElement>(null);
+  // Primary lists
+  const communitiesList = COMMUNITIES;
+  const modelsList = SIENA_RESERVE_MODELS;
+  const productsList = FLOORING_PRODUCTS;
+  const packagesList = PRICING_PACKAGES;
 
-  const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
-    if (ref.current) {
-      ref.current.scrollBy({ left: offset, behavior: 'smooth' });
-    }
-  };
-
-  // Wizard active step state (1 to 4)
+  // Active step in the workflow (1: Model & Scope, 2: Product & Color, 3: Package, 4: Summary)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Selections
-  const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(initialCommunity);
+  // Community and Model selection
+  const [selectedCommunity, setSelectedCommunity] = useState(communitiesList[0] || COMMUNITIES[0]);
   const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(
-    initialModel || modelsList.find((m) => m.communityId === initialCommunity.id) || modelsList[0]
-  );
-  const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(
-    initialProduct || productsList[2] || productsList[0]
-  );
-  const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(
-    initialPackage || packagesList[2] || packagesList[0]
+    modelsList.find((m) => m.slug === 'bandol') || modelsList[0] || SIENA_RESERVE_MODELS[0]
   );
 
-  // Search & Filter state for Step 1
-  const [communitySearch, setCommunitySearch] = useState<string>('');
+  // Floor Scope (1st floor only, 2nd floor only, or both)
+  const [floorScope, setFloorScope] = useState<FloorScope>('both');
 
-  // Filter state for Step 2
-  const [thicknessFilter, setThicknessFilter] = useState<'all' | '5.5mm' | '6mm' | '8mm'>('all');
+  // Product Selection & Filters
+  const [selectedProductType, setSelectedProductType] = useState<ProductType>('vinyl');
+  const [thicknessFilter, setThicknessFilter] = useState<string>('all');
   const [toneFilter, setToneFilter] = useState<string>('all');
+
+  const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(
+    productsList[0] || FLOORING_PRODUCTS[0]
+  );
   const [viewMode3D, setViewMode3D] = useState<'room' | 'plank' | 'stairs'>('room');
 
-  // Filter state for Step 3
+  // Package Selection
+  const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(
+    packagesList.find((p) => p.isTurnkey && p.isBestValue) || packagesList[2] || PRICING_PACKAGES[2]
+  );
   const [packageType, setPackageType] = useState<'all' | 'turnkey' | 'material'>('all');
 
   // Interactive View Toggles
   const [showFloorPlanDetail, setShowFloorPlanDetail] = useState<boolean>(false);
 
-  // Step 4 lead form data
+  // Lead Form Data
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -113,98 +93,53 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   });
 
   // Dynamic Quote Calculation
-  const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage);
+  const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage, floorScope);
 
-  // Auto-scroll active filter chips into view when filters change or view updates
-  useEffect(() => {
-    if (thicknessScrollRef.current) {
-      const activeEl = thicknessScrollRef.current.querySelector<HTMLElement>('[data-active="true"]');
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
+  // Scroll references
+  const thicknessScrollRef = useRef<HTMLDivElement>(null);
+  const toneScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
+    if (ref.current) {
+      ref.current.scrollBy({ left: offset, behavior: 'smooth' });
     }
-  }, [thicknessFilter, currentStep]);
+  };
 
-  useEffect(() => {
-    if (toneScrollRef.current) {
-      const activeEl = toneScrollRef.current.querySelector<HTMLElement>('[data-active="true"]');
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      }
-    }
-  }, [toneFilter, currentStep]);
-
-  // Sync selected model if community changes or when fresh live models load from Google Sheets
+  // Sync selected model if community changes or when fresh models load
   useEffect(() => {
     const matchingModel = modelsList.find(
-      (m) => m.id === selectedModel.id || m.slug === selectedModel.slug || (m.name.toLowerCase() === selectedModel.name.toLowerCase() && m.communityId === selectedCommunity.id)
+      (m) => m.id === selectedModel.id || m.slug === selectedModel.slug
     );
-    if (matchingModel) {
-      if (matchingModel.render3DImage !== selectedModel.render3DImage || matchingModel !== selectedModel) {
-        setSelectedModel(matchingModel);
-      }
-    } else {
-      const firstInComm = modelsList.find((m) => m.communityId === selectedCommunity.id);
-      if (firstInComm && selectedModel.communityId !== selectedCommunity.id) {
-        setSelectedModel(firstInComm);
-      }
+    if (matchingModel && matchingModel !== selectedModel) {
+      setSelectedModel(matchingModel);
     }
-  }, [selectedCommunity, modelsList]);
+  }, [modelsList]);
 
-  // Sync selected product when live products load from Google Sheets
+  // Sync selected product when live products load
   useEffect(() => {
-    const freshProduct = productsList.find(
-      (p) => p.id === selectedProduct.id || p.name.toLowerCase() === selectedProduct.name.toLowerCase()
-    );
-    if (freshProduct && (freshProduct.plankImageUrl !== selectedProduct.plankImageUrl || freshProduct.roomPreviewUrl !== selectedProduct.roomPreviewUrl || freshProduct !== selectedProduct)) {
+    const freshProduct = productsList.find((p) => p.id === selectedProduct.id);
+    if (freshProduct && freshProduct !== selectedProduct) {
       setSelectedProduct(freshProduct);
     }
   }, [productsList]);
 
-  // Auto-save in-progress quote to localStorage for abandoned quote recovery
-  useEffect(() => {
-    const draft: BookingSubmission = {
-      communityId: selectedCommunity.id,
-      collectionSlug: selectedModel.collectionSlug,
-      modelId: selectedModel.id,
-      packageId: selectedPackage.id,
-      selectedColorId: selectedProduct.id,
-      fullName: formData.fullName,
-      phone: formData.phone,
-      email: formData.email,
-      address: `${selectedCommunity.name} - ${selectedModel.name}, ${formData.unitNumber}`,
-      unitNumber: formData.unitNumber,
-      calculatedPrice: quoteCalc.totalPrice,
-      sqftMaterial: quoteCalc.sqftMaterialRecommended,
-      createdAt: new Date().toISOString(),
-      status: currentStep === 4 && formData.fullName ? 'pending' : 'abandoned',
-    };
-    try {
-      localStorage.setItem('qs_active_quote_draft', JSON.stringify(draft));
-    } catch {
-      // ignore
-    }
-  }, [currentStep, selectedCommunity, selectedModel, selectedProduct, selectedPackage, formData, quoteCalc]);
-
-  // Filtered lists
-  const filteredCommunities = COMMUNITIES.filter((c) => {
-    const q = communitySearch.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      c.name.toLowerCase().includes(q) ||
-      c.city.toLowerCase().includes(q) ||
-      c.zip.includes(q) ||
-      c.collections.some((col) => col.toLowerCase().includes(q))
-    );
-  });
-
-  const availableModels = modelsList.filter((m) => m.communityId === selectedCommunity.id);
-
+  // Filtered products based on ProductType, Thickness, Tone
   const filteredProducts = productsList.filter((p) => {
-    if (thicknessFilter !== 'all' && p.category !== thicknessFilter) return false;
+    const pType = p.productType || 'vinyl';
+    if (pType !== selectedProductType) return false;
+    if (selectedProductType === 'vinyl') {
+      if (thicknessFilter !== 'all' && p.category !== thicknessFilter) return false;
+    }
     if (toneFilter !== 'all' && p.tone !== toneFilter) return false;
     return true;
   });
+
+  // Auto-select first matching product when filter changes if active product is excluded
+  useEffect(() => {
+    if (filteredProducts.length > 0 && !filteredProducts.some((p) => p.id === selectedProduct.id)) {
+      setSelectedProduct(filteredProducts[0]);
+    }
+  }, [selectedProductType, thicknessFilter, toneFilter]);
 
   const filteredPackages = packagesList.filter((pkg) => {
     if (packageType === 'turnkey') return pkg.isTurnkey;
@@ -230,45 +165,30 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 
   const stepMeta = [
     {
-      title: lang === 'es' ? 'Comunidad y Modelo' : 'Community & Floor Plan',
-      subtitle: lang === 'es' ? 'Selecciona tu plano y metraje' : 'Select floor plan & square footage',
+      title: lang === 'es' ? 'Siena Reserve & Modelo Bandol' : 'Siena Reserve & Bandol Model',
+      subtitle: lang === 'es' ? 'Plano 2D Arquitectónico y Selección de Pisos' : '2D Architectural Plan & Scope',
     },
     {
-      title: lang === 'es' ? 'Color SPC y Acabado' : 'SPC Color & Finish',
-      subtitle: lang === 'es' ? 'Elige tu tono de piso vinílico' : 'Choose luxury vinyl tone',
+      title: lang === 'es' ? 'Tipo de Producto y Color' : 'Product Type & Color Selection',
+      subtitle: lang === 'es' ? 'Vinilo SPC, Laminado o Madera de Ingeniería' : 'SPC Vinyl, Laminate or Hardwood',
     },
     {
-      title: lang === 'es' ? 'Paquete e Instalación' : 'Package & Installation',
-      subtitle: lang === 'es' ? 'Calcula tu presupuesto dinámico' : 'Dynamic turnkey estimate',
+      title: lang === 'es' ? 'Paquetes de Instalación y Estimado' : 'Installation Packages & Estimate',
+      subtitle: lang === 'es' ? 'Precios cerrados llave en mano con escalones' : 'Turnkey transparent pricing with stairs',
     },
     {
-      title: lang === 'es' ? 'Resumen y Cotización' : 'Summary & Estimate',
-      subtitle: lang === 'es' ? 'Orden de trabajo lista para WhatsApp' : 'Work order ready for WhatsApp',
+      title: lang === 'es' ? 'Resumen Oficial y Cotización' : 'Official Summary & Estimate',
+      subtitle: lang === 'es' ? 'Envío directo por WhatsApp a QuickSurfaces' : 'Direct dispatch to WhatsApp',
     },
   ];
 
-  // Stock status pill component
+  // Stock status badge component
   const renderStockBadge = (product: FlooringProduct) => {
     if (product.stockStatus === 'low_stock' || product.isLowStock) {
       return (
         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
           <Flame className="w-2.5 h-2.5 text-amber-600" />
           <span>{lang === 'es' ? 'Stock Bajo' : 'Low Stock'}</span>
-        </span>
-      );
-    }
-    if (product.stockStatus === 'coming_soon' || product.isComingSoon) {
-      return (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-          <Clock className="w-2.5 h-2.5 text-indigo-600" />
-          <span>{lang === 'es' ? 'Próximamente' : 'Coming Soon'}</span>
-        </span>
-      );
-    }
-    if (product.stockStatus === 'out_of_stock' || !product.inStock) {
-      return (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-          <span>{lang === 'es' ? 'Agotado' : 'Out of Stock'}</span>
         </span>
       );
     }
@@ -283,100 +203,70 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   // WhatsApp formatted lead message
   const generateWhatsAppUrl = () => {
     const phone = '17866583677';
-    const text = lang === 'es'
-      ? `*COTIZACIÓN QUICKSURFACES - HOMESTEAD*
-----------------------------------------
-📍 *Comunidad:* ${selectedCommunity.name} (${selectedCommunity.city}, FL ${selectedCommunity.zip})
-🏢 *Colección:* ${selectedModel.collection}
-🏡 *Modelo:* ${selectedModel.name} (2do Piso)
-📐 *Área Neta:* ~${selectedModel.sqftNet} SF
-📦 *Material Recomendado (+10%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} cajas)
-🪜 *Escaleras:* ${selectedModel.stepsCount} Pasos (Flush Stair Nose)
+    const scopeLabel =
+      floorScope === 'floor1'
+        ? 'Solo 1er Piso (~510 SF)'
+        : floorScope === 'floor2'
+        ? 'Solo 2do Piso (~465 SF + 15 Escalones)'
+        : 'Casa Completa (~975 SF + 15 Escalones)';
 
-🎨 *Piso SPC Elegido:*
+    const text =
+      lang === 'es'
+        ? `*COTIZACIÓN QUICKSURFACES - SIENA RESERVE*
+----------------------------------------
+📍 *Comunidad:* Siena Reserve (Adora Collection, Homestead FL 33032)
+🏡 *Modelo:* ${selectedModel.name}
+📐 *Alcance Seleccionado:* ${scopeLabel}
+📦 *Material Recomendado (+10%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} cajas)
+🪜 *Escaleras:* ${quoteCalc.stepsCount} Pasos (Flush Stair Nose al ras)
+
+🎨 *Producto Elegido:*
+• Tipo: ${selectedProduct.productType === 'hardwood' ? 'Madera de Ingeniería' : selectedProduct.productType === 'laminate' ? 'Laminado AC4' : 'Piso Vinílico SPC'}
 • Modelo: #${selectedProduct.code} ${selectedProduct.name}
 • Colección: ${selectedProduct.collectionName}
 • Especificación: ${selectedProduct.thickness} · Wear Layer ${selectedProduct.wearLayer}
-• Estado: ${selectedProduct.stockStatus === 'low_stock' ? 'Stock Bajo' : 'En Stock'}
 
-💼 *Paquete:* ${selectedPackage.title}
-💰 *TOTAL ESTIMADO:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Llave en mano con instalación y escaleras)' : '(Solo Material)'}
+💼 *Paquete Seleccionado:* ${selectedPackage.title}
+💰 *TOTAL ESTIMADO:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Llave en mano con instalación)' : '(Solo Material)'}
 
 👤 *Cliente:* ${formData.fullName || 'No especificado'}
 📱 *Teléfono:* ${formData.phone || 'No especificado'}
-🏠 *Unidad/Dirección:* ${formData.unitNumber || 'No especificado'}
+🏠 *Unidad/Lote:* ${formData.unitNumber || 'No especificado'}
 
-_Hola QuickSurfaces! Me gustaría agendar la visita para llevar las muestras físicas a mi casa y confirmar medidas._`
-      : `*QUICKSURFACES ESTIMATE - HOMESTEAD*
+_Hola QuickSurfaces! Deseo confirmar la visita técnica para ver las muestras físicas en mi casa y verificar medidas._`
+        : `*QUICKSURFACES ESTIMATE - SIENA RESERVE*
 ----------------------------------------
-📍 *Community:* ${selectedCommunity.name} (${selectedCommunity.city}, FL ${selectedCommunity.zip})
-🏢 *Collection:* ${selectedModel.collection}
-🏡 *Model:* ${selectedModel.name} (2nd Floor)
-📐 *Net Area:* ~${selectedModel.sqftNet} SF
+📍 *Community:* Siena Reserve (Adora Collection, Homestead FL 33032)
+🏡 *Model:* ${selectedModel.name}
+📐 *Selected Scope:* ${scopeLabel}
 📦 *Recommended Material (+10%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
-🪜 *Stairs:* ${selectedModel.stepsCount} Steps (Flush Stair Nose)
+🪜 *Stairs:* ${quoteCalc.stepsCount} Steps (Flush Stair Nose)
 
-🎨 *Selected SPC Flooring:*
+🎨 *Selected Flooring:*
+• Type: ${selectedProduct.productType === 'hardwood' ? 'Engineered Hardwood' : selectedProduct.productType === 'laminate' ? 'AC4 Laminate' : 'SPC Luxury Vinyl'}
 • Product: #${selectedProduct.code} ${selectedProduct.name}
 • Collection: ${selectedProduct.collectionName}
 • Specs: ${selectedProduct.thickness} · Wear Layer ${selectedProduct.wearLayer}
-• Status: ${selectedProduct.stockStatus === 'low_stock' ? 'Low Stock' : 'In Stock'}
 
 💼 *Package:* ${selectedPackage.title}
-💰 *TOTAL ESTIMATE:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Turnkey with install & stairs)' : '(Material Only)'}
+💰 *TOTAL ESTIMATE:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Turnkey with install)' : '(Material Only)'}
 
 👤 *Client:* ${formData.fullName || 'Not specified'}
 📱 *Phone:* ${formData.phone || 'Not specified'}
-🏠 *Address/Unit:* ${formData.unitNumber || 'Not specified'}
+🏠 *Unit/Lot:* ${formData.unitNumber || 'Not specified'}
 
 _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure verification._`;
 
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   };
 
-  // Email format
   const generateMailtoUrl = () => {
     const subject = encodeURIComponent(
-      lang === 'es'
-        ? `Cotización QuickSurfaces: Modelo ${selectedModel.name} en ${selectedCommunity.name}`
-        : `QuickSurfaces Quote: Model ${selectedModel.name} at ${selectedCommunity.name}`
+      `Cotización QuickSurfaces: Siena Reserve - Modelo ${selectedModel.name}`
     );
     const body = encodeURIComponent(
-      lang === 'es'
-        ? `Hola equipo QuickSurfaces,
-
-Adjunto los detalles de mi cotización:
-- Comunidad: ${selectedCommunity.name} (${selectedModel.collection})
-- Modelo: ${selectedModel.name}
-- Material Recomendado: ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} cajas)
-- Piso: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.thickness}, ${selectedProduct.wearLayer})
-- Paquete: ${selectedPackage.title}
-- Total Estimado: ${formatCurrency(quoteCalc.totalPrice)}
-
-Mis datos de contacto:
-- Nombre: ${formData.fullName}
-- Teléfono: ${formData.phone}
-- Dirección / Unidad: ${formData.unitNumber}
-
-Por favor contáctenme para coordinar la inspección gratuita en casa.`
-        : `Hello QuickSurfaces team,
-
-Here are the details for my flooring quote:
-- Community: ${selectedCommunity.name} (${selectedModel.collection})
-- Model: ${selectedModel.name}
-- Recommended Material: ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
-- Floor: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.thickness}, ${selectedProduct.wearLayer})
-- Package: ${selectedPackage.title}
-- Total Estimate: ${formatCurrency(quoteCalc.totalPrice)}
-
-Contact Info:
-- Name: ${formData.fullName}
-- Phone: ${formData.phone}
-- Address / Unit: ${formData.unitNumber}
-
-Please contact me to schedule a free in-home sample visit.`
+      `Hola equipo QuickSurfaces,\n\nAdjunto los detalles de mi cotización para Siena Reserve:\n- Modelo: ${selectedModel.name}\n- Alcance: ${floorScope}\n- Piso: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName})\n- Paquete: ${selectedPackage.title}\n- Total Estimado: ${formatCurrency(quoteCalc.totalPrice)}\n\nContacto:\n- Nombre: ${formData.fullName}\n- Teléfono: ${formData.phone}\n- Unidad: ${formData.unitNumber}\n\nPor favor contáctenme para agendar la visita.`
     );
-
     return `mailto:sales@quicksurfaces.com?subject=${subject}&body=${body}`;
   };
 
@@ -395,6 +285,7 @@ Please contact me to schedule a free in-home sample visit.`
           <div className="flex items-center gap-2.5 min-w-0">
             {currentStep > 1 ? (
               <button
+                type="button"
                 onClick={handleBack}
                 className="w-8 h-8 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer shrink-0"
                 aria-label={lang === 'es' ? 'Volver al paso anterior' : 'Back to previous step'}
@@ -417,20 +308,26 @@ Please contact me to schedule a free in-home sample visit.`
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            {isLiveSynced && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Google Sheets Live
-              </span>
+            {/* Display price in header ONLY when on step 3 or 4 */}
+            {currentStep >= 3 ? (
+              <div className="text-right bg-[#FFF7ED] px-3 py-1 rounded-xl border border-[#FF8407]/30">
+                <span className="text-[9px] text-[#64748B] block font-bold uppercase">
+                  {lang === 'es' ? 'Total Estimado' : 'Estimated Total'}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-[#FF8407]">
+                  {formatCurrency(quoteCalc.totalPrice)}
+                </span>
+              </div>
+            ) : (
+              <div className="text-right px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200">
+                <span className="text-[9px] text-slate-500 font-bold uppercase block">
+                  {lang === 'es' ? 'Siena Reserve' : 'Siena Reserve'}
+                </span>
+                <span className="text-xs font-black text-slate-800">
+                  Homestead, FL
+                </span>
+              </div>
             )}
-            <div className="text-right bg-[#FFF7ED] px-3 py-1 rounded-xl border border-[#FF8407]/30">
-              <span className="text-[9px] text-[#64748B] block font-bold uppercase">
-                {lang === 'es' ? 'Total Estimado' : 'Estimated Total'}
-              </span>
-              <span className="text-xs sm:text-sm font-black text-[#FF8407]">
-                {formatCurrency(quoteCalc.totalPrice)}
-              </span>
-            </div>
           </div>
         </div>
 
@@ -446,286 +343,97 @@ Please contact me to schedule a free in-home sample visit.`
       {/* ================= SCREEN CONTENT (STEP BY STEP) ================= */}
       <div className="p-4 sm:p-7 flex-grow bg-[#FAFAFA]">
         {/* ========================================================
-            SCREEN 1: COMMUNITY & MODEL (APP VIEW)
+            SCREEN 1: SIENA RESERVE & MODEL BANDOL 2D PLAN
         ======================================================== */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-fadeIn">
-            {/* Search & Location Bar */}
-            <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm sm:text-base font-black text-[#0F172A]">
-                  {lang === 'es' ? 'Selecciona tu Comunidad y Modelo' : 'Select Your Community & Floor Plan'}
-                </h3>
-                <p className="text-xs text-[#64748B] mt-0.5">
-                  {lang === 'es'
-                    ? 'Precios exactos y desgloses arquitectónicos calibrados para cada piso.'
-                    : 'Calibrated architectural square footages and guaranteed pricing for each model.'}
-                </p>
-              </div>
+            {/* Facade Hero Banner with 1st/2nd/Both Floor Scope Selector */}
+            <SienaReserveHero
+              floorScope={floorScope}
+              onChangeFloorScope={setFloorScope}
+              model={selectedModel}
+            />
 
-              {/* City / Zip Search Input */}
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder={
-                    lang === 'es'
-                      ? 'Buscar ciudad o zip (ej. 33032)...'
-                      : 'Search city or zip (e.g. 33032)...'
-                  }
-                  value={communitySearch}
-                  onChange={(e) => setCommunitySearch(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
-                />
-              </div>
-            </div>
-
-            {/* 1. Community Horizontal Selector Chips */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                  {lang === 'es'
-                    ? `1. Condominios en Homestead & Miami (${filteredCommunities.length})`
-                    : `1. Communities in Homestead & Miami (${filteredCommunities.length})`}
-                </span>
-                <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                  {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
-                </span>
-              </div>
-              <div className="relative group">
-                {/* Desktop Prev / Next Scroll Arrows */}
-                <button
-                  type="button"
-                  onClick={() => scrollHorizontally(communitiesScrollRef, -240)}
-                  className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                  aria-label={lang === 'es' ? 'Anterior comunidad' : 'Previous community'}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollHorizontally(communitiesScrollRef, 240)}
-                  className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                  aria-label={lang === 'es' ? 'Siguiente comunidad' : 'Next community'}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-
-                {/* Right Gradient Fade Cue */}
-                <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-10 sm:w-16 bg-gradient-to-l from-white via-white/80 to-transparent z-10 hidden sm:block"></div>
-
-                <div
-                  ref={communitiesScrollRef}
-                  className="flex gap-2.5 sm:gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-0.5"
-                >
-                  {filteredCommunities.map((c) => {
-                    const isSelected = selectedCommunity.id === c.id;
-                    return (
-                      <button
-                        key={c.id}
-                        onClick={() => {
-                          setSelectedCommunity(c);
-                          const first = modelsList.find((m) => m.communityId === c.id);
-                          if (first) setSelectedModel(first);
-                        }}
-                        className={`snap-start shrink-0 min-w-[155px] max-w-[210px] sm:min-w-[175px] p-3.5 sm:p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                          isSelected
-                            ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
-                            : 'bg-[#FFFFFF] text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
-                        }`}
-                      >
-                        <div className="w-full min-w-0">
-                          <div className="text-xs sm:text-sm font-black leading-snug line-clamp-2 break-words text-inherit">
-                            {c.name}
-                          </div>
-                          <div
-                            className={`text-[10px] sm:text-[11px] mt-1 font-semibold truncate whitespace-nowrap overflow-hidden block ${
-                              isSelected ? 'text-[#FF8407]' : 'text-[#64748B]'
-                            }`}
-                          >
-                            {c.collections[0] || (lang === 'es' ? 'Colección' : 'Collection')}
-                          </div>
-                        </div>
-                        <div
-                          className={`text-[10px] mt-2.5 pt-2 border-t w-full truncate whitespace-nowrap overflow-hidden block ${
-                            isSelected ? 'border-white/10 text-[#CBD5E1]' : 'border-[#F1F5F9] text-[#64748B]'
-                          }`}
-                        >
-                          {c.city}, FL {c.zip}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Model Cards Screen Grid */}
+            {/* Model Selection Tabs (Bandol, Casis, Monte Carlo, Reserve, Vence) */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <div className="min-w-0">
                   <span className="text-xs font-black uppercase tracking-wider text-[#0F172A] block truncate">
                     {lang === 'es'
-                      ? `Modelos de 2do Piso en ${selectedCommunity.name} (${availableModels.length})`
-                      : `2nd Floor Models in ${selectedCommunity.name} (${availableModels.length})`}
+                      ? `Modelos Townhome en Siena Reserve (${SIENA_RESERVE_MODELS.length})`
+                      : `Townhome Models in Siena Reserve (${SIENA_RESERVE_MODELS.length})`}
                   </span>
                   <span className="text-[11px] text-[#64748B] block font-medium truncate">
-                    {lang === 'es' ? 'Sub-fase:' : 'Sub-phase:'}{' '}
-                    <strong className="text-[#0F172A]">{selectedModel.collection}</strong>
+                    {lang === 'es' ? 'Seleccionado actualmente:' : 'Currently selected:'}{' '}
+                    <strong className="text-[#0F172A] font-black">{selectedModel.name} (Adora Collection)</strong>
                   </span>
                 </div>
-                <button
-                  onClick={() => setShowFloorPlanDetail(!showFloorPlanDetail)}
-                  className="text-xs font-bold text-[#FF8407] hover:underline flex items-center gap-1 cursor-pointer bg-[#FFF7ED] px-3 py-1.5 rounded-xl border border-[#FF8407]/30 shrink-0"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>
-                    {showFloorPlanDetail
-                      ? lang === 'es'
-                        ? 'Ocultar Plano 2D'
-                        : 'Hide 2D Plan'
-                      : lang === 'es'
-                      ? 'Ver Plano 2D CAD'
-                      : 'View 2D CAD Plan'}
-                  </span>
-                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {availableModels.map((m) => {
-                  const isSelected = selectedModel.id === m.id;
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                {SIENA_RESERVE_MODELS.map((m) => {
+                  const isSelected = selectedModel.id === m.id || selectedModel.slug === m.slug;
                   return (
-                    <div
+                    <button
                       key={m.id}
+                      type="button"
                       onClick={() => setSelectedModel(m)}
-                      className={`p-3.5 sm:p-4 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between relative ${
+                      className={`p-3 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected
-                          ? 'border-[#FF8407] shadow-lg ring-2 ring-[#FF8407] bg-[#FFFBF7]'
-                          : 'border-[#E2E8F0] hover:border-[#CBD5E1] shadow-xs'
+                          ? 'border-[#FF8407] bg-[#FFFBF7] shadow-md ring-2 ring-[#FF8407]'
+                          : 'border-[#E2E8F0] bg-[#FFFFFF] hover:border-[#CBD5E1] shadow-xs'
                       }`}
                     >
-                      <div className="min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1.5 min-w-0">
-                          <div className="min-w-0 flex-1">
-                            <span className="font-black text-sm text-[#0F172A] block line-clamp-2 break-words">
-                              {m.name}
-                            </span>
-                            <span className="text-[10px] text-[#64748B] font-semibold truncate whitespace-nowrap overflow-hidden block">
-                              {m.communityName} · {m.collection}
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/30 shrink-0 whitespace-nowrap">
-                            {m.sqftMaterialRecommended} SF
-                          </span>
+                      <div>
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <span className="font-black text-sm text-[#0F172A] truncate">{m.name}</span>
+                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                         </div>
-
-                        {/* Sqft & Specs Grid */}
-                        <div className="grid grid-cols-3 gap-1 text-center my-2.5 py-2 px-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                          <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">
-                              {lang === 'es' ? 'Material (+10%)' : 'Material (+10%)'}
-                            </span>
-                            <span className="text-xs font-black text-[#FF8407]">{m.sqftMaterialRecommended} SF</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">
-                              {lang === 'es' ? 'Área Neta' : 'Net Area'}
-                            </span>
-                            <span className="text-xs font-black text-[#0F172A]">{m.sqftNet} SF</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-[#64748B] block font-semibold truncate">
-                              {lang === 'es' ? 'Escaleras' : 'Stairs'}
-                            </span>
-                            <span className="text-xs font-black text-[#0F172A]">
-                              {m.stepsCount} {lang === 'es' ? 'Pasos' : 'Steps'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Room Dimensions Preview */}
-                        {m.ownerSuiteDims && (
-                          <div className="text-[10px] text-[#64748B] mb-2 bg-[#FFFFFF] p-2 rounded-lg border border-[#F1F5F9] space-y-0.5">
-                            <div className="flex justify-between items-center gap-2">
-                              <span className="font-bold text-[#0F172A] truncate">Owner's Suite:</span>
-                              <span className="font-mono text-[10px] shrink-0">{m.ownerSuiteDims}</span>
-                            </div>
-                            {m.bedroom2Dims && (
-                              <div className="flex justify-between items-center gap-2">
-                                <span className="truncate">Bedroom 2:</span>
-                                <span className="font-mono text-[10px] shrink-0">{m.bedroom2Dims}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="text-[11px] text-[#64748B] flex items-center justify-between pt-1.5 border-t border-[#F1F5F9]">
-                          <span className="truncate">
-                            {lang === 'es'
-                              ? `${m.bedrooms} Hab · ${m.baths} Baños`
-                              : `${m.bedrooms} Beds · ${m.baths} Baths`}
-                          </span>
-                          {isSelected ? (
-                            <span className="text-[10px] font-black text-[#FF8407] flex items-center gap-1 shrink-0 whitespace-nowrap">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
-                              <span>{lang === 'es' ? 'Elegido' : 'Selected'}</span>
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-[#94A3B8] font-bold shrink-0 whitespace-nowrap">
-                              {lang === 'es' ? 'Seleccionar' : 'Select'}
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-[10px] text-[#64748B] block">
+                          {m.bedrooms} Hab • {m.baths} Baños
+                        </span>
                       </div>
-                    </div>
+                      <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 font-medium">Recomendado:</span>
+                        <span className="font-bold text-[#FF8407]">
+                          {floorScope === 'floor1'
+                            ? `${m.sqftFirstFloorRec || 560} SF`
+                            : floorScope === 'floor2'
+                            ? `${m.sqftSecondFloorRec || 520} SF`
+                            : `${m.sqftMaterialRecommended || 1080} SF`}
+                        </span>
+                      </div>
+                    </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* PLANO 2D INTERACTIVO CON MUESTRARIO EN TIEMPO REAL */}
+            {/* 2D ARCHITECTURAL FLOOR PLAN (Bandol 1st & 2nd floor with big dims & grayscale CAD style) */}
             <div className="mt-6 animate-fadeIn space-y-5">
-              <InteractiveFloorPlan2D 
-                model={selectedModel} 
-                selectedProduct={selectedProduct} 
+              <InteractiveFloorPlan2D
+                model={selectedModel}
+                selectedProduct={selectedProduct}
+                floorScope={floorScope}
+                onChangeFloorScope={setFloorScope}
               />
 
-              {/* RENDER 3D FOTORREALISTA (OFICIAL) */}
+              {/* Photorealistic 3D Dollhouse Render */}
               <Photorealistic3DRender
                 model={selectedModel}
+                floorScope={floorScope}
+                onChangeFloorScope={setFloorScope}
               />
             </div>
-
-            {/* 3. Expandable / Collapsible 2D Floorplan CAD Viewer */}
-            {showFloorPlanDetail && (
-              <div className="bg-[#FFFFFF] rounded-2xl p-4 sm:p-5 border border-[#E2E8F0] shadow-md animate-fadeIn">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md bg-[#0F172A] text-white text-[10px] font-black">
-                      {lang === 'es' ? 'PLANO ARQUITECTÓNICO 2D' : '2D ARCHITECTURAL CAD PLAN'}
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                      {lang === 'es' ? `Modelo ${selectedModel.name} · ${selectedModel.collection}` : `Model ${selectedModel.name} · ${selectedModel.collection}`}
-                    </h4>
-                  </div>
-                  <span className="text-xs font-bold text-[#FF8407]">
-                    {selectedModel.sqftMaterialRecommended} SF {lang === 'es' ? 'Recomendado' : 'Recommended'} • {selectedModel.stepsCount} {lang === 'es' ? 'Escalones' : 'Steps'}
-                  </span>
-                </div>
-                <div className="rounded-xl overflow-hidden border border-[#CBD5E1]">
-                  <FloorPlanSVG model={selectedModel} selectedProduct={selectedProduct} />
-                </div>
-              </div>
-            )}
           </div>
         )}
 
         {/* ========================================================
-            SCREEN 2: SPC COLOR & 3D VISUALIZER (APP VIEW)
+            SCREEN 2: PRODUCT TYPE, THICKNESS & SWATCHES
         ======================================================== */}
         {currentStep === 2 && (
           <div className="space-y-5 animate-fadeIn">
-            {/* ROOMVO 3D VISUALIZER ACTION CALLOUT */}
+            {/* ROOMVO 3D VISUALIZER CALLOUT */}
             <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] p-3.5 sm:p-4 rounded-2xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md border border-[#334155]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#FF8407]/20 border border-[#FF8407]/40 flex items-center justify-center shrink-0">
@@ -734,7 +442,7 @@ Please contact me to schedule a free in-home sample visit.`
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs sm:text-sm font-black text-white">
-                      {lang === 'es' ? 'Simulador 3D en tu Espacio Real' : '3D Simulator in Your Real Room'}
+                      {lang === 'es' ? 'Simulador 3D Roomvo en tu Espacio' : '3D Simulator in Your Real Space'}
                     </span>
                     <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FF8407] text-black uppercase">
                       Roomvo
@@ -742,8 +450,8 @@ Please contact me to schedule a free in-home sample visit.`
                   </div>
                   <p className="text-[11px] text-[#94A3B8] mt-0.5">
                     {lang === 'es'
-                      ? 'Sube o toma una foto de tu habitación y previsualiza el piso instalado al instante.'
-                      : 'Upload or snap a photo of your space to test flooring installed in real-time.'}
+                      ? 'Toma una foto de tu sala o recámara en Siena Reserve y pruébate los colores en tiempo real.'
+                      : 'Take a photo of your room in Siena Reserve and test flooring shades in real-time.'}
                   </p>
                 </div>
               </div>
@@ -756,18 +464,18 @@ Please contact me to schedule a free in-home sample visit.`
               >
                 <Camera className="w-4 h-4 text-black shrink-0" />
                 <span className="truncate">
-                  {lang === 'es' ? 'Visualiza el piso en tu espacio' : 'Visualize flooring in your room'}
+                  {lang === 'es' ? 'Visualizar en tu espacio' : 'Visualize in your room'}
                 </span>
                 <ChevronRight className="w-4 h-4 text-black shrink-0" />
               </a>
             </div>
 
-            {/* Top Interactive App Viewport */}
+            {/* Interactive Viewport Frame (Room / Plank / Stairs) */}
             <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                {/* View switcher tabs */}
                 <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] overflow-x-auto [scrollbar-width:none]">
                   <button
+                    type="button"
                     onClick={() => setViewMode3D('room')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                       viewMode3D === 'room'
@@ -776,9 +484,10 @@ Please contact me to schedule a free in-home sample visit.`
                     }`}
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span>{lang === 'es' ? 'Render 3D Habitación' : '3D Room View'}</span>
+                    <span>{lang === 'es' ? 'Render Habitación' : 'Room View'}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setViewMode3D('plank')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                       viewMode3D === 'plank'
@@ -790,6 +499,7 @@ Please contact me to schedule a free in-home sample visit.`
                     <span>{lang === 'es' ? 'Foto Tablón' : 'Plank Closeup'}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setViewMode3D('stairs')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                       viewMode3D === 'stairs'
@@ -802,16 +512,15 @@ Please contact me to schedule a free in-home sample visit.`
                   </button>
                 </div>
 
-                {/* Stock Status for Active Color */}
                 <div className="flex items-center gap-2">
                   {renderStockBadge(selectedProduct)}
-                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] truncate max-w-[200px]">
+                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] truncate max-w-[220px]">
                     #{selectedProduct.code} {selectedProduct.name}
                   </span>
                 </div>
               </div>
 
-              {/* Viewport Frame */}
+              {/* Main Image Viewer */}
               <div className="relative h-56 sm:h-72 w-full rounded-xl overflow-hidden bg-[#E2E8F0] border border-[#CBD5E1]">
                 <img
                   src={
@@ -826,7 +535,6 @@ Please contact me to schedule a free in-home sample visit.`
                   className="w-full h-full object-cover transition-all duration-300"
                 />
 
-                {/* Spec Tag Overlay */}
                 <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between p-2.5 rounded-xl bg-black/80 backdrop-blur-md text-white border border-white/10 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     <span
@@ -834,7 +542,9 @@ Please contact me to schedule a free in-home sample visit.`
                       style={{ backgroundColor: selectedProduct.colorHex }}
                     ></span>
                     <span className="font-black truncate">{selectedProduct.name}</span>
-                    <span className="text-white/70 text-[11px] hidden sm:inline truncate">({selectedProduct.collectionName})</span>
+                    <span className="text-white/70 text-[11px] hidden sm:inline truncate">
+                      ({selectedProduct.collectionName})
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] shrink-0">
                     <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
@@ -845,7 +555,7 @@ Please contact me to schedule a free in-home sample visit.`
               </div>
             </div>
 
-            {/* Smart Box Calculator Widget for Selected Color */}
+            {/* Smart Box Calculator */}
             <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] text-[#FF8407] flex items-center justify-center shrink-0 border border-[#FF8407]/30">
@@ -854,11 +564,11 @@ Please contact me to schedule a free in-home sample visit.`
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
                     {lang === 'es'
-                      ? `Cálculo Automático de Cajas (${selectedModel.name})`
-                      : `Automatic Box Calculator (${selectedModel.name})`}
+                      ? `Cálculo de Cajas: Modelo ${selectedModel.name}`
+                      : `Box Calculation: Model ${selectedModel.name}`}
                   </h4>
                   <p className="text-[11px] text-[#64748B]">
-                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} {lang === 'es' ? 'sq ft por caja' : 'sq ft per box'}
+                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft por caja
                   </p>
                 </div>
               </div>
@@ -866,407 +576,349 @@ Please contact me to schedule a free in-home sample visit.`
               <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
                 <div className="text-left sm:text-right">
                   <span className="text-[9px] text-[#64748B] block font-bold uppercase">
-                    {lang === 'es' ? 'Material Requerido' : 'Required Material'}
+                    {lang === 'es' ? 'Material (+10% margen)' : 'Required Material'}
                   </span>
-                  <span className="text-xs font-black text-[#0F172A]">{quoteCalc.sqftMaterialRecommended} SF</span>
+                  <span className="text-xs font-black text-[#0F172A]">
+                    {quoteCalc.sqftMaterialRecommended} SF
+                  </span>
                 </div>
                 <div className="h-6 w-px bg-[#CBD5E1]"></div>
                 <div className="text-right">
                   <span className="text-[9px] text-[#FF8407] block font-bold uppercase">
-                    {lang === 'es' ? 'Cajas a Entregar' : 'Boxes to Deliver'}
+                    {lang === 'es' ? 'Cajas Requeridas' : 'Boxes to Deliver'}
                   </span>
                   <span className="text-sm font-black text-[#FF8407]">
-                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
+                    {quoteCalc.boxesCount} Cajas ({quoteCalc.totalBoxesSqft} SF)
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* 2 Dedicated, Independent Scrollable Filter Rows (Espesor & Tono) */}
-            <div className="space-y-3 bg-[#FFFFFF] p-3.5 sm:p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
-              {/* Row 1: Espesor SPC */}
+            {/* DEDICATED FILTERS: 1. PRODUCT TYPE | 2. THICKNESS / COLLECTION | 3. TONE */}
+            <div className="space-y-4 bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
+              {/* Filter 1: Product Type (Vinyl / Laminate / Hardwood) */}
               <div>
-                <div className="flex items-center justify-between mb-1.5 px-0.5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                    {lang === 'es' ? '1. Espesor & Colección SPC:' : '1. SPC Thickness & Collection:'}
-                  </span>
-                  <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                    {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
-                  </span>
-                </div>
-
-                <div className="relative group">
-                  {/* Desktop Prev / Next Scroll Arrows */}
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#0F172A] block mb-2">
+                  {lang === 'es' ? '1. Tipo de Material / Producto:' : '1. Product Type / Material:'}
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     type="button"
-                    onClick={() => scrollHorizontally(thicknessScrollRef, -200)}
-                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label={lang === 'es' ? 'Anterior espesor' : 'Previous thickness'}
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => scrollHorizontally(thicknessScrollRef, 200)}
-                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label={lang === 'es' ? 'Siguiente espesor' : 'Next thickness'}
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Right Gradient Fade Cue */}
-                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-white via-white/80 to-transparent z-10"></div>
-
-                  <div
-                    ref={thicknessScrollRef}
-                    className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                  >
-                    {[
-                      { id: 'all', label: lang === 'es' ? `Todos (${productsList.length})` : `All (${productsList.length})` },
-                      {
-                        id: '5.5mm',
-                        label: `5.5mm Select (${productsList.filter((p) => p.category === '5.5mm' || p.thickness?.includes('5.5')).length})`,
-                      },
-                      {
-                        id: '6mm',
-                        label: `6.0mm XL (${productsList.filter((p) => p.category === '6mm' || p.thickness?.includes('6.0') || p.thickness?.includes('6mm')).length})`,
-                      },
-                      {
-                        id: '8mm',
-                        label: `8.0mm Flagship (${productsList.filter((p) => p.category === '8mm' || p.thickness?.includes('8.0') || p.thickness?.includes('8mm')).length})`,
-                      },
-                    ].map((tab) => {
-                      const isActive = thicknessFilter === tab.id;
-                      return (
-                        <button
-                          key={tab.id}
-                          data-active={isActive ? 'true' : 'false'}
-                          onClick={() => setThicknessFilter(tab.id as any)}
-                          className={`snap-start shrink-0 min-w-fit px-3.5 py-2 rounded-lg font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
-                            isActive
-                              ? 'bg-[#0F172A] text-white shadow-sm ring-1 ring-[#0F172A]'
-                              : 'text-[#475569] bg-white border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
-                          }`}
-                        >
-                          {tab.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 2: Tono / Matiz de Color */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5 px-0.5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                    {lang === 'es' ? '2. Tono & Matiz de Madera:' : '2. Wood Tone & Shade:'}
-                  </span>
-                  <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
-                    {lang === 'es' ? 'Desliza horizontalmente →' : 'Scroll horizontally →'}
-                  </span>
-                </div>
-
-                <div className="relative group">
-                  {/* Desktop Prev / Next Scroll Arrows */}
-                  <button
-                    type="button"
-                    onClick={() => scrollHorizontally(toneScrollRef, -200)}
-                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label={lang === 'es' ? 'Anterior tono' : 'Previous tone'}
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => scrollHorizontally(toneScrollRef, 200)}
-                    className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity absolute -right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md border border-[#CBD5E1] text-[#0F172A] items-center justify-center z-20 hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label={lang === 'es' ? 'Siguiente tono' : 'Next tone'}
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Right Gradient Fade Cue */}
-                  <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-white via-white/80 to-transparent z-10"></div>
-
-                  <div
-                    ref={toneScrollRef}
-                    className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth p-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                  >
-                    {[
-                      { id: 'all', label: lang === 'es' ? 'Todos los Tonos' : 'All Tones' },
-                      { id: 'natural', label: lang === 'es' ? 'Roble Natural' : 'Natural Oak' },
-                      { id: 'warm', label: lang === 'es' ? 'Tono Cálido' : 'Warm Tones' },
-                      { id: 'cool', label: lang === 'es' ? 'Gris / Loft' : 'Cool Gray' },
-                      { id: 'dark', label: lang === 'es' ? 'Oscuro / Nogal' : 'Dark / Walnut' },
-                      { id: 'light', label: lang === 'es' ? 'Claro / Lino' : 'Light / Linen' },
-                    ].map((t) => {
-                      const isActive = toneFilter === t.id;
-                      return (
-                        <button
-                          key={t.id}
-                          data-active={isActive ? 'true' : 'false'}
-                          onClick={() => setToneFilter(t.id)}
-                          className={`snap-start shrink-0 min-w-fit px-3 py-1.5 rounded-lg font-bold text-xs transition-all cursor-pointer whitespace-nowrap ${
-                            isActive
-                              ? 'bg-[#FF8407] text-black shadow-sm font-black'
-                              : 'bg-white text-[#64748B] border border-[#E2E8F0] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
-                          }`}
-                        >
-                          {t.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Swatches Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-              {/* Roomvo Interactive Swatch Card */}
-              <a
-                href="https://www.roomvo.com/my/flooringwaterproof/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3 rounded-2xl border-2 border-dashed border-[#FF8407]/70 bg-[#FFF7ED]/50 hover:bg-[#FFF7ED] transition-all cursor-pointer flex flex-col justify-between text-left group"
-              >
-                <div className="relative h-24 w-full rounded-xl overflow-hidden mb-2 bg-[#0F172A] flex flex-col items-center justify-center p-2 text-center text-white">
-                  <div className="w-10 h-10 rounded-full bg-[#FF8407] text-black flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
-                    <Camera className="w-5 h-5" />
-                  </div>
-                  <span className="text-[10px] font-black text-[#FF8407] uppercase">
-                    {lang === 'es' ? 'Simulador 3D' : '3D Simulator'}
-                  </span>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-xs font-black text-[#0F172A] line-clamp-1">
-                      {lang === 'es' ? 'Probar en mi casa' : 'Try in my space'}
-                    </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />
-                  </div>
-                  <p className="text-[10px] text-[#64748B] line-clamp-2 leading-tight">
-                    {lang === 'es'
-                      ? 'Sube una foto de tu piso y pruébalo con Roomvo 3D'
-                      : 'Upload a photo of your space to test with Roomvo 3D'}
-                  </p>
-                  <div className="pt-1.5 mt-1.5 border-t border-[#FF8407]/20 flex items-center justify-between">
-                    <span className="text-[9px] font-bold text-[#FF8407]">
-                      {lang === 'es' ? 'Abrir Roomvo →' : 'Open Roomvo →'}
-                    </span>
-                  </div>
-                </div>
-              </a>
-
-              {filteredProducts.map((p) => {
-                const isSelected = selectedProduct.id === p.id;
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedProduct(p)}
-                    className={`p-3 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-[#FF8407] shadow-lg ring-2 ring-[#FF8407] bg-[#FFF7ED]'
-                        : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
+                    onClick={() => {
+                      setSelectedProductType('vinyl');
+                      setThicknessFilter('all');
+                    }}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
+                      selectedProductType === 'vinyl'
+                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
+                        : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]'
                     }`}
                   >
-                    <div className="relative h-24 w-full rounded-xl overflow-hidden mb-2 bg-[#E2E8F0] border border-[#CBD5E1]">
-                      <img
-                        src={p.plankImageUrl || p.imageUrl}
-                        alt={p.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      <div
-                        className="absolute bottom-0 left-0 right-0 h-1.5"
-                        style={{ backgroundColor: p.colorHex }}
-                      ></div>
-                      {isSelected && (
-                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FF8407] text-white flex items-center justify-center shadow-sm">
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </div>
-                      )}
+                    <div>
+                      <span className="text-xs font-black block">Pisos Vinílicos SPC</span>
+                      <span className="text-[10px] opacity-75">100% Impermeables • 5.5mm a 8.0mm</span>
                     </div>
+                    {selectedProductType === 'vinyl' && <Check className="w-4 h-4 text-[#FF8407]" />}
+                  </button>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center justify-between gap-1 mb-0.5 min-w-0">
-                        <span className="text-xs font-black text-[#0F172A] truncate whitespace-nowrap overflow-hidden block">
-                          {p.name}
-                        </span>
-                        <span className="text-[10px] text-[#64748B] font-bold shrink-0 whitespace-nowrap">
-                          #{p.code}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-1.5">
-                        <span className="truncate whitespace-nowrap">{p.thickness}</span>
-                        <span className="truncate whitespace-nowrap">{p.wearLayer}</span>
-                      </div>
-                      <div className="pt-1.5 border-t border-[#F1F5F9] flex items-center justify-between gap-1">
-                        <div className="shrink-0">{renderStockBadge(p)}</div>
-                        <span className="text-[9px] text-[#64748B] font-medium truncate whitespace-nowrap">
-                          {p.sqftPerBox} SF/bx
-                        </span>
-                      </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductType('laminate');
+                      setThicknessFilter('all');
+                    }}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
+                      selectedProductType === 'laminate'
+                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
+                        : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-xs font-black block">Piso Laminado AC4</span>
+                      <span className="text-[10px] opacity-75">12.0mm • Scratch Guard Ultra</span>
                     </div>
+                    {selectedProductType === 'laminate' && <Check className="w-4 h-4 text-[#FF8407]" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProductType('hardwood');
+                      setThicknessFilter('all');
+                    }}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
+                      selectedProductType === 'hardwood'
+                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
+                        : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]'
+                    }`}
+                  >
+                    <div>
+                      <span className="text-xs font-black block">Madera de Ingeniería</span>
+                      <span className="text-[10px] opacity-75">1/2&quot; Roble Europeo Genuino</span>
+                    </div>
+                    {selectedProductType === 'hardwood' && <Check className="w-4 h-4 text-[#FF8407]" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter 2: Specific Collections for Vinyl (5.5mm Pulse Select / 6.0mm Pulse Shield XL / 8.0mm XL Pulse) */}
+              {selectedProductType === 'vinyl' && (
+                <div>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[#0F172A] block mb-1.5">
+                    {lang === 'es' ? '2. Colección & Espesor SPC:' : '2. SPC Collection & Thickness:'}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setThicknessFilter('all')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        thicknessFilter === 'all'
+                          ? 'bg-[#FF8407] text-black shadow-xs'
+                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
+                      }`}
+                    >
+                      Todos los Espesores
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setThicknessFilter('5.5mm')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        thicknessFilter === '5.5mm'
+                          ? 'bg-[#FF8407] text-black shadow-xs'
+                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
+                      }`}
+                    >
+                      5.5 mm — Pulse Select
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setThicknessFilter('6mm')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        thicknessFilter === '6mm'
+                          ? 'bg-[#FF8407] text-black shadow-xs'
+                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
+                      }`}
+                    >
+                      6.0 mm — Pulse Shield XL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setThicknessFilter('8mm')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        thicknessFilter === '8mm'
+                          ? 'bg-[#FF8407] text-black shadow-xs'
+                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
+                      }`}
+                    >
+                      8.0 mm — XL Pulse (Flagship)
+                    </button>
                   </div>
-                );
-              })}
+                </div>
+              )}
+
+              {/* Filter 3: Color Tone */}
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#0F172A] block mb-1.5">
+                  {lang === 'es' ? '3. Tono de Color:' : '3. Color Tone:'}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { id: 'all', label: 'Todos los Tonos' },
+                    { id: 'warm', label: 'Cálido (Warm)' },
+                    { id: 'cool', label: 'Frío / Gris (Cool)' },
+                    { id: 'natural', label: 'Natural' },
+                    { id: 'light', label: 'Claro (Light)' },
+                    { id: 'dark', label: 'Oscuro (Dark)' },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setToneFilter(t.id)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        toneFilter === t.id
+                          ? 'bg-[#0F172A] text-white shadow-xs'
+                          : 'bg-[#F8FAFC] border border-[#CBD5E1] text-[#64748B] hover:text-black'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Product Swatches Grid */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                  Colores Disponibles ({filteredProducts.length})
+                </span>
+                <span className="text-xs text-[#64748B]">Toca para seleccionar y previsualizar</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {filteredProducts.map((p) => {
+                  const isSelected = selectedProduct.id === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedProduct(p)}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        isSelected
+                          ? 'border-[#FF8407] bg-[#FFFBF7] shadow-lg ring-2 ring-[#FF8407]'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] shadow-xs'
+                      }`}
+                    >
+                      <div>
+                        <div className="relative h-24 w-full rounded-xl overflow-hidden mb-2 bg-[#E2E8F0]">
+                          <img
+                            src={p.plankImageUrl || p.imageUrl}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div
+                            className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full border border-white shadow-sm"
+                            style={{ backgroundColor: p.colorHex }}
+                          ></div>
+                        </div>
+
+                        <span className="font-black text-xs text-[#0F172A] block truncate">{p.name}</span>
+                        <span className="text-[10px] text-[#64748B] block truncate">{p.collectionName}</span>
+                      </div>
+
+                      <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-[#FF8407]">{p.thickness}</span>
+                        {isSelected ? (
+                          <span className="font-black text-[#FF8407] flex items-center gap-0.5">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Elegido
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-medium">Seleccionar</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
 
         {/* ========================================================
-            SCREEN 3: STAIRCASE & DYNAMIC PACKAGES (APP VIEW)
+            SCREEN 3: PACKAGES & ESTIMATION (Price revealed here)
         ======================================================== */}
         {currentStep === 3 && (
-          <div className="space-y-5 animate-fadeIn">
-            {/* Staircase Banner */}
-            <div className="bg-[#FFFFFF] rounded-2xl p-4 border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-[#FF8407] text-white text-[10px] font-black uppercase">
-                    {lang === 'es' ? '15 ESCALONES INCLUIDOS' : '15 STAIR STEPS INCLUDED'}
-                  </span>
-                  <span className="text-xs font-bold text-[#0F172A]">
-                    {lang === 'es' ? 'Acabado Flush Stair Nose' : 'Flush Stair Nose Finish'}
-                  </span>
-                </div>
-                <p className="text-xs text-[#64748B]">
-                  {lang === 'es'
-                    ? 'Nariz de escalón al ras sin bordes sobrepuestos, con corte a inglete en taller y amortiguación acústica.'
-                    : 'Seamless flush stair nosing with zero overlap lips, mitered workshop cuts and acoustic dampening.'}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-[#E2E8F0] shrink-0 text-xs font-bold text-[#0F172A]">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>{lang === 'es' ? 'Garantía 25 Años' : '25-Year Warranty'}</span>
-              </div>
+          <div className="space-y-6 animate-fadeIn">
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
+                {lang === 'es' ? 'Selecciona tu Paquete de Instalación' : 'Select Installation Package'}
+              </h3>
+              <p className="text-xs text-[#64748B] mt-0.5">
+                {lang === 'es'
+                  ? `Calculado para ${selectedModel.name} en Siena Reserve (${quoteCalc.sqftMaterialRecommended} SF recomendados).`
+                  : `Calculated for ${selectedModel.name} in Siena Reserve (${quoteCalc.sqftMaterialRecommended} SF recommended).`}
+              </p>
             </div>
 
-            {/* Segmented Filter (Turnkey vs Material) */}
-            <div className="flex bg-[#FFFFFF] p-1 rounded-2xl border border-[#E2E8F0] shadow-xs">
+            {/* Turnkey vs Material Tabs */}
+            <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1] w-full sm:w-auto self-start">
               <button
+                type="button"
                 onClick={() => setPackageType('all')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  packageType === 'all'
-                    ? 'bg-[#0F172A] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  packageType === 'all' ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                {lang === 'es' ? `Todos los Paquetes (${packagesList.length})` : `All Packages (${packagesList.length})`}
+                {lang === 'es' ? 'Todos los Paquetes' : 'All Packages'}
               </button>
               <button
+                type="button"
                 onClick={() => setPackageType('turnkey')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  packageType === 'turnkey'
-                    ? 'bg-[#FF8407] text-black shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  packageType === 'turnkey' ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                {lang === 'es' ? '✨ Llave en Mano (Instalado)' : '✨ Turnkey (Installed)'}
+                {lang === 'es' ? 'Llave en Mano Completo' : 'Turnkey Complete'}
               </button>
               <button
+                type="button"
                 onClick={() => setPackageType('material')}
-                className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  packageType === 'material'
-                    ? 'bg-[#0F172A] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  packageType === 'material' ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                {lang === 'es' ? '📦 Solo Material' : '📦 Material Only'}
+                {lang === 'es' ? 'Solo Material' : 'Material Only'}
               </button>
             </div>
 
-            {/* Package Cards with Dynamic Pricing Calculation */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Package Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredPackages.map((pkg) => {
                 const isSelected = selectedPackage.id === pkg.id;
-                const dynamicQuote = calculateQuotePrice(selectedModel, selectedProduct, pkg);
+                const calc = calculateQuotePrice(selectedModel, selectedProduct, pkg, floorScope);
 
                 return (
                   <div
                     key={pkg.id}
                     onClick={() => setSelectedPackage(pkg)}
-                    className={`p-5 rounded-2xl border cursor-pointer transition-all bg-[#FFFFFF] flex flex-col justify-between relative ${
+                    className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative ${
                       isSelected
-                        ? 'border-[#FF8407] shadow-xl ring-2 ring-[#FF8407] bg-[#FFF7ED]'
-                        : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
+                        ? 'border-[#FF8407] bg-[#FFFBF7] shadow-xl ring-2 ring-[#FF8407]'
+                        : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] shadow-xs'
                     }`}
                   >
-                    {pkg.badge && (
-                      <span className="absolute top-3 right-3 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#0F172A] text-[#FF8407] shadow-xs">
-                        {pkg.badge}
-                      </span>
-                    )}
-
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#64748B] block mb-1">
-                        {pkg.isTurnkey
-                          ? lang === 'es'
-                            ? 'Llave en Mano (Instalado)'
-                            : 'Turnkey (Installed)'
-                          : lang === 'es'
-                          ? 'Solo Material (Entrega en Homestead)'
-                          : 'Material Only (Local Delivery)'}
-                      </span>
-                      <h4 className="text-base font-black text-[#0F172A]">{pkg.title}</h4>
-                      <p className="text-xs text-[#64748B] mt-0.5 mb-3">{pkg.tagline}</p>
+                      {pkg.badge && (
+                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#FF8407] text-black text-[10px] font-black uppercase tracking-wider mb-2">
+                          {pkg.badge}
+                        </span>
+                      )}
 
-                      {/* Dynamic Price Display */}
-                      <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0] mb-3">
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-2xl sm:text-3xl font-black text-[#FF8407]">
-                            {formatCurrency(dynamicQuote.totalPrice)}
-                          </span>
-                          <span className="text-[11px] font-bold text-[#64748B]">
-                            {lang === 'es'
-                              ? `Calculado para ${dynamicQuote.sqftMaterialRecommended} SF`
-                              : `Calculated for ${dynamicQuote.sqftMaterialRecommended} SF`}
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-[#64748B] mt-1 pt-1 border-t border-[#E2E8F0] flex justify-between">
-                          <span>
-                            {lang === 'es' ? 'Material:' : 'Material:'} {formatCurrency(dynamicQuote.materialCost)}
-                          </span>
-                          {pkg.isTurnkey && (
-                            <span>
-                              {lang === 'es' ? '15 Pasos & M.O.:' : '15 Steps & Labor:'}{' '}
-                              {formatCurrency(dynamicQuote.stairCost)}
-                            </span>
-                          )}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <h4 className="font-black text-base text-[#0F172A]">{pkg.title}</h4>
+                          <p className="text-xs text-[#64748B] mt-0.5">{pkg.tagline}</p>
                         </div>
                       </div>
 
-                      <ul className="space-y-1.5 text-xs text-[#475569] mb-4">
-                        {pkg.features.map((f, idx) => (
-                          <li key={idx} className="flex items-start gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                            <span>{f}</span>
+                      {/* Price Tag Highlight */}
+                      <div className="my-3 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Estimado</span>
+                          <span className="text-2xl font-black text-[#FF8407]">{formatCurrency(calc.totalPrice)}</span>
+                        </div>
+                        <span className="text-xs font-bold text-slate-700">
+                          {pkg.isTurnkey ? 'Llave en mano' : 'Solo Material'}
+                        </span>
+                      </div>
+
+                      {/* Features Checklist */}
+                      <ul className="space-y-1.5 my-3">
+                        {pkg.features.map((feat, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-xs text-[#334155]">
+                            <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                            <span>{feat}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <button
-                      className={`w-full py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                        isSelected
-                          ? 'bg-[#FF8407] text-black shadow-md'
-                          : 'bg-[#F8FAFC] border border-[#CBD5E1] text-[#0F172A] hover:bg-[#F1F5F9]'
-                      }`}
-                    >
-                      {isSelected ? <Check className="w-4 h-4" /> : null}
-                      <span>
-                        {isSelected
-                          ? lang === 'es'
-                            ? 'Paquete Seleccionado'
-                            : 'Package Selected'
-                          : lang === 'es'
-                          ? 'Seleccionar Este Paquete'
-                          : 'Select This Package'}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-xs text-slate-500 font-medium">
+                        {quoteCalc.sqftMaterialRecommended} SF ({calc.boxesCount} cajas)
                       </span>
-                    </button>
+                      {isSelected ? (
+                        <span className="text-xs font-black text-[#FF8407] flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Seleccionado
+                        </span>
+                      ) : (
+                        <span className="text-xs font-bold text-slate-400">Seleccionar Paquete</span>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -1275,208 +927,127 @@ Please contact me to schedule a free in-home sample visit.`
         )}
 
         {/* ========================================================
-            SCREEN 4: SUMMARY & EXPORT / WHATSAPP / EMAIL
+            SCREEN 4: SUMMARY & FORMAL ORDER DISPATCH
         ======================================================== */}
         {currentStep === 4 && (
-          <div className="space-y-5 animate-fadeIn">
-            {/* Digital Order Slip / Invoice Ticket */}
-            <div className="bg-[#FFFFFF] border border-[#E2E8F0] p-5 sm:p-6 rounded-2xl shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#F1F5F9] pb-4 mb-4">
+          <div className="space-y-6 animate-fadeIn">
+            {/* Formal Quote Summary Card */}
+            <div className="bg-[#FFFFFF] p-5 sm:p-7 rounded-3xl border border-[#CBD5E1] shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#FF8407] font-black uppercase tracking-wider block">
-                      {selectedCommunity.name} · {selectedModel.collection}
-                    </span>
-                  </div>
-                  <h4 className="text-lg sm:text-xl font-black text-[#0F172A]">
-                    {lang === 'es'
-                      ? `Modelo ${selectedModel.name} (2do Piso)`
-                      : `Model ${selectedModel.name} (2nd Floor)`}
-                  </h4>
-                  <span className="text-xs text-[#64748B]">
-                    {selectedCommunity.city}, FL {selectedCommunity.zip} • ~{selectedModel.sqftNet} SF {lang === 'es' ? 'Neta' : 'Net'} • {selectedModel.stepsCount} {lang === 'es' ? 'Pasos de Escalera' : 'Stair Steps'}
+                  <span className="px-2.5 py-1 rounded-md bg-[#0F172A] text-[#FF8407] text-[10px] font-black tracking-wider uppercase">
+                    Resumen de Cotización
                   </span>
+                  <h3 className="text-xl font-black text-[#0F172A] mt-1.5">
+                    Siena Reserve — Modelo {selectedModel.name}
+                  </h3>
+                  <p className="text-xs text-[#64748B]">
+                    Alcance: {floorScope === 'floor1' ? 'Solo 1er Piso' : floorScope === 'floor2' ? 'Solo 2do Piso' : 'Casa Completa (Ambos Pisos)'}
+                  </p>
                 </div>
-                <div className="text-left sm:text-right bg-[#FFF7ED] p-3 rounded-xl border border-[#FF8407]/30">
-                  <span className="text-[10px] text-[#64748B] block font-bold uppercase">
-                    {lang === 'es' ? 'Precio Total Cerrado' : 'Guaranteed Total Price'}
-                  </span>
-                  <span className="text-2xl font-black text-[#FF8407]">
-                    {formatCurrency(quoteCalc.totalPrice)}
-                  </span>
+
+                <div className="text-left sm:text-right">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase block">Total Garantizado</span>
+                  <span className="text-3xl font-black text-[#FF8407]">{formatCurrency(quoteCalc.totalPrice)}</span>
                 </div>
               </div>
 
-              {/* Specs Pills Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-4">
-                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
-                    {lang === 'es' ? 'Piso Elegido' : 'Selected Floor'}
-                  </span>
-                  <span className="font-black text-[#0F172A]">#{selectedProduct.code} {selectedProduct.name}</span>
-                  <div className="mt-1">{renderStockBadge(selectedProduct)}</div>
+              {/* Grid Breakdown */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-5">
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-500 font-medium block">Piso Seleccionado</span>
+                  <strong className="text-slate-900 block mt-0.5">{selectedProduct.name}</strong>
+                  <span className="text-[11px] text-[#FF8407]">{selectedProduct.collectionName} ({selectedProduct.thickness})</span>
                 </div>
-                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
-                    {lang === 'es' ? 'Cajas Calculadas' : 'Calculated Boxes'}
-                  </span>
-                  <span className="font-bold text-[#0F172A]">
-                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'}
-                  </span>
-                  <span className="text-[10px] text-[#64748B] block">
-                    {quoteCalc.totalBoxesSqft} SF {lang === 'es' ? 'Totales' : 'Total'}
-                  </span>
+
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-500 font-medium block">Metraje de Material</span>
+                  <strong className="text-slate-900 block mt-0.5">{quoteCalc.sqftMaterialRecommended} SF</strong>
+                  <span className="text-[11px] text-slate-500">{quoteCalc.boxesCount} Cajas ({quoteCalc.totalBoxesSqft} SF)</span>
                 </div>
-                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
-                    {lang === 'es' ? 'Escaleras' : 'Staircase'}
-                  </span>
-                  <span className="font-bold text-[#0F172A]">
-                    15 {lang === 'es' ? 'Pasos Completos' : 'Full Steps'}
-                  </span>
-                  <span className="text-[10px] text-emerald-700 block font-semibold">Flush Stair Nose</span>
+
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-500 font-medium block">Escaleras</span>
+                  <strong className="text-slate-900 block mt-0.5">{quoteCalc.stepsCount} Pasos</strong>
+                  <span className="text-[11px] text-slate-500">Flush Stair Nose al ras</span>
                 </div>
-                <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
-                  <span className="text-[#64748B] block text-[10px] uppercase font-bold">
-                    {lang === 'es' ? 'Paquete' : 'Package'}
-                  </span>
-                  <span className="font-black text-[#0F172A] truncate block">{selectedPackage.title}</span>
-                  <span className="text-[10px] text-[#64748B] block">
-                    {selectedPackage.isTurnkey
-                      ? lang === 'es' ? 'Llave en Mano' : 'Turnkey'
-                      : lang === 'es' ? 'Solo Material' : 'Material Only'}
-                  </span>
+
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                  <span className="text-slate-500 font-medium block">Paquete</span>
+                  <strong className="text-slate-900 block mt-0.5">{selectedPackage.title}</strong>
+                  <span className="text-[11px] text-emerald-600 font-bold">{selectedPackage.isTurnkey ? 'Llave en Mano' : 'Material'}</span>
                 </div>
               </div>
 
-              {/* Inclusions */}
-              <div className="bg-[#F8FAFC] p-3.5 rounded-xl border border-[#E2E8F0]">
-                <span className="text-[11px] font-bold text-[#0F172A] block mb-2">
-                  {lang === 'es' ? 'Servicios y Garantías Incluidas:' : 'Included Services & Guarantees:'}
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#475569]">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>
-                      {lang === 'es'
-                        ? 'Desmonte y retiro de alfombra vieja existente ($0 fee)'
-                        : 'Old carpet tear-out and removal ($0 fee)'}
-                    </span>
+              {/* Contact Lead Form */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                <h4 className="text-sm font-black text-slate-900 mb-1">Datos para Confirmación de Medidas</h4>
+                <p className="text-xs text-slate-500 mb-3">Llevamos las muestras físicas a tu hogar en Siena Reserve sin compromiso.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Nombre Completo</label>
+                    <input
+                      type="text"
+                      placeholder="Ej. Carlos Mendoza"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
+                    />
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>
-                      {lang === 'es'
-                        ? 'Nivelación y preparación de subsuelo'
-                        : 'Subfloor prep and leveling check'}
-                    </span>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Teléfono</label>
+                    <input
+                      type="tel"
+                      placeholder="(786) 000-0000"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
+                    />
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>
-                      {lang === 'es'
-                        ? 'Instalación de molduras de cuarto de bocel / zócalos'
-                        : 'Quarter-round / baseboard re-installation'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>
-                      {lang === 'es'
-                        ? 'Garantía de 25 años en piso SPC de fábrica'
-                        : '25-year factory warranty on rigid core SPC'}
-                    </span>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Unidad / Lote en Siena Reserve</label>
+                    <input
+                      type="text"
+                      placeholder="Ej. Unidad 104"
+                      value={formData.unitNumber}
+                      onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
+                    />
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Quick Contact Form */}
-            <div className="bg-[#FFFFFF] border border-[#E2E8F0] p-5 rounded-2xl shadow-sm">
-              <h4 className="text-sm font-black text-[#0F172A] mb-3">
-                {lang === 'es'
-                  ? 'Datos de Contacto para Inspección y Muestra Gratuita en Casa'
-                  : 'Contact Info for In-Home Inspection & Free Sample Delivery'}
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">
-                    {lang === 'es' ? 'Nombre Completo' : 'Full Name'}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={lang === 'es' ? 'Ej. Carlos Martínez' : 'e.g. John Smith'}
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">
-                    {lang === 'es' ? 'Teléfono (WhatsApp)' : 'Phone (WhatsApp)'}
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="(786) 000-0000"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-bold text-[#64748B] block mb-1">
-                    {lang === 'es' ? 'Unidad / Dirección en Homestead' : 'Unit / Address in Homestead'}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={lang === 'es' ? 'Ej. Apt 204 / Calle...' : 'e.g. Unit 204 / Street...'}
-                    value={formData.unitNumber}
-                    onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-2 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#FF8407] focus:bg-white outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* CTAs & Export Actions */}
-            <div className="space-y-2.5">
-              <div className="flex flex-col sm:flex-row gap-3">
+              {/* Action Buttons */}
+              <div className="mt-5 flex flex-col sm:flex-row gap-3">
                 <a
                   href={generateWhatsAppUrl()}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+                  className="flex-1 py-3.5 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>
-                    {lang === 'es' ? 'Enviar Cotización por WhatsApp' : 'Send Quote via WhatsApp'}
-                  </span>
+                  <span>Enviar Cotización por WhatsApp</span>
                 </a>
+
                 <a
                   href={generateMailtoUrl()}
-                  className="py-3.5 px-5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  className="py-3.5 px-5 rounded-2xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>{lang === 'es' ? 'Enviar por Email' : 'Send via Email'}</span>
+                  <span>Enviar por Email</span>
                 </a>
+
                 <button
+                  type="button"
                   onClick={handlePrint}
-                  className="py-3.5 px-4 rounded-xl bg-[#FFFFFF] hover:bg-[#F8FAFC] text-[#0F172A] font-black text-xs sm:text-sm flex items-center justify-center gap-2 border border-[#CBD5E1] transition-all cursor-pointer"
+                  className="py-3.5 px-5 rounded-2xl bg-white hover:bg-slate-50 text-slate-900 font-black text-sm flex items-center justify-center gap-2 border border-slate-300 transition-all cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-[#FF8407]" />
-                  <span>{lang === 'es' ? 'Imprimir / PDF' : 'Print / PDF'}</span>
+                  <span>Imprimir / PDF</span>
                 </button>
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-[#64748B] px-1">
-                <span>
-                  {lang === 'es' ? 'Atención inmediata en Homestead:' : 'Direct support in Homestead:'}{' '}
-                  <strong>(786) 658-3677</strong>
-                </span>
-                <span className="text-emerald-700 font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  {lang === 'es' ? 'Cotización guardada automáticamente' : 'Quote saved automatically'}
-                </span>
               </div>
             </div>
           </div>
@@ -1486,6 +1057,7 @@ Please contact me to schedule a free in-home sample visit.`
       {/* ================= STICKY BOTTOM APP NAVIGATION ================= */}
       <div className="bg-[#FFFFFF] border-t border-[#E2E8F0] p-3 sm:p-4 px-4 sm:px-6 flex items-center justify-between gap-3 sticky bottom-0 z-30 shadow-xs">
         <button
+          type="button"
           onClick={handleBack}
           disabled={currentStep === 1}
           className={`flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer ${
@@ -1503,15 +1075,34 @@ Please contact me to schedule a free in-home sample visit.`
           <span className="truncate">{selectedModel.name}</span>
           <span>•</span>
           <span className="truncate">{selectedProduct.name}</span>
+          {currentStep >= 3 && (
+            <>
+              <span>•</span>
+              <span className="text-[#FF8407] font-black">{formatCurrency(quoteCalc.totalPrice)}</span>
+            </>
+          )}
         </div>
 
-        {/* Next / WhatsApp CTA */}
+        {/* Next / Confirm CTA Button */}
         {currentStep < 4 ? (
           <button
+            type="button"
             onClick={handleNext}
             className="flex items-center gap-1.5 text-xs font-black px-6 py-2.5 rounded-xl bg-[#FF8407] hover:bg-[#e67400] text-black shadow-md shadow-[#FF8407]/20 transition-all cursor-pointer"
           >
-            <span>{lang === 'es' ? 'Siguiente' : 'Next'}</span>
+            <span>
+              {currentStep === 1
+                ? lang === 'es'
+                  ? 'Siguiente: Escoger Piso'
+                  : 'Next: Choose Floor'
+                : currentStep === 2
+                ? lang === 'es'
+                  ? 'Siguiente: Ver Paquetes'
+                  : 'Next: View Packages'
+                : lang === 'es'
+                ? 'Siguiente: Ver Resumen'
+                : 'Next: View Summary'}
+            </span>
             <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
@@ -1521,7 +1112,7 @@ Please contact me to schedule a free in-home sample visit.`
             rel="noreferrer"
             className="flex items-center gap-1.5 text-xs font-black px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-md cursor-pointer"
           >
-            <span>{lang === 'es' ? 'Confirmar' : 'Confirm'}</span>
+            <span>{lang === 'es' ? 'Enviar WhatsApp' : 'Send WhatsApp'}</span>
             <ChevronRight className="w-4 h-4" />
           </a>
         )}

@@ -1,9 +1,13 @@
+export type FloorScope = 'floor1' | 'floor2' | 'both';
+
+export type ProductType = 'vinyl' | 'laminate' | 'hardwood';
+
 export interface RoomDetail {
   name: string;
   dimensions: string;
   sqft?: number;
   highlight?: boolean;
-  type: 'master' | 'bedroom' | 'stairs' | 'closet' | 'bath' | 'laundry' | 'hall' | 'balcony' | 'flex';
+  type: 'master' | 'bedroom' | 'stairs' | 'closet' | 'bath' | 'laundry' | 'hall' | 'balcony' | 'flex' | 'kitchen' | 'living' | 'dining' | 'foyer' | 'patio';
 }
 
 export interface FloorPlanModel {
@@ -20,7 +24,10 @@ export interface FloorPlanModel {
   state: string;
   zip: string;
   sqft: number; // Total construction sqft
-  sqftSecondFloor: number; // Estimated 2nd floor sqft
+  sqftFirstFloor?: number; // 1st floor net area
+  sqftFirstFloorRec?: number; // 1st floor recommended (+10%)
+  sqftSecondFloor: number; // 2nd floor net area
+  sqftSecondFloorRec?: number; // 2nd floor recommended (+10%)
   sqftNet: number; // Net flooring area (minus wet baths / AC)
   sqftMaterialRecommended: number; // Net + ~10% overage - USED FOR QUOTING
   priceFrom?: number;
@@ -40,9 +47,14 @@ export interface FloorPlanModel {
   stairsSqft?: number;
   highlights: string[];
   rooms: RoomDetail[];
+  firstFloorRooms?: RoomDetail[];
+  secondFloorRooms?: RoomDetail[];
   description: string;
   floorPlanImage?: string;
   render3DImage?: string;
+  render3DImageFloor1?: string;
+  render3DImageFloor2?: string;
+  render3DImageBoth?: string;
   svgDimensions: { width: number; height: number };
 }
 
@@ -79,8 +91,9 @@ export interface FlooringProduct {
   id: string;
   code: string;
   name: string;
+  productType?: ProductType;
   category: FlooringCategory;
-  collectionName: 'Pulse Select' | 'Pulse Shield XL' | 'XL Pulse' | 'PulseSelect' | 'PulseShield XL' | 'Waterproof Rigid Core SPC';
+  collectionName: 'Pulse Select' | 'Pulse Shield XL' | 'XL Pulse' | 'PulseSelect' | 'PulseShield XL' | 'Waterproof Rigid Core SPC' | string;
   thickness: string;
   wearLayer: string;
   plankDimensions: string;
