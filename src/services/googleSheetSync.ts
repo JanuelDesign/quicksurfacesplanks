@@ -75,9 +75,9 @@ export async function fetchLiveDatabase() {
   try {
     const [commRes, floorRes, priceRes, galleryRes] = await Promise.all([
       fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Communities_Models`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flooring_Catalog`),
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Products_Colors`).then(r => r.ok ? r : fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flooring_Catalog`)),
       fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Pricing_Packages`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Gallery_Projects`),
+      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Gallery_Photos`).then(r => r.ok ? r : fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Gallery_Projects`)),
     ]);
 
     let models = DEFAULT_MODELS;
@@ -104,7 +104,8 @@ export async function fetchLiveDatabase() {
         const zipIdx = header.indexOf('zip');
         const addressIdx = header.indexOf('address');
         const sqftIdx = header.findIndex((h) => h === 'sqft' || h === 'sqft_total');
-        const sqft2ndIdx = header.indexOf('sqft_second_floor');
+        const sqft1stIdx = header.findIndex((h) => h === 'sqft_first_floor' || h === 'sqft_1st' || h === 'sqft_1st_floor');
+        const sqft2ndIdx = header.findIndex((h) => h === 'sqft_second_floor' || h === 'sqft_2nd' || h === 'sqft_2nd_floor');
         const sqftNetIdx = header.indexOf('sqft_net');
         const sqftMatIdx = header.findIndex((h) => h === 'sqft_material_recommended' || h === 'sqft_recommended');
         const priceFromIdx = header.indexOf('price_from');
@@ -122,8 +123,9 @@ export async function fetchLiveDatabase() {
         const bed4DimsIdx = header.indexOf('bedroom_4_dims');
         const bed4SqftIdx = header.indexOf('bedroom_4_sqft');
         const stairsSqftIdx = header.indexOf('stairs_sqft');
-        const planImgIdx = header.indexOf('image_floorplan');
+        const planImgIdx = header.findIndex((h) => h === 'image_floorplan' || h === 'image_floor_plan');
         const renderImgIdx = header.indexOf('image_3d_render');
+        const facadeImgIdx = header.indexOf('image_facade');
 
         const parsedModels: FloorPlanModel[] = [];
         for (let i = 1; i < rows.length; i++) {
@@ -133,23 +135,38 @@ export async function fetchLiveDatabase() {
           const modelName = r[nameIdx];
           const communityName = r[commNameIdx] || 'Siena Reserve';
           const communitySlug = r[commIdIdx] || slugify(communityName);
-          const collectionName = r[colIdx] || 'Adora Collection';
+          const collectionName = r[colIdx] || 'Townhomes';
           const collectionSlug = r[colSlugIdx] || slugify(collectionName.replace('Collection', ''));
           const modelSlug = slugify(modelName);
 
           const uniqueId = r[idIdx] || `${communitySlug}_${collectionSlug}_${modelSlug}`;
 
           const totalSqft = parseInt(r[sqftIdx], 10) || 1400;
-          const sqftSecondFloor = sqft2ndIdx !== -1 && r[sqft2ndIdx] ? parseInt(r[sqft2ndIdx], 10) : Math.round(totalSqft * 0.5);
-          const sqftNet = sqftNetIdx !== -1 && r[sqftNetIdx] ? parseInt(r[sqftNetIdx], 10) : Math.round(sqftSecondFloor * 0.85);
-          const sqftMaterialRecommended = sqftMatIdx !== -1 && r[sqftMatIdx] ? parseInt(r[sqftMatIdx], 10) : Math.round(sqftNet * 1.1);
+          const raw1st = sqft1stIdx !== -1 && r[sqft1stIdx] ? parseInt(r[sqft1stIdx], 10) : 0;
+          const raw2nd = sqft2ndIdx !== -1 && r[sqft2ndIdx] ? parseInt(r[sqft2ndIdx], 10) : 0;
+
+          const sqftFirstFloorRec = raw1st || Math.round(totalSqft * 0.41);
+          const sqftFirstFloor = Math.round(sqftFirstFloorRec / 1.07);
+
+          const sqftSecondFloorRec = raw2nd || Math.round(totalSqft * 0.37);
+          const sqftSecondFloor = Math.round(sqftSecondFloorRec / 1.07);
+
+          const sqftNet = sqftNetIdx !== -1 && r[sqftNetIdx] ? parseInt(r[sqftNetIdx], 10) : (sqftFirstFloor + sqftSecondFloor);
+          const sqftMaterialRecommended = sqftMatIdx !== -1 && r[sqftMatIdx] ? parseInt(r[sqftMatIdx], 10) : (sqftFirstFloorRec + sqftSecondFloorRec);
 
           const raw3dRender = renderImgIdx !== -1 && r[renderImgIdx] ? normalizeImageUrl(r[renderImgIdx]) : undefined;
+          const rawFacade = facadeImgIdx !== -1 && r[facadeImgIdx] ? normalizeImageUrl(r[facadeImgIdx]) : undefined;
+
+          // Preserve rich default rooms if available
+          const defaultMatch = DEFAULT_MODELS.find(
+            (dm) => dm.slug === (r[slugIdx] || uniqueId) || dm.name.toLowerCase() === modelName.toLowerCase() || dm.id.includes(modelSlug)
+          );
 
           parsedModels.push({
             id: uniqueId,
             slug: r[slugIdx] || uniqueId,
             name: modelName,
+            displayNameSafe: modelName,
             communityId: communitySlug,
             communityName: communityName,
             collection: collectionName,
@@ -159,34 +176,42 @@ export async function fetchLiveDatabase() {
             state: r[stateIdx] || 'FL',
             zip: r[zipIdx] || '33032',
             sqft: totalSqft,
+            sqftFirstFloor,
+            sqftFirstFloorRec,
             sqftSecondFloor,
+            sqftSecondFloorRec,
             sqftNet,
             sqftMaterialRecommended,
             priceFrom: priceFromIdx !== -1 && r[priceFromIdx] ? parseInt(r[priceFromIdx], 10) : undefined,
             stepsCount: parseInt(r[stepsIdx], 10) || 15,
             bedrooms: parseInt(r[bedIdx], 10) || 3,
             baths: parseFloat(r[bathIdx]) || 2.5,
-            floorLevel: '2nd Floor Layout',
+            floorLevel: '1er & 2do Piso',
             ownerSuiteDims: ownerDimsIdx !== -1 && r[ownerDimsIdx] ? r[ownerDimsIdx] : "12' x 12'",
-            ownerSuiteSqft: ownerSqftIdx !== -1 && r[ownerSqftIdx] ? parseInt(r[ownerSqftIdx], 10) : 150,
-            walkInClosetSqft: closetSqftIdx !== -1 && r[closetSqftIdx] ? parseInt(r[closetSqftIdx], 10) : 35,
-            bedroom2Dims: bed2DimsIdx !== -1 && r[bed2DimsIdx] ? r[bed2DimsIdx] : "11' x 10'",
+            ownerSuiteSqft: ownerSqftIdx !== -1 && r[ownerSqftIdx] ? parseInt(r[ownerSqftIdx], 10) : 180,
+            walkInClosetSqft: closetSqftIdx !== -1 && r[closetSqftIdx] ? parseInt(r[closetSqftIdx], 10) : 45,
+            bedroom2Dims: bed2DimsIdx !== -1 && r[bed2DimsIdx] ? r[bed2DimsIdx] : "10' x 11'",
             bedroom2Sqft: bed2SqftIdx !== -1 && r[bed2SqftIdx] ? parseInt(r[bed2SqftIdx], 10) : 110,
             bedroom3Dims: bed3DimsIdx !== -1 && r[bed3DimsIdx] ? r[bed3DimsIdx] : "10' x 10'",
             bedroom3Sqft: bed3SqftIdx !== -1 && r[bed3SqftIdx] ? parseInt(r[bed3SqftIdx], 10) : 100,
             bedroom4Dims: bed4DimsIdx !== -1 && r[bed4DimsIdx] ? r[bed4DimsIdx] : undefined,
             bedroom4Sqft: bed4SqftIdx !== -1 && r[bed4SqftIdx] ? parseInt(r[bed4SqftIdx], 10) : undefined,
-            stairsSqft: stairsSqftIdx !== -1 && r[stairsSqftIdx] ? parseInt(r[stairsSqftIdx], 10) : 45,
+            stairsSqft: stairsSqftIdx !== -1 && r[stairsSqftIdx] ? parseInt(r[stairsSqftIdx], 10) : 60,
             highlights: [
               `Total Construcción: ${totalSqft} SF`,
-              `Área Neta a Cubrir: ~${sqftNet} SF`,
-              `Material Recomendado (+10% Desperdicio): ${sqftMaterialRecommended} SF`,
-              'Escaleras: 15 Escalones con Nosing al Ras',
+              `1er Piso (+7% Desperdicio): ~${sqftFirstFloorRec} SF`,
+              `2do Piso (+7% Desperdicio): ~${sqftSecondFloorRec} SF`,
+              'Escaleras: 15 Escalones Flush Stair Nose',
             ],
             description: r[descIdx] || `${modelName} en ${communityName} · ${collectionName}`,
-            floorPlanImage: planImgIdx !== -1 && r[planImgIdx] ? normalizeImageUrl(r[planImgIdx]) : undefined,
-            render3DImage: raw3dRender || undefined,
-            rooms: DEFAULT_MODELS[0].rooms,
+            floorPlanImage: planImgIdx !== -1 && r[planImgIdx] ? normalizeImageUrl(r[planImgIdx]) : defaultMatch?.floorPlanImage,
+            render3DImage: raw3dRender || defaultMatch?.render3DImage,
+            render3DImageFloor1: defaultMatch?.render3DImageFloor1,
+            render3DImageFloor2: defaultMatch?.render3DImageFloor2,
+            render3DImageBoth: defaultMatch?.render3DImageBoth,
+            rooms: defaultMatch ? defaultMatch.rooms : DEFAULT_MODELS[0].rooms,
+            firstFloorRooms: defaultMatch ? defaultMatch.firstFloorRooms : DEFAULT_MODELS[0].firstFloorRooms,
+            secondFloorRooms: defaultMatch ? defaultMatch.secondFloorRooms : DEFAULT_MODELS[0].secondFloorRooms,
             svgDimensions: { width: 440, height: 740 },
           });
         }
@@ -211,9 +236,11 @@ export async function fetchLiveDatabase() {
         const padIdx = header.indexOf('padding');
         const sqftBoxIdx = header.indexOf('sqft_per_box');
         const planksBoxIdx = header.indexOf('planks_per_box');
+        const pricePerSqftIdx = header.findIndex((h) => h === 'price_per_sqft' || h === 'price');
+        const stairCostIdx = header.findIndex((h) => h === 'stair_material_cost' || h === 'price_per_stair_step');
         const hexIdx = header.indexOf('color_hex');
         const descIdx = header.indexOf('description');
-        const plankImgIdx = header.indexOf('plank_image_url');
+        const plankImgIdx = header.findIndex((h) => h === 'plank_image_url' || h === 'image_url' || h === 'image');
         const roomImgIdx = header.indexOf('room_preview_url');
         const stairImgIdx = header.indexOf('staircase_preview_url');
         const stockIdx = header.findIndex(
@@ -226,8 +253,8 @@ export async function fetchLiveDatabase() {
           if (!r[nameIdx]) continue;
           
           let collection: any = 'Pulse Select';
-          if (r[colIdx]?.includes('Shield') || r[colIdx]?.includes('6')) collection = 'Pulse Shield XL';
-          if (r[colIdx]?.includes('Rigid') || r[colIdx]?.includes('8') || r[colIdx]?.includes('XL Pulse')) collection = 'XL Pulse';
+          if (r[colIdx]?.includes('Shield') || r[colIdx]?.includes('6') || r[thickIdx]?.includes('6')) collection = 'Pulse Shield XL';
+          if (r[colIdx]?.includes('Rigid') || r[colIdx]?.includes('8') || r[colIdx]?.includes('XL Pulse') || r[thickIdx]?.includes('8')) collection = 'XL Pulse';
 
           const plankImg = normalizeImageUrl(r[plankImgIdx]) || DEFAULT_PRODUCTS[0].plankImageUrl;
           const roomImg = normalizeImageUrl(r[roomImgIdx]) || DEFAULT_PRODUCTS[0].roomPreviewUrl;
@@ -255,11 +282,20 @@ export async function fetchLiveDatabase() {
           const sqftBox = sqftBoxIdx !== -1 && r[sqftBoxIdx] ? parseFloat(r[sqftBoxIdx]) : (collection === 'XL Pulse' ? 19.29 : collection === 'Pulse Shield XL' ? 26.6 : 24.26);
           const planksBox = planksBoxIdx !== -1 && r[planksBoxIdx] ? parseInt(r[planksBoxIdx], 10) : (collection === 'XL Pulse' ? 5 : collection === 'Pulse Shield XL' ? 7 : 9);
 
+          const productCategory = (r[catIdx] as any) || (collection === 'XL Pulse' ? '8mm' : collection === 'Pulse Shield XL' ? '6mm' : '5.5mm');
+          
+          // Sheet price or category fallback
+          const defaultPricePerSqft = productCategory === '8mm' ? 2.39 : productCategory === '6mm' ? 1.89 : 1.69;
+          const pricePerSqft = pricePerSqftIdx !== -1 && r[pricePerSqftIdx] ? parseFloat(r[pricePerSqftIdx]) : defaultPricePerSqft;
+
+          const defaultStairCost = productCategory === '8mm' ? 747.72 : productCategory === '6mm' ? 676.37 : 589.00;
+          const stairMaterialCost = stairCostIdx !== -1 && r[stairCostIdx] ? parseFloat(r[stairCostIdx]) : defaultStairCost;
+
           parsedProducts.push({
             id: r[idIdx] || `prod-${i}`,
             code: r[codeIdx] || `0${i}`,
             name: r[nameIdx],
-            category: (r[catIdx] as any) || (collection === 'XL Pulse' ? '8mm' : collection === 'Pulse Shield XL' ? '6mm' : '5.5mm'),
+            category: productCategory,
             collectionName: collection,
             thickness: r[thickIdx] || (collection === 'XL Pulse' ? '8.0mm' : collection === 'Pulse Shield XL' ? '6.0mm' : '5.5mm'),
             wearLayer: r[wearIdx] || (collection === 'XL Pulse' ? '22 mil' : '20 mil'),
@@ -267,6 +303,8 @@ export async function fetchLiveDatabase() {
             padding: r[padIdx] || '1.5mm High-Density EVA Pad',
             planksPerBox: planksBox,
             sqftPerBox: sqftBox,
+            pricePerSqft,
+            stairMaterialCost,
             finish: 'EIR Real Wood Feel',
             installationType: 'Click-Lock Floating System',
             tone: 'natural',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FloorPlanModel, FlooringProduct, PricingPackage } from '../types';
+import { FloorPlanModel, FlooringProduct, PricingPackage, FloorScope } from '../types';
 import { FLOOR_PLAN_MODELS, COMMUNITIES } from '../data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from '../data/products';
 import { calculateQuotePrice, formatCurrency } from '../utils/pricingCalculator';
@@ -31,6 +31,7 @@ interface BookingModalProps {
   initialModel?: FloorPlanModel;
   initialProduct?: FlooringProduct;
   initialPackage?: PricingPackage;
+  initialFloorScope?: FloorScope;
   modelsList?: FloorPlanModel[];
   productsList?: FlooringProduct[];
   packagesList?: PricingPackage[];
@@ -42,6 +43,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   initialModel,
   initialProduct,
   initialPackage,
+  initialFloorScope = 'floor1_stairs',
   modelsList = FLOOR_PLAN_MODELS,
   productsList = FLOORING_PRODUCTS,
   packagesList = PRICING_PACKAGES,
@@ -52,9 +54,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const activeProducts = productsList && productsList.length > 0 ? productsList : FLOORING_PRODUCTS;
   const activePackages = packagesList && packagesList.length > 0 ? packagesList : PRICING_PACKAGES;
 
-  const [selectedModelId, setSelectedModelId] = useState<string>(initialModel?.id || activeModels[0]?.id || 'bordeaux');
-  const [selectedPackageId, setSelectedPackageId] = useState<string>(initialPackage?.id || activePackages[2]?.id || activePackages[0]?.id);
+  const [selectedModelId, setSelectedModelId] = useState<string>(initialModel?.id || activeModels[0]?.id || 'siena-b-model');
+  const [selectedPackageId, setSelectedPackageId] = useState<string>(initialPackage?.id || activePackages[0]?.id || 'turnkey-complete');
   const [selectedColorId, setSelectedColorId] = useState<string>(initialProduct?.id || activeProducts[0]?.id || 'trustable-oak-03');
+  const [floorScope, setFloorScope] = useState<FloorScope>(initialFloorScope);
 
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
@@ -72,15 +75,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Sync state when modal is opened with initial props
   useEffect(() => {
     if (isOpen) {
-      if (initialModel?.id) setSelectedModelId(initialModel.id);
+      if (initialModel) {
+        const found = activeModels.find(
+          (m) =>
+            m.id === initialModel.id ||
+            m.slug === initialModel.slug ||
+            m.name.toLowerCase() === initialModel.name.toLowerCase()
+        );
+        setSelectedModelId(found?.id || initialModel.id);
+      }
       if (initialPackage?.id) setSelectedPackageId(initialPackage.id);
       if (initialProduct?.id) setSelectedColorId(initialProduct.id);
+      if (initialFloorScope) setFloorScope(initialFloorScope);
       if (initialModel?.address) setAddress(initialModel.address);
       setIsSubmitted(false);
       setErrors({});
       setSubmitError(null);
     }
-  }, [isOpen, initialModel, initialPackage, initialProduct]);
+  }, [isOpen, initialModel, initialPackage, initialProduct, initialFloorScope, activeModels]);
 
   // Body scroll lock
   useEffect(() => {
@@ -105,17 +117,42 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   }, [isOpen, onClose]);
 
   // Find currently selected entities
-  const currentModel = activeModels.find((m) => m.id === selectedModelId) || activeModels[0];
-  const currentPackage = activePackages.find((p) => p.id === selectedPackageId) || activePackages[0];
-  const currentColor = activeProducts.find((c) => c.id === selectedColorId) || activeProducts[0];
+  const currentModel =
+    activeModels.find(
+      (m) =>
+        m.id === selectedModelId ||
+        m.slug === selectedModelId ||
+        (m.name && selectedModelId && m.name.toLowerCase() === selectedModelId.toLowerCase())
+    ) || activeModels[0];
+  const currentPackage =
+    activePackages.find((p) => p.id === selectedPackageId || p.title.toLowerCase() === selectedPackageId.toLowerCase()) ||
+    activePackages[0];
+  const currentColor =
+    activeProducts.find((c) => c.id === selectedColorId || c.code === selectedColorId) ||
+    activeProducts[0];
 
-  // Dynamic Price Calculation
+  // Dynamic Price Calculation with floorScope
   const quoteCalculation = useMemo(() => {
-    return calculateQuotePrice(currentModel, currentColor, currentPackage);
-  }, [currentModel, currentColor, currentPackage]);
+    return calculateQuotePrice(currentModel, currentColor, currentPackage, floorScope);
+  }, [currentModel, currentColor, currentPackage, floorScope]);
 
   const TARGET_EMAIL = 'marketingquicksurfaces@gmail.com';
   const WHATSAPP_PHONE = '17866583677';
+
+  const getScopeLabel = () => {
+    switch (floorScope) {
+      case 'floor1':
+        return lang === 'es' ? '1) Solo 1er Piso' : '1) 1st Floor Only';
+      case 'floor1_stairs':
+        return lang === 'es' ? '2) 1er Piso + 15 Escalones' : '2) 1st Floor + 15 Stairs';
+      case 'floor2':
+        return lang === 'es' ? '3) Solo 2do Piso' : '3) 2nd Floor Only';
+      case 'floor2_stairs':
+        return lang === 'es' ? '4) 2do Piso + 15 Escalones' : '4) 2nd Floor + 15 Stairs';
+      default:
+        return lang === 'es' ? '1er Piso + Escaleras' : '1st Floor + Stairs';
+    }
+  };
 
   // US Phone Formatter Helper: (XXX) XXX-XXXX
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,7 +224,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       phone: phone.trim(),
       email: email.trim() || 'No especificado',
       community: currentModel.communityName,
-      model: `${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} sq ft recomendados + 15 escalones)`,
+      model: `${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} SF + ${quoteCalculation.hasStairs ? '15 Flush Stair Noses' : 'Sin escaleras'})`,
+      scope: getScopeLabel(),
       address: address.trim() || currentModel.address || 'Siena Reserve / Homestead FL',
       package: `${currentPackage.title} ($${quoteCalculation.totalPrice.toLocaleString()})`,
       color: `${currentColor.name} (#${currentColor.code} - ${currentColor.category} - ${currentColor.thickness})`,
@@ -198,7 +236,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
 
     try {
-      // Send to FormSubmit AJAX endpoint
       const res = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
         method: 'POST',
         headers: {
@@ -211,7 +248,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       if (res.ok || res.status === 200) {
         setIsSubmitted(true);
       } else {
-        // Fallback gracefully to success view so user is not blocked
         setIsSubmitted(true);
       }
     } catch (err) {
@@ -228,7 +264,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         `👤 Cliente: ${fullName || 'Cliente'}\n` +
         `📞 Teléfono: ${phone || 'N/A'}\n` +
         `🏡 Comunidad: ${currentModel.communityName}\n` +
-        `📐 Modelo: ${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} sq ft)\n` +
+        `📐 Modelo: ${currentModel.name} (${getScopeLabel()})\n` +
+        `📏 Metraje: ~${quoteCalculation.sqftMaterialRecommended} sq ft ${quoteCalculation.hasStairs ? '+ 15 Flush Stair Noses' : ''}\n` +
         `📦 Paquete: ${currentPackage.title}\n` +
         `🎨 Color SPC: ${currentColor.name} (#${currentColor.code})\n` +
         `💰 Tarifa Estimada: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
@@ -238,7 +275,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         `👤 Client: ${fullName || 'Customer'}\n` +
         `📞 Phone: ${phone || 'N/A'}\n` +
         `🏡 Community: ${currentModel.communityName}\n` +
-        `📐 Model: ${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} sq ft)\n` +
+        `📐 Model: ${currentModel.name} (${getScopeLabel()})\n` +
+        `📏 Coverage: ~${quoteCalculation.sqftMaterialRecommended} sq ft ${quoteCalculation.hasStairs ? '+ 15 Flush Stair Noses' : ''}\n` +
         `📦 Package: ${currentPackage.title}\n` +
         `🎨 SPC Color: ${currentColor.name} (#${currentColor.code})\n` +
         `💰 Estimated Rate: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
@@ -279,8 +317,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
           <h3 className="text-xl sm:text-2xl font-black text-[#FFFFFF] tracking-tight">
             {lang === 'es'
-              ? `Reserva tu Instalación: Modelo ${currentModel.name}`
-              : `Book Your ${currentModel.name} Reserve Installation`}
+              ? `Reserva tu Instalación: ${currentModel.name} (Siena Reserve)`
+              : `Book Your ${currentModel.name} Installation (Siena Reserve)`}
           </h3>
           <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">
             {lang === 'es'
@@ -319,12 +357,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <span className="font-semibold">{currentModel.communityName} • {currentModel.name}</span>
                 </div>
                 <div className="flex justify-between items-center">
+                  <span>{lang === 'es' ? 'Área a Remodelar:' : 'Remodeled Area Scope:'}</span>
+                  <span className="font-bold text-[#0F172A]">{getScopeLabel()}</span>
+                </div>
+                <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Área Material Calculada:' : 'Material Calculated Area:'}</span>
-                  <span className="font-bold text-[#0F172A]">~{quoteCalculation.sqftMaterialRecommended} sq ft (+10% waste)</span>
+                  <span className="font-bold text-[#0F172A]">~{quoteCalculation.sqftMaterialRecommended} sq ft (+7% waste)</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Escaleras Integradas:' : 'Custom Staircase:'}</span>
-                  <span className="font-bold text-[#0F172A]">{lang === 'es' ? '15 Peldaños Flush Stair Nosing' : '15 Custom Flush Stair Treads'}</span>
+                  <span className="font-bold text-[#0F172A]">{quoteCalculation.hasStairs ? (lang === 'es' ? '15 Escalones Flush Stair Nose' : '15 Flush Stair Noses') : (lang === 'es' ? 'No incluidas' : 'Not included')}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Piso SPC Seleccionado:' : 'Selected SPC Floor:'}</span>
@@ -358,7 +400,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                 <div className="flex flex-col sm:flex-row gap-2">
                   <a
-                    href={`mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(lang === 'es' ? `Reserva QuickSurfaces: ${currentModel.name} - ${fullName}` : `QuickSurfaces Reservation: ${currentModel.name} - ${fullName}`)}&body=${encodeURIComponent(`Client: ${fullName}\nPhone: ${phone}\nModel: ${currentModel.name}\nTotal: $${quoteCalculation.totalPrice}`)}`}
+                    href={`mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(lang === 'es' ? `Reserva QuickSurfaces: ${currentModel.name} - ${fullName}` : `QuickSurfaces Reservation: ${currentModel.name} - ${fullName}`)}&body=${encodeURIComponent(`Client: ${fullName}\nPhone: ${phone}\nModel: ${currentModel.name}\nScope: ${getScopeLabel()}\nTotal: $${quoteCalculation.totalPrice}`)}`}
                     className="flex-1 py-2.5 px-3 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5 text-[#FF8407]" />
@@ -378,7 +420,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           ) : (
             /* Form View */
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Dropdowns Group: Model, Package, Vinyl Color */}
+              {/* Configuration Section */}
               <div className="space-y-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1">
@@ -390,11 +432,47 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                {/* 4 Scope Selector Pills */}
+                <div>
+                  <label className="block text-[#475569] font-bold mb-1.5 text-[11px]">
+                    {lang === 'es' ? 'Área a Remodelar (4 Opciones):' : 'Remodeling Area Scope:'}
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {[
+                      { id: 'floor1', labelEs: '1) Solo 1er Piso', labelEn: '1) 1st Floor Only', sf: currentModel.sqftFirstFloorRec || 546 },
+                      { id: 'floor1_stairs', labelEs: '2) 1er Piso + Esc.', labelEn: '2) 1st Fl + Stairs', sf: `${currentModel.sqftFirstFloorRec || 546} SF + 15 Esc.` },
+                      { id: 'floor2', labelEs: '3) Solo 2do Piso', labelEn: '3) 2nd Floor Only', sf: currentModel.sqftSecondFloorRec || 498 },
+                      { id: 'floor2_stairs', labelEs: '4) 2do Piso + Esc.', labelEn: '4) 2nd Fl + Stairs', sf: `${currentModel.sqftSecondFloorRec || 498} SF + 15 Esc.` },
+                    ].map((item) => {
+                      const isSel = floorScope === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setFloorScope(item.id as FloorScope)}
+                          className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                            isSel
+                              ? 'border-[#FF8407] bg-[#FFF7ED] text-[#0F172A] font-black ring-1 ring-[#FF8407]'
+                              : 'border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F1F5F9]'
+                          }`}
+                        >
+                          <div className="text-[11px] font-bold truncate leading-tight">
+                            {lang === 'es' ? item.labelEs : item.labelEn}
+                          </div>
+                          <div className="text-[10px] text-[#FF8407] font-bold truncate">
+                            {typeof item.sf === 'number' ? `~${item.sf} SF` : item.sf}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs pt-1">
                   {/* Dropdown 1: Model */}
                   <div>
                     <label className="block text-[#475569] font-bold mb-1 text-[11px]">
-                      {lang === 'es' ? '1. Modelo de Casa:' : '1. Home Model:'}
+                      {lang === 'es' ? '1. Modelo Townhome:' : '1. Townhome Model:'}
                     </label>
                     <select
                       value={selectedModelId}
@@ -407,7 +485,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     >
                       {activeModels.map((m) => (
                         <option key={m.id} value={m.id}>
-                          {m.name} ({m.communityName} • {m.sqft} SF)
+                          {m.name} ({m.bedrooms} {lang === 'es' ? 'Hab' : 'Beds'} / {m.baths} {lang === 'es' ? 'Baños' : 'Baths'} • 1er Piso: ~{m.sqftFirstFloorRec || m.sqftFirstFloor || 546} SF | 2do Piso: ~{m.sqftSecondFloorRec || m.sqftSecondFloor || 498} SF)
                         </option>
                       ))}
                     </select>
@@ -425,7 +503,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     >
                       {activePackages.map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.title} {p.isTurnkey ? (lang === 'es' ? '(Llave en Mano)' : '(Turnkey)') : (lang === 'es' ? '(Solo Material)' : '(Material Only)')}
+                          {lang === 'es' ? p.title : (p.titleEn || p.title)} {p.isTurnkey ? (lang === 'es' ? '(Llave en Mano - Incluye Instalación)' : '(Turnkey - Includes Installation)') : (lang === 'es' ? '(Solo Material)' : '(Material Only)')}
                         </option>
                       ))}
                     </select>
@@ -454,7 +532,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <div className="mt-2 pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="space-y-0.5">
                     <div className="text-[11px] text-[#64748B]">
-                      <strong>{currentModel.name}</strong> (~{quoteCalculation.sqftMaterialRecommended} sq ft) {lang === 'es' ? '+ 15 Peldaños' : '+ 15 Custom Stairs'}
+                      <strong className="text-[#0F172A]">{currentModel.name}</strong> • {getScopeLabel()}: (~{quoteCalculation.sqftMaterialRecommended} sq ft) {quoteCalculation.hasStairs ? (lang === 'es' ? '+ 15 Flush Stair Noses' : '+ 15 Flush Stair Noses') : (lang === 'es' ? '(Sin Escaleras)' : '(No Stairs)')}
                     </div>
                     <div className="text-[10px] text-[#94A3B8]">
                       {lang === 'es' ? 'Color:' : 'Color:'} <span className="font-semibold text-[#0F172A]">{currentColor.name}</span> ({currentColor.thickness} - {currentColor.wearLayer})
@@ -462,7 +540,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] text-[#64748B] block font-bold uppercase">{lang === 'es' ? 'Tarifa Calculada:' : 'Estimated Rate:'}</span>
-                    <span className="text-lg font-black text-[#0F172A]">
+                    <span className="text-lg font-black text-[#FF8407]">
                       ${quoteCalculation.totalPrice.toLocaleString()}
                     </span>
                   </div>

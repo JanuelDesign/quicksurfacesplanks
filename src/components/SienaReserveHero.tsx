@@ -1,20 +1,13 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { ShieldCheck, MapPin, Sparkles, Layers } from 'lucide-react';
-import { FloorScope, FloorPlanModel } from '../types';
+import { ShieldCheck, Sparkles } from 'lucide-react';
+import { FloorPlanModel } from '../types';
 
 interface SienaReserveHeroProps {
-  floorScope: FloorScope;
-  onChangeFloorScope: (scope: FloorScope) => void;
   model?: FloorPlanModel;
-  onContinueToQuote?: () => void;
 }
 
-export const SienaReserveHero: React.FC<SienaReserveHeroProps> = ({
-  floorScope,
-  onChangeFloorScope,
-  model,
-}) => {
+export const SienaReserveHero: React.FC<SienaReserveHeroProps> = () => {
   const { lang } = useLanguage();
   const BANNER_CANDIDATES = [
     '/images/banners/siena-reserve-entrance.webp',
@@ -26,16 +19,10 @@ export const SienaReserveHero: React.FC<SienaReserveHeroProps> = ({
 
   const [candidateIdx, setCandidateIdx] = useState<number>(0);
 
-  // Metraje calculations based on active model or Bandol defaults
-  const f1Rec = model?.sqftFirstFloorRec || 560;
-  const f2Rec = model?.sqftSecondFloorRec || 520;
-  const bothRec = model?.sqftMaterialRecommended || 1080;
-
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-[#E2E8F0] bg-[#0A0A0B] text-white font-sans mb-6">
+    <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-[#E2E8F0] bg-[#0A0A0B] text-white font-sans">
       {/* Background Architectural Facade Image with Gradient Overlays */}
-      <div className="relative h-[280px] sm:h-[340px] md:h-[390px] w-full overflow-hidden">
-        {/* Background Architectural Facade Image with Enhanced Clarity */}
+      <div className="relative h-[240px] sm:h-[280px] md:h-[320px] w-full overflow-hidden">
         <img
           key={candidateIdx}
           src={BANNER_CANDIDATES[candidateIdx] || BANNER_CANDIDATES[BANNER_CANDIDATES.length - 1]}
@@ -48,123 +35,41 @@ export const SienaReserveHero: React.FC<SienaReserveHeroProps> = ({
             }
           }}
         />
-        {/* Soft, Transparent Gradients to maintain vibrant image brightness while keeping text legible */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B]/85 via-[#0A0A0B]/20 to-transparent"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/60 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B]/95 via-[#0A0A0B]/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0B]/80 via-transparent to-transparent"></div>
 
         {/* Top Badges */}
         <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex flex-wrap items-center gap-2 z-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF8407] text-[#000000] text-xs font-black tracking-wider uppercase shadow-lg">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FF8407] text-[#000000] text-xs font-black tracking-wider uppercase shadow-lg">
             <Sparkles className="w-3.5 h-3.5 fill-black" />
-            Adora Collection
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold border border-white/15">
-            <MapPin className="w-3 h-3 text-[#FF8407]" />
-            12705 SW 232nd St, Homestead FL 33032
+            Siena Reserve
           </span>
         </div>
 
         {/* Verified Community Watermark */}
         <div className="absolute top-4 right-4 sm:top-6 sm:right-6 hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 text-xs">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span className="text-white/80 font-medium">Planos Verificados para Townhomes</span>
+          <span className="text-white/80 font-medium">
+            {lang === 'es' ? 'Planos Verificados para Townhomes' : 'Verified Townhome Floorplans'}
+          </span>
         </div>
 
         {/* Banner Hero Main Content */}
         <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 z-10">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[11px] font-bold tracking-widest text-[#FF8407] uppercase">
-                {lang === 'es' ? 'Solución Oficial de Pisos para' : 'Official Flooring Solution for'}
+              <span className="text-[11px] sm:text-xs font-black tracking-widest text-[#FF8407] uppercase">
+                {lang === 'es' ? 'SOLUCIÓN ESPECIALIZADA DE PISOS PARA:' : 'SPECIALIZED FLOORING SOLUTION FOR:'}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
-              Siena Reserve <span className="text-[#FF8407]">Townhomes</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md">
+              Siena Reserve Townhomes
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-2xl line-clamp-2 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-2xl leading-relaxed">
               {lang === 'es'
-                ? 'Modelos Bandol, Casis, Monte Carlo, Reserve y Vence. Instalación especializada de Pisos Vinílicos SPC 100% impermeables, Laminados y Madera con 15 escalones Flush Stair Nose al ras.'
-                : 'Bandol, Casis, Monte Carlo, Reserve & Vence models. 100% waterproof SPC Luxury Vinyl, Laminate and Engineered Hardwood with 15 custom Flush Stair Noses.'}
+                ? 'A medida para Modelos B, C, MC, R & V. Pisos 100% impermeables SPC Luxury Vinyl, Laminados y Madera de Ingeniería con 15 escalones Flush Stair Nose a medida.'
+                : 'Custom-fit for Models B, C, MC, R & V. 100% waterproof SPC Luxury Vinyl, Laminate and Engineered Hardwood with 15 custom Flush Stair Noses.'}
             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Scope Selector Sub-Bar (1er Piso / 2do Piso / Casa Completa) */}
-      <div className="bg-[#121215] border-t border-white/10 px-4 sm:px-6 py-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#FF8407]" />
-              <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase">
-                {lang === 'es' ? '¿Qué área de tu casa deseas remodelar?' : 'Which area do you want to remodel?'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {lang === 'es'
-                ? 'El metraje y el plano 2D se ajustarán automáticamente según tu selección.'
-                : 'Floor plan and sqft calculations will update automatically based on your choice.'}
-            </p>
-          </div>
-
-          {/* Interactive 3-Way Pill Switcher */}
-          <div className="grid grid-cols-3 gap-2 w-full md:w-auto bg-[#1C1C22] p-1.5 rounded-2xl border border-white/10 shadow-inner">
-            <button
-              type="button"
-              onClick={() => onChangeFloorScope('floor1')}
-              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 cursor-pointer ${
-                floorScope === 'floor1'
-                  ? 'bg-[#FF8407] text-[#000000] shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <span className="text-center sm:text-left">
-                {lang === 'es' ? 'Solo 1er Piso' : '1st Floor Only'}
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-                floorScope === 'floor1' ? 'bg-black/20 text-black font-black' : 'bg-white/10 text-slate-400'
-              }`}>
-                ~{f1Rec} SF
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onChangeFloorScope('floor2')}
-              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 cursor-pointer ${
-                floorScope === 'floor2'
-                  ? 'bg-[#FF8407] text-[#000000] shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <span className="text-center sm:text-left">
-                {lang === 'es' ? 'Solo 2do Piso' : '2nd Floor Only'}
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-                floorScope === 'floor2' ? 'bg-black/20 text-black font-black' : 'bg-white/10 text-slate-400'
-              }`}>
-                ~{f2Rec} SF
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onChangeFloorScope('both')}
-              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 cursor-pointer ${
-                floorScope === 'both'
-                  ? 'bg-[#FF8407] text-[#000000] shadow-md ring-2 ring-[#FF8407]/40'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <span className="text-center sm:text-left">
-                {lang === 'es' ? 'Casa Completa' : 'Whole House'}
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-                floorScope === 'both' ? 'bg-black/20 text-black font-black' : 'bg-white/10 text-slate-400'
-              }`}>
-                ~{bothRec} SF
-              </span>
-            </button>
           </div>
         </div>
       </div>

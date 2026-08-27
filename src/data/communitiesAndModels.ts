@@ -8,54 +8,53 @@ export const COMMUNITIES: Community[] = [
     city: 'Homestead',
     state: 'FL',
     zip: '33032',
-    collections: ['Adora Collection'],
+    collections: ['Siena Reserve Townhomes'],
     collectionDetails: [
       {
-        id: 'siena-reserve_adora',
-        slug: 'adora',
-        name: 'Adora Collection',
-        description: 'Colección exclusiva de townhomes de dos niveles con diseño contemporáneo y acabados de lujo.',
+        id: 'siena-reserve_townhomes',
+        slug: 'townhomes',
+        name: 'Townhome Series',
+        description: 'Modelos B, C, M, R y V de dos niveles con diseño contemporáneo y acabados de lujo.',
       },
     ],
     modelIds: [
-      'siena-reserve_adora_bandol',
-      'siena-reserve_adora_casis',
-      'siena-reserve_adora_monte-carlo',
-      'siena-reserve_adora_reserve',
-      'siena-reserve_adora_vence',
+      'siena-reserve_b-model',
+      'siena-reserve_c-model',
+      'siena-reserve_m-model',
+      'siena-reserve_r-model',
+      'siena-reserve_v-model',
     ],
-    description: 'Comunidad residencial en 12705 SW 232nd St, Homestead FL 33032. Townhomes modernos con 15 escalones y distribución optimizada en 1er y 2do piso.',
+    description: 'Comunidad residencial en 12705 SW 232nd St, Homestead FL 33032. Townhomes modernos con 15 escalones Flush Stair Nose y distribución optimizada en 1er y 2do piso.',
     heroImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-    badge: 'Adora Collection',
+    badge: 'Siena Reserve',
     logoApproved: false,
   },
 ];
 
 export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
   // ========================================================
-  // 1. BANDOL — ADORA COLLECTION (Siena Reserve, Homestead, FL 33032)
-  // Exact layout from Lennar Adora Collection 1st & 2nd Floor blueprints
+  // 1. B MODEL (Bandol — Siena Reserve, Homestead, FL 33032)
   // ========================================================
   {
-    id: 'siena-reserve_adora_bandol',
-    slug: 'siena-reserve_adora_bandol',
-    name: 'Bandol',
-    displayNameSafe: 'Bandol - Adora Collection',
+    id: 'siena-reserve_b-model',
+    slug: 'b-model',
+    name: 'B Model',
+    displayNameSafe: 'B Model',
     communityId: 'siena-reserve',
     communityName: 'Siena Reserve',
-    collection: 'Adora Collection',
-    collectionSlug: 'adora',
+    collection: 'Townhomes',
+    collectionSlug: 'townhomes',
     address: '12705 SW 232nd St',
     city: 'Homestead',
     state: 'FL',
     zip: '33032',
     sqft: 1334,
     sqftFirstFloor: 510,
-    sqftFirstFloorRec: 560,
+    sqftFirstFloorRec: 546, // +7%
     sqftSecondFloor: 465,
-    sqftSecondFloorRec: 520,
+    sqftSecondFloorRec: 498, // +7%
     sqftNet: 975,
-    sqftMaterialRecommended: 1080,
+    sqftMaterialRecommended: 1044, // +7%
     priceFrom: 475990,
     stepsCount: 15,
     bedrooms: 3,
@@ -73,13 +72,13 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
     render3DImageFloor1: '/images/renders/floor1-3d-render.jpg',
     render3DImageFloor2: '/images/renders/floor2-3d-render.jpg',
     render3DImageBoth: '/images/renders/both-floors-3d-render.jpg',
-    description: '3 bd · 3 ba · 1,334 ft² — El modelo Bandol cuenta con una habitación y baño completo en planta baja (Bedroom 3 de 10\'x11\'10"), cocina abierta (7\'10"x11\'4"), comedor (9\'8"x11\'4") y family room (14\'2"x10\'8"). En planta alta alberga la Owner\'s Suite (12\'x10\'10"), Bedroom 2 (12\'x10\') y 15 escalones a medida.',
+    description: '3 bd · 3 ba · 1,334 ft² — El modelo B cuenta con una habitación y baño completo en planta baja (Bedroom 3 de 10\'x11\'10"), cocina abierta (7\'10"x11\'4"), comedor (9\'8"x11\'4") y family room (14\'2"x10\'8"). En planta alta alberga la Owner\'s Suite (12\'x10\'10"), Bedroom 2 (12\'x10\') y 15 escalones Flush Stair Nose a medida.',
     highlights: [
       'Total Construcción: 1,334 SF (3 Hab / 3 Baños)',
-      '1er Piso Neto: ~510 SF (Recomendado: 560 SF)',
-      '2do Piso Neto: ~465 SF (Recomendado: 520 SF)',
-      'Casa Completa Recomendada: ~1,080 SF',
-      'Escaleras: 15 Escalones con Nosing al Ras (Flush Stair Nose)',
+      '1er Piso Neto: ~510 SF (Recomendado +7%: 546 SF)',
+      '2do Piso Neto: ~465 SF (Recomendado +7%: 498 SF)',
+      'Casa Completa (+7% Desperdicio): ~1,044 SF',
+      'Escaleras: 15 Escalones Flush Stair Nose al Ras',
     ],
     rooms: [
       { name: "Owner's Suite", dimensions: "12' 0\" x 10' 10\"", sqft: 130, highlight: true, type: 'master' },
@@ -111,29 +110,28 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
   },
 
   // ========================================================
-  // 2. CASIS — ADORA COLLECTION (Siena Reserve)
-  // Exact Lennar: 1,414 sq ft · 3 Beds · 2.5 Baths
+  // 2. C MODEL (Casis — Siena Reserve)
   // ========================================================
   {
-    id: 'siena-reserve_adora_casis',
-    slug: 'siena-reserve_adora_casis',
-    name: 'Casis',
-    displayNameSafe: 'Casis - Adora Collection',
+    id: 'siena-reserve_c-model',
+    slug: 'c-model',
+    name: 'C Model',
+    displayNameSafe: 'C Model',
     communityId: 'siena-reserve',
     communityName: 'Siena Reserve',
-    collection: 'Adora Collection',
-    collectionSlug: 'adora',
+    collection: 'Townhomes',
+    collectionSlug: 'townhomes',
     address: '12705 SW 232nd St',
     city: 'Homestead',
     state: 'FL',
     zip: '33032',
     sqft: 1414,
     sqftFirstFloor: 550,
-    sqftFirstFloorRec: 605,
+    sqftFirstFloorRec: 589, // +7%
     sqftSecondFloor: 500,
-    sqftSecondFloorRec: 550,
+    sqftSecondFloorRec: 535, // +7%
     sqftNet: 1050,
-    sqftMaterialRecommended: 1155,
+    sqftMaterialRecommended: 1124, // +7%
     priceFrom: 485990,
     stepsCount: 15,
     bedrooms: 3,
@@ -151,13 +149,13 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
     render3DImageFloor1: '/images/renders/floor1-3d-render.jpg',
     render3DImageFloor2: '/images/renders/floor2-3d-render.jpg',
     render3DImageBoth: '/images/renders/both-floors-3d-render.jpg',
-    description: '3 bd · 2.5 ba · 1,414 ft² — El diseño Casis ofrece en planta baja un amplio Great Room integrado (17\'6" x 12\'0"), Cocina (8\'6" x 11\'6"), Comedor (10\'0" x 11\'6") y medio baño. En el segundo nivel se ubican todas las habitaciones con Owner\'s Suite de 12\'x12\', dos dormitorios secundarios y 15 escalones.',
+    description: '3 bd · 2.5 ba · 1,414 ft² — El diseño C ofrece en planta baja un amplio Great Room integrado (17\'6" x 12\'0"), Cocina (8\'6" x 11\'6"), Comedor (10\'0" x 11\'6") y medio baño. En el segundo nivel se ubican todas las habitaciones con Owner\'s Suite de 12\'x12\', dos dormitorios secundarios y 15 escalones Flush Stair Nose.',
     highlights: [
       'Total Construcción: 1,414 SF (3 Hab / 2.5 Baños)',
-      '1er Piso Neto: ~550 SF (Recomendado: 605 SF)',
-      '2do Piso Neto: ~500 SF (Recomendado: 550 SF)',
-      'Casa Completa Recomendada: ~1,155 SF',
-      'Escaleras: 15 Escalones con Nosing al Ras',
+      '1er Piso Neto: ~550 SF (Recomendado +7%: 589 SF)',
+      '2do Piso Neto: ~500 SF (Recomendado +7%: 535 SF)',
+      'Casa Completa (+7% Desperdicio): ~1,124 SF',
+      'Escaleras: 15 Escalones Flush Stair Nose',
     ],
     rooms: [
       { name: "Owner's Suite", dimensions: "12' 0\" x 12' 0\"", sqft: 144, highlight: true, type: 'master' },
@@ -189,29 +187,28 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
   },
 
   // ========================================================
-  // 3. MONTE CARLO — ADORA COLLECTION (Siena Reserve)
-  // Exact Lennar: 1,489 sq ft · 3 Beds · 2.5 Baths
+  // 3. M MODEL (Monte Carlo — Siena Reserve)
   // ========================================================
   {
-    id: 'siena-reserve_adora_monte-carlo',
-    slug: 'siena-reserve_adora_monte-carlo',
-    name: 'Monte Carlo',
-    displayNameSafe: 'Monte Carlo - Adora Collection',
+    id: 'siena-reserve_m-model',
+    slug: 'm-model',
+    name: 'M Model',
+    displayNameSafe: 'M Model',
     communityId: 'siena-reserve',
     communityName: 'Siena Reserve',
-    collection: 'Adora Collection',
-    collectionSlug: 'adora',
+    collection: 'Townhomes',
+    collectionSlug: 'townhomes',
     address: '12705 SW 232nd St',
     city: 'Homestead',
     state: 'FL',
     zip: '33032',
     sqft: 1489,
     sqftFirstFloor: 580,
-    sqftFirstFloorRec: 640,
+    sqftFirstFloorRec: 621, // +7%
     sqftSecondFloor: 535,
-    sqftSecondFloorRec: 590,
+    sqftSecondFloorRec: 573, // +7%
     sqftNet: 1115,
-    sqftMaterialRecommended: 1230,
+    sqftMaterialRecommended: 1194, // +7%
     priceFrom: 488990,
     stepsCount: 15,
     bedrooms: 3,
@@ -229,13 +226,13 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
     render3DImageFloor1: '/images/renders/floor1-3d-render.jpg',
     render3DImageFloor2: '/images/renders/floor2-3d-render.jpg',
     render3DImageBoth: '/images/renders/both-floors-3d-render.jpg',
-    description: '3 bd · 2.5 ba · 1,489 ft² — Monte Carlo destaca por su doble área social en planta baja con Living Room (14\'8"x12\'8") al frente y Family Room (11\'4"x10\'0") junto al Comedor y Cocina. En planta alta cuenta con una Owner\'s Suite de 15\'x12\', dormitorios 2 y 3 y 15 escalones.',
+    description: '3 bd · 2.5 ba · 1,489 ft² — M Model destaca por su doble área social en planta baja con Living Room (14\'8"x12\'8") al frente y Family Room (11\'4"x10\'0") junto al Comedor y Cocina. En planta alta cuenta con una Owner\'s Suite de 15\'x12\', dormitorios 2 y 3 y 15 escalones Flush Stair Nose.',
     highlights: [
       'Total Construcción: 1,489 SF (3 Hab / 2.5 Baños)',
-      '1er Piso Neto: ~580 SF (Recomendado: 640 SF)',
-      '2do Piso Neto: ~535 SF (Recomendado: 590 SF)',
-      'Casa Completa Recomendada: ~1,230 SF',
-      'Escaleras: 15 Escalones con Nosing al Ras',
+      '1er Piso Neto: ~580 SF (Recomendado +7%: 621 SF)',
+      '2do Piso Neto: ~535 SF (Recomendado +7%: 573 SF)',
+      'Casa Completa (+7% Desperdicio): ~1,194 SF',
+      'Escaleras: 15 Escalones Flush Stair Nose',
     ],
     rooms: [
       { name: "Owner's Suite", dimensions: "15' 0\" x 12' 0\"", sqft: 180, highlight: true, type: 'master' },
@@ -268,29 +265,28 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
   },
 
   // ========================================================
-  // 4. RESERVE — ADORA COLLECTION (Siena Reserve)
-  // Exact Lennar: 1,545 sq ft · 3 Beds · 2.5 Baths
+  // 4. R MODEL (Reserve — Siena Reserve)
   // ========================================================
   {
-    id: 'siena-reserve_adora_reserve',
-    slug: 'siena-reserve_adora_reserve',
-    name: 'Reserve',
-    displayNameSafe: 'Reserve - Adora Collection',
+    id: 'siena-reserve_r-model',
+    slug: 'r-model',
+    name: 'R Model',
+    displayNameSafe: 'R Model',
     communityId: 'siena-reserve',
     communityName: 'Siena Reserve',
-    collection: 'Adora Collection',
-    collectionSlug: 'adora',
+    collection: 'Townhomes',
+    collectionSlug: 'townhomes',
     address: '12705 SW 232nd St',
     city: 'Homestead',
     state: 'FL',
     zip: '33032',
     sqft: 1545,
     sqftFirstFloor: 600,
-    sqftFirstFloorRec: 660,
+    sqftFirstFloorRec: 642, // +7%
     sqftSecondFloor: 560,
-    sqftSecondFloorRec: 620,
+    sqftSecondFloorRec: 600, // +7%
     sqftNet: 1160,
-    sqftMaterialRecommended: 1280,
+    sqftMaterialRecommended: 1242, // +7%
     priceFrom: 504990,
     stepsCount: 15,
     bedrooms: 3,
@@ -308,13 +304,13 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
     render3DImageFloor1: '/images/renders/floor1-3d-render.jpg',
     render3DImageFloor2: '/images/renders/floor2-3d-render.jpg',
     render3DImageBoth: '/images/renders/both-floors-3d-render.jpg',
-    description: '3 bd · 2.5 ba · 1,545 ft² — El modelo Reserve maximiza la luz y el confort, con Family Room posterior de 17\'6"x12\'0", Living & Dining Room de 14\'0"x12\'0" al frente y cocina amplia. En planta alta ofrece Owner\'s Suite de 12\'x12\'10", Bedroom 2 (12\'x10\'6"), Bedroom 3 (11\'x10\') y 15 escalones.',
+    description: '3 bd · 2.5 ba · 1,545 ft² — El modelo R maximiza la luz y el confort, con Family Room posterior de 17\'6"x12\'0", Living & Dining Room de 14\'0"x12\'0" al frente y cocina amplia. En planta alta ofrece Owner\'s Suite de 12\'x12\'10", Bedroom 2 (12\'x10\'6"), Bedroom 3 (11\'x10\') y 15 escalones Flush Stair Nose.',
     highlights: [
       'Total Construcción: 1,545 SF (3 Hab / 2.5 Baños)',
-      '1er Piso Neto: ~600 SF (Recomendado: 660 SF)',
-      '2do Piso Neto: ~560 SF (Recomendado: 620 SF)',
-      'Casa Completa Recomendada: ~1,280 SF',
-      'Escaleras: 15 Escalones con Nosing al Ras',
+      '1er Piso Neto: ~600 SF (Recomendado +7%: 642 SF)',
+      '2do Piso Neto: ~560 SF (Recomendado +7%: 600 SF)',
+      'Casa Completa (+7% Desperdicio): ~1,242 SF',
+      'Escaleras: 15 Escalones Flush Stair Nose',
     ],
     rooms: [
       { name: "Owner's Suite", dimensions: "12' 0\" x 12' 10\"", sqft: 154, highlight: true, type: 'master' },
@@ -346,29 +342,28 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
   },
 
   // ========================================================
-  // 5. VENCE — ADORA COLLECTION (Siena Reserve)
-  // Exact Lennar: 1,668 sq ft · 3 Beds · 2.5 Baths
+  // 5. V MODEL (Vence — Siena Reserve)
   // ========================================================
   {
-    id: 'siena-reserve_adora_vence',
-    slug: 'siena-reserve_adora_vence',
-    name: 'Vence',
-    displayNameSafe: 'Vence - Adora Collection',
+    id: 'siena-reserve_v-model',
+    slug: 'v-model',
+    name: 'V Model',
+    displayNameSafe: 'V Model',
     communityId: 'siena-reserve',
     communityName: 'Siena Reserve',
-    collection: 'Adora Collection',
-    collectionSlug: 'adora',
+    collection: 'Townhomes',
+    collectionSlug: 'townhomes',
     address: '12705 SW 232nd St',
     city: 'Homestead',
     state: 'FL',
     zip: '33032',
     sqft: 1668,
     sqftFirstFloor: 650,
-    sqftFirstFloorRec: 715,
+    sqftFirstFloorRec: 696, // +7%
     sqftSecondFloor: 610,
-    sqftSecondFloorRec: 670,
+    sqftSecondFloorRec: 653, // +7%
     sqftNet: 1260,
-    sqftMaterialRecommended: 1385,
+    sqftMaterialRecommended: 1349, // +7%
     priceFrom: 512990,
     stepsCount: 15,
     bedrooms: 3,
@@ -386,13 +381,13 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
     render3DImageFloor1: '/images/renders/floor1-3d-render.jpg',
     render3DImageFloor2: '/images/renders/floor2-3d-render.jpg',
     render3DImageBoth: '/images/renders/both-floors-3d-render.jpg',
-    description: '3 bd · 2.5 ba · 1,668 ft² — Vence es el modelo insignia más espacioso de Siena Reserve (Adora Collection). En el primer piso cuenta con Living Room frontal (13\'10"x13\'7"), Comedor (12\'0"x10\'0") y Family Room posterior (10\'6"x16\'10"). En la segunda planta destaca su amplia Owner\'s Suite de 12\'x15\', dos habitaciones de gran tamaño y 15 escalones.',
+    description: '3 bd · 2.5 ba · 1,668 ft² — V Model es el modelo más espacioso de Siena Reserve. En el primer piso cuenta con Living Room frontal (13\'10"x13\'7"), Comedor (12\'0"x10\'0") y Family Room posterior (10\'6"x16\'10"). En la segunda planta destaca su amplia Owner\'s Suite de 12\'x15\', dos habitaciones de gran tamaño y 15 escalones Flush Stair Nose.',
     highlights: [
       'Total Construcción: 1,668 SF (3 Hab / 2.5 Baños)',
-      '1er Piso Neto: ~650 SF (Recomendado: 715 SF)',
-      '2do Piso Neto: ~610 SF (Recomendado: 670 SF)',
-      'Casa Completa Recomendada: ~1,385 SF',
-      'Escaleras: 15 Escalones con Nosing al Ras',
+      '1er Piso Neto: ~650 SF (Recomendado +7%: 696 SF)',
+      '2do Piso Neto: ~610 SF (Recomendado +7%: 653 SF)',
+      'Casa Completa (+7% Desperdicio): ~1,349 SF',
+      'Escaleras: 15 Escalones Flush Stair Nose',
     ],
     rooms: [
       { name: "Owner's Suite", dimensions: "12' 0\" x 15' 0\"", sqft: 180, highlight: true, type: 'master' },
@@ -426,4 +421,5 @@ export const FLOOR_PLAN_MODELS: FloorPlanModel[] = [
 ];
 
 export const SIENA_RESERVE_MODELS = FLOOR_PLAN_MODELS;
+
 

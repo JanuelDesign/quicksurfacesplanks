@@ -3,18 +3,18 @@ import {
   FloorPlanModel,
   FlooringProduct,
   PricingPackage,
-  BookingSubmission,
   FloorScope,
   ProductType,
+  Community,
 } from '../types';
 import { COMMUNITIES, SIENA_RESERVE_MODELS } from '../data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from '../data/products';
-import { calculateQuotePrice, formatCurrency } from '../utils/pricingCalculator';
+import { calculateQuotePrice, formatCurrency, getStairMaterialCost } from '../utils/pricingCalculator';
 import { useLanguage } from '../context/LanguageContext';
 import { SienaReserveHero } from './SienaReserveHero';
 import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
 import { Photorealistic3DRender } from './Photorealistic3DRender';
-import { FloorPlanSVG } from './FloorPlanSVG';
+import { StaircaseStepSection } from './StaircaseStepSection';
 import {
   ArrowLeft,
   ChevronRight,
@@ -29,58 +29,69 @@ import {
   Layers,
   Box,
   Flame,
-  Clock,
   Camera,
   ShieldCheck,
-  Building,
   Check,
   Info,
-  Calendar,
-  User,
-  MapPin,
-  Search,
   ZoomIn,
+  Truck,
+  Wrench,
 } from 'lucide-react';
 
-export const StepWizard: React.FC = () => {
+interface StepWizardProps {
+  initialCommunity?: Community;
+  initialModel?: FloorPlanModel;
+  initialProduct?: FlooringProduct;
+  initialPackage?: PricingPackage;
+  modelsList?: FloorPlanModel[];
+  productsList?: FlooringProduct[];
+  packagesList?: PricingPackage[];
+  isLiveSynced?: boolean;
+  onClose?: () => void;
+}
+
+export const StepWizard: React.FC<StepWizardProps> = ({
+  initialCommunity,
+  initialModel,
+  initialProduct,
+  initialPackage,
+  modelsList: propModelsList,
+  productsList: propProductsList,
+  packagesList: propPackagesList,
+  isLiveSynced,
+  onClose,
+}) => {
   const { lang } = useLanguage();
 
   // Primary lists
-  const communitiesList = COMMUNITIES;
-  const modelsList = SIENA_RESERVE_MODELS;
-  const productsList = FLOORING_PRODUCTS;
-  const packagesList = PRICING_PACKAGES;
+  const modelsList = propModelsList && propModelsList.length > 0 ? propModelsList : SIENA_RESERVE_MODELS;
+  const productsList = propProductsList && propProductsList.length > 0 ? propProductsList : FLOORING_PRODUCTS;
+  const packagesList = propPackagesList && propPackagesList.length > 0 ? propPackagesList : PRICING_PACKAGES;
 
   // Active step in the workflow (1: Model & Scope, 2: Product & Color, 3: Package, 4: Summary)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Community and Model selection
-  const [selectedCommunity, setSelectedCommunity] = useState(communitiesList[0] || COMMUNITIES[0]);
+  // Model selection (defaults to B Model)
   const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(
-    modelsList.find((m) => m.slug === 'bandol') || modelsList[0] || SIENA_RESERVE_MODELS[0]
+    modelsList.find((m) => m.slug === 'b-model' || m.slug === 'bandol') || modelsList[0] || SIENA_RESERVE_MODELS[0]
   );
 
-  // Floor Scope (1st floor only, 2nd floor only, or both)
-  const [floorScope, setFloorScope] = useState<FloorScope>('both');
+  // Floor Scope (4 options: floor1, floor1_stairs, floor2, floor2_stairs)
+  const [floorScope, setFloorScope] = useState<FloorScope>('floor1_stairs');
 
-  // Product Selection & Filters
-  const [selectedProductType, setSelectedProductType] = useState<ProductType>('vinyl');
+  // Thickness filter (5.5mm, 6mm, 8mm, or all)
   const [thicknessFilter, setThicknessFilter] = useState<string>('all');
-  const [toneFilter, setToneFilter] = useState<string>('all');
 
   const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(
     productsList[0] || FLOORING_PRODUCTS[0]
   );
-  const [viewMode3D, setViewMode3D] = useState<'room' | 'plank' | 'stairs'>('room');
+  const [viewMode3D, setViewMode3D] = useState<'room' | 'plank'>('room');
 
   // Package Selection
   const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(
-    packagesList.find((p) => p.isTurnkey && p.isBestValue) || packagesList[2] || PRICING_PACKAGES[2]
+    packagesList.find((p) => p.isTurnkey) || packagesList[0] || PRICING_PACKAGES[0]
   );
   const [packageType, setPackageType] = useState<'all' | 'turnkey' | 'material'>('all');
-
-  // Interactive View Toggles
-  const [showFloorPlanDetail, setShowFloorPlanDetail] = useState<boolean>(false);
 
   // Lead Form Data
   const [formData, setFormData] = useState({
@@ -95,17 +106,7 @@ export const StepWizard: React.FC = () => {
   // Dynamic Quote Calculation
   const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage, floorScope);
 
-  // Scroll references
-  const thicknessScrollRef = useRef<HTMLDivElement>(null);
-  const toneScrollRef = useRef<HTMLDivElement>(null);
-
-  const scrollHorizontally = (ref: React.RefObject<HTMLDivElement | null>, offset: number) => {
-    if (ref.current) {
-      ref.current.scrollBy({ left: offset, behavior: 'smooth' });
-    }
-  };
-
-  // Sync selected model if community changes or when fresh models load
+  // Sync selected model if fresh models load
   useEffect(() => {
     const matchingModel = modelsList.find(
       (m) => m.id === selectedModel.id || m.slug === selectedModel.slug
@@ -123,14 +124,9 @@ export const StepWizard: React.FC = () => {
     }
   }, [productsList]);
 
-  // Filtered products based on ProductType, Thickness, Tone
+  // Filtered products based on Thickness (only SPC vinyl is in the catalog)
   const filteredProducts = productsList.filter((p) => {
-    const pType = p.productType || 'vinyl';
-    if (pType !== selectedProductType) return false;
-    if (selectedProductType === 'vinyl') {
-      if (thicknessFilter !== 'all' && p.category !== thicknessFilter) return false;
-    }
-    if (toneFilter !== 'all' && p.tone !== toneFilter) return false;
+    if (thicknessFilter !== 'all' && p.category !== thicknessFilter) return false;
     return true;
   });
 
@@ -139,7 +135,7 @@ export const StepWizard: React.FC = () => {
     if (filteredProducts.length > 0 && !filteredProducts.some((p) => p.id === selectedProduct.id)) {
       setSelectedProduct(filteredProducts[0]);
     }
-  }, [selectedProductType, thicknessFilter, toneFilter]);
+  }, [thicknessFilter]);
 
   const filteredPackages = packagesList.filter((pkg) => {
     if (packageType === 'turnkey') return pkg.isTurnkey;
@@ -165,20 +161,20 @@ export const StepWizard: React.FC = () => {
 
   const stepMeta = [
     {
-      title: lang === 'es' ? 'Siena Reserve & Modelo Bandol' : 'Siena Reserve & Bandol Model',
-      subtitle: lang === 'es' ? 'Plano 2D Arquitectónico y Selección de Pisos' : '2D Architectural Plan & Scope',
+      title: lang === 'es' ? 'Siena Reserve Townhomes' : 'Siena Reserve Townhomes',
+      subtitle: lang === 'es' ? 'Plano 2D Arquitectónico y Área a Remodelar' : '2D Architectural Plan & Scope',
     },
     {
-      title: lang === 'es' ? 'Tipo de Producto y Color' : 'Product Type & Color Selection',
-      subtitle: lang === 'es' ? 'Vinilo SPC, Laminado o Madera de Ingeniería' : 'SPC Vinyl, Laminate or Hardwood',
+      title: lang === 'es' ? 'Catálogo SPC y Selección de Color' : 'SPC Catalog & Color Selection',
+      subtitle: lang === 'es' ? 'Pisos Vinílicos SPC 100% Impermeables con 15 Escalones Flush Nose' : '100% Waterproof SPC Vinyl with 15 Flush Stair Noses',
     },
     {
       title: lang === 'es' ? 'Paquetes de Instalación y Estimado' : 'Installation Packages & Estimate',
-      subtitle: lang === 'es' ? 'Precios cerrados llave en mano con escalones' : 'Turnkey transparent pricing with stairs',
+      subtitle: lang === 'es' ? 'Precios transparentes desglosados con mano de obra y flete' : 'Itemized transparent pricing with labor and delivery',
     },
     {
       title: lang === 'es' ? 'Resumen Oficial y Cotización' : 'Official Summary & Estimate',
-      subtitle: lang === 'es' ? 'Envío directo por WhatsApp a QuickSurfaces' : 'Direct dispatch to WhatsApp',
+      subtitle: lang === 'es' ? 'Envío directo por WhatsApp o Email' : 'Direct dispatch via WhatsApp or Email',
     },
   ];
 
@@ -200,34 +196,49 @@ export const StepWizard: React.FC = () => {
     );
   };
 
+  // Scope descriptive label
+  const getScopeLabel = () => {
+    switch (floorScope) {
+      case 'floor1':
+        return lang === 'es' ? 'Solo 1er Piso (~510 SF)' : '1st Floor Only (~510 SF)';
+      case 'floor1_stairs':
+        return lang === 'es' ? '1er Piso + 15 Escalones Flush Nose (~510 SF + 15 Esc.)' : '1st Floor + 15 Flush Stair Noses (~510 SF + 15 Steps)';
+      case 'floor2':
+        return lang === 'es' ? 'Solo 2do Piso (~465 SF)' : '2nd Floor Only (~465 SF)';
+      case 'floor2_stairs':
+        return lang === 'es' ? '2do Piso + 15 Escalones Flush Nose (~465 SF + 15 Esc.)' : '2nd Floor + 15 Flush Stair Noses (~465 SF + 15 Steps)';
+    }
+  };
+
   // WhatsApp formatted lead message
   const generateWhatsAppUrl = () => {
     const phone = '17866583677';
-    const scopeLabel =
-      floorScope === 'floor1'
-        ? 'Solo 1er Piso (~510 SF)'
-        : floorScope === 'floor2'
-        ? 'Solo 2do Piso (~465 SF + 15 Escalones)'
-        : 'Casa Completa (~975 SF + 15 Escalones)';
+    const scopeLabel = getScopeLabel();
 
     const text =
       lang === 'es'
         ? `*COTIZACIÓN QUICKSURFACES - SIENA RESERVE*
 ----------------------------------------
-📍 *Comunidad:* Siena Reserve (Adora Collection, Homestead FL 33032)
+📍 *Comunidad:* Siena Reserve (Homestead FL 33032)
 🏡 *Modelo:* ${selectedModel.name}
-📐 *Alcance Seleccionado:* ${scopeLabel}
-📦 *Material Recomendado (+10%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} cajas)
-🪜 *Escaleras:* ${quoteCalc.stepsCount} Pasos (Flush Stair Nose al ras)
+📐 *Área Seleccionada:* ${scopeLabel}
+📦 *Material Recomendado (+7%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} cajas)
+🪜 *Escaleras:* ${quoteCalc.hasStairs ? '15 Escalones Flush Stair Nose a juego' : 'No incluidas'}
 
-🎨 *Producto Elegido:*
-• Tipo: ${selectedProduct.productType === 'hardwood' ? 'Madera de Ingeniería' : selectedProduct.productType === 'laminate' ? 'Laminado AC4' : 'Piso Vinílico SPC'}
-• Modelo: #${selectedProduct.code} ${selectedProduct.name}
-• Colección: ${selectedProduct.collectionName}
-• Especificación: ${selectedProduct.thickness} · Wear Layer ${selectedProduct.wearLayer}
+🎨 *Piso SPC Elegido:*
+• Producto: #${selectedProduct.code} ${selectedProduct.name}
+• Colección: ${selectedProduct.collectionName} (${selectedProduct.thickness})
+• Capa de uso: ${selectedProduct.wearLayer}
 
-💼 *Paquete Seleccionado:* ${selectedPackage.title}
-💰 *TOTAL ESTIMADO:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Llave en mano con instalación)' : '(Solo Material)'}
+💼 *Paquete:* ${selectedPackage.title}
+💰 *DESGLOSE DE PRECIOS:*
+• Material Piso: ${formatCurrency(quoteCalc.materialFloorCost)}
+• Material Escaleras: ${quoteCalc.hasStairs ? formatCurrency(quoteCalc.materialStairsCost) : '$0.00'}
+• Mano de Obra Piso: ${selectedPackage.includesLabor ? formatCurrency(quoteCalc.laborFloorCost) : 'Por cuenta del cliente'}
+• Mano de Obra Escaleras: ${selectedPackage.includesLabor && quoteCalc.hasStairs ? formatCurrency(quoteCalc.laborStairsCost) : '$0.00'}
+• Flete Local: ${formatCurrency(quoteCalc.deliveryFee)}
+----------------------------------------
+🔥 *TOTAL ESTIMADO:* ${formatCurrency(quoteCalc.totalPrice)}
 
 👤 *Cliente:* ${formData.fullName || 'No especificado'}
 📱 *Teléfono:* ${formData.phone || 'No especificado'}
@@ -236,22 +247,28 @@ export const StepWizard: React.FC = () => {
 _Hola QuickSurfaces! Deseo confirmar la visita técnica para ver las muestras físicas en mi casa y verificar medidas._`
         : `*QUICKSURFACES ESTIMATE - SIENA RESERVE*
 ----------------------------------------
-📍 *Community:* Siena Reserve (Adora Collection, Homestead FL 33032)
+📍 *Community:* Siena Reserve (Homestead FL 33032)
 🏡 *Model:* ${selectedModel.name}
 📐 *Selected Scope:* ${scopeLabel}
-📦 *Recommended Material (+10%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
-🪜 *Stairs:* ${quoteCalc.stepsCount} Steps (Flush Stair Nose)
+📦 *Recommended Material (+7%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
+🪜 *Stairs:* ${quoteCalc.hasStairs ? '15 Custom Flush Stair Noses' : 'Not included'}
 
-🎨 *Selected Flooring:*
-• Type: ${selectedProduct.productType === 'hardwood' ? 'Engineered Hardwood' : selectedProduct.productType === 'laminate' ? 'AC4 Laminate' : 'SPC Luxury Vinyl'}
+🎨 *Selected SPC Flooring:*
 • Product: #${selectedProduct.code} ${selectedProduct.name}
-• Collection: ${selectedProduct.collectionName}
-• Specs: ${selectedProduct.thickness} · Wear Layer ${selectedProduct.wearLayer}
+• Collection: ${selectedProduct.collectionName} (${selectedProduct.thickness})
+• Wear Layer: ${selectedProduct.wearLayer}
 
 💼 *Package:* ${selectedPackage.title}
-💰 *TOTAL ESTIMATE:* ${formatCurrency(quoteCalc.totalPrice)} ${selectedPackage.isTurnkey ? '(Turnkey with install)' : '(Material Only)'}
+💰 *PRICE BREAKDOWN:*
+• Floor Material: ${formatCurrency(quoteCalc.materialFloorCost)}
+• Stairs Material: ${quoteCalc.hasStairs ? formatCurrency(quoteCalc.materialStairsCost) : '$0.00'}
+• Floor Labor: ${selectedPackage.includesLabor ? formatCurrency(quoteCalc.laborFloorCost) : 'Customer self-installed'}
+• Stairs Labor: ${selectedPackage.includesLabor && quoteCalc.hasStairs ? formatCurrency(quoteCalc.laborStairsCost) : '$0.00'}
+• Local Delivery: ${formatCurrency(quoteCalc.deliveryFee)}
+----------------------------------------
+🔥 *ESTIMATED TOTAL:* ${formatCurrency(quoteCalc.totalPrice)}
 
-👤 *Client:* ${formData.fullName || 'Not specified'}
+👤 *Customer:* ${formData.fullName || 'Not specified'}
 📱 *Phone:* ${formData.phone || 'Not specified'}
 🏠 *Unit/Lot:* ${formData.unitNumber || 'Not specified'}
 
@@ -263,13 +280,13 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
   const generateMailtoUrl = () => {
     const subject = encodeURIComponent(
       lang === 'es'
-        ? `Cotización QuickSurfaces: Siena Reserve - Modelo ${selectedModel.name}`
-        : `QuickSurfaces Quote: Siena Reserve - Model ${selectedModel.name}`
+        ? `Cotización QuickSurfaces: Siena Reserve - ${selectedModel.name}`
+        : `QuickSurfaces Quote: Siena Reserve - ${selectedModel.name}`
     );
     const body = encodeURIComponent(
       lang === 'es'
-        ? `Hola equipo QuickSurfaces,\n\nAdjunto los detalles de mi cotización para Siena Reserve:\n- Modelo: ${selectedModel.name}\n- Alcance: ${floorScope}\n- Piso: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName})\n- Paquete: ${selectedPackage.title}\n- Total Estimado: ${formatCurrency(quoteCalc.totalPrice)}\n\nContacto:\n- Nombre: ${formData.fullName}\n- Teléfono: ${formData.phone}\n- Unidad: ${formData.unitNumber}\n\nPor favor contáctenme para agendar la visita.`
-        : `Hello QuickSurfaces team,\n\nHere are the details of my quote for Siena Reserve:\n- Model: ${selectedModel.name}\n- Scope: ${floorScope}\n- Flooring: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName})\n- Package: ${selectedPackage.title}\n- Total Estimate: ${formatCurrency(quoteCalc.totalPrice)}\n\nContact Info:\n- Name: ${formData.fullName}\n- Phone: ${formData.phone}\n- Unit: ${formData.unitNumber}\n\nPlease contact me to schedule a visit.`
+        ? `Hola equipo QuickSurfaces,\n\nAdjunto los detalles de mi cotización para Siena Reserve:\n- Modelo: ${selectedModel.name}\n- Alcance: ${getScopeLabel()}\n- Piso SPC: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName} ${selectedProduct.thickness})\n- Paquete: ${selectedPackage.title}\n- Total Estimado: ${formatCurrency(quoteCalc.totalPrice)}\n\nContacto:\n- Nombre: ${formData.fullName}\n- Teléfono: ${formData.phone}\n- Unidad: ${formData.unitNumber}\n\nPor favor contáctenme para agendar la visita.`
+        : `Hello QuickSurfaces team,\n\nHere are the details of my quote for Siena Reserve:\n- Model: ${selectedModel.name}\n- Scope: ${getScopeLabel()}\n- SPC Flooring: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName} ${selectedProduct.thickness})\n- Package: ${selectedPackage.title}\n- Total Estimate: ${formatCurrency(quoteCalc.totalPrice)}\n\nContact Info:\n- Name: ${formData.fullName}\n- Phone: ${formData.phone}\n- Unit: ${formData.unitNumber}\n\nPlease contact me to schedule a visit.`
     );
     return `mailto:sales@quicksurfaces.com?subject=${subject}&body=${body}`;
   };
@@ -325,7 +342,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
             ) : (
               <div className="text-right px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200">
                 <span className="text-[9px] text-slate-500 font-bold uppercase block">
-                  {lang === 'es' ? 'Siena Reserve' : 'Siena Reserve'}
+                  Siena Reserve
                 </span>
                 <span className="text-xs font-black text-slate-800">
                   Homestead, FL
@@ -347,18 +364,122 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
       {/* ================= SCREEN CONTENT (STEP BY STEP) ================= */}
       <div className="p-4 sm:p-7 flex-grow bg-[#FAFAFA]">
         {/* ========================================================
-            SCREEN 1: SIENA RESERVE & MODEL BANDOL 2D PLAN
+            SCREEN 1: SIENA RESERVE & 4 AREA SELECTIONS
         ======================================================== */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-fadeIn">
-            {/* Facade Hero Banner with 1st/2nd/Both Floor Scope Selector */}
-            <SienaReserveHero
-              floorScope={floorScope}
-              onChangeFloorScope={setFloorScope}
-              model={selectedModel}
-            />
+            {/* Facade Hero Banner */}
+            <SienaReserveHero model={selectedModel} />
 
-            {/* Model Selection Tabs (Bandol, Casis, Monte Carlo, Reserve, Vence) */}
+            {/* Scope Selection Section (Distinctive Dark Background) */}
+            <div className="bg-[#0B1120] text-white p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF8407]/10 rounded-full blur-3xl pointer-events-none"></div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-4 relative z-10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-[#FF8407] flex items-center justify-center text-black font-black shadow-md">
+                    <Layers className="w-4 h-4 text-black" />
+                  </div>
+                  <div>
+                    <span className="text-xs sm:text-sm font-black text-white tracking-wide uppercase block">
+                      {lang === 'es' ? '¿Qué área deseas remodelar?' : 'Which area do you want to remodel?'}
+                    </span>
+                    <span className="text-[11px] text-[#94A3B8] font-medium block">
+                      {lang === 'es'
+                        ? 'Selecciona una de las 4 opciones para actualizar planos y presupuesto:'
+                        : 'Select one of 4 scopes to update plans & estimate:'}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-[#FF8407] bg-[#FF8407]/15 px-2.5 py-1 rounded-full border border-[#FF8407]/30 self-start sm:self-auto">
+                  {lang === 'es' ? 'Cálculo a Medida' : 'Precision Scope'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10">
+                <button
+                  type="button"
+                  onClick={() => setFloorScope('floor1')}
+                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    floorScope === 'floor1'
+                      ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
+                      : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black text-white leading-tight">
+                      {lang === 'es' ? '1) Solo 1er Piso' : '1) 1st Floor Only'}
+                    </span>
+                    {floorScope === 'floor1' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
+                  </div>
+                  <span className="text-[11px] text-[#FF8407] font-bold mt-2 block">
+                    ~{selectedModel.sqftFirstFloorRec || 546} SF
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFloorScope('floor1_stairs')}
+                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    floorScope === 'floor1_stairs'
+                      ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
+                      : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black text-white leading-tight">
+                      {lang === 'es' ? '2) 1er Piso + Escaleras' : '2) 1st Floor + Stairs'}
+                    </span>
+                    {floorScope === 'floor1_stairs' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
+                  </div>
+                  <span className="text-[11px] text-[#FF8407] font-bold mt-2 block">
+                    ~{selectedModel.sqftFirstFloorRec || 546} SF + 15 Esc.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFloorScope('floor2')}
+                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    floorScope === 'floor2'
+                      ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
+                      : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black text-white leading-tight">
+                      {lang === 'es' ? '3) Solo 2do Piso' : '3) 2nd Floor Only'}
+                    </span>
+                    {floorScope === 'floor2' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
+                  </div>
+                  <span className="text-[11px] text-[#FF8407] font-bold mt-2 block">
+                    ~{selectedModel.sqftSecondFloorRec || 498} SF
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFloorScope('floor2_stairs')}
+                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    floorScope === 'floor2_stairs'
+                      ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
+                      : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black text-white leading-tight">
+                      {lang === 'es' ? '4) 2do Piso + Escaleras' : '4) 2nd Floor + Stairs'}
+                    </span>
+                    {floorScope === 'floor2_stairs' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
+                  </div>
+                  <span className="text-[11px] text-[#FF8407] font-bold mt-2 block">
+                    ~{selectedModel.sqftSecondFloorRec || 498} SF + 15 Esc.
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Model Selection Tabs (B Model, C Model, MC Model, R Model, V Model) */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <div className="min-w-0">
@@ -369,7 +490,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   </span>
                   <span className="text-[11px] text-[#64748B] block font-medium truncate">
                     {lang === 'es' ? 'Seleccionado actualmente:' : 'Currently selected:'}{' '}
-                    <strong className="text-[#0F172A] font-black">{selectedModel.name} (Adora Collection)</strong>
+                    <strong className="text-[#0F172A] font-black">{selectedModel.name}</strong>
                   </span>
                 </div>
               </div>
@@ -398,13 +519,11 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                         </span>
                       </div>
                       <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500 font-medium">{lang === 'es' ? 'Recomendado:' : 'Recommended:'}</span>
+                        <span className="text-slate-500 font-medium">{lang === 'es' ? 'Área:' : 'Area:'}</span>
                         <span className="font-bold text-[#FF8407]">
-                          {floorScope === 'floor1'
-                            ? `${m.sqftFirstFloorRec || 560} SF`
-                            : floorScope === 'floor2'
-                            ? `${m.sqftSecondFloorRec || 520} SF`
-                            : `${m.sqftMaterialRecommended || 1080} SF`}
+                          {floorScope === 'floor1' || floorScope === 'floor1_stairs'
+                            ? `${m.sqftFirstFloorRec || 546} SF`
+                            : `${m.sqftSecondFloorRec || 498} SF`}
                         </span>
                       </div>
                     </button>
@@ -413,7 +532,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               </div>
             </div>
 
-            {/* 2D ARCHITECTURAL FLOOR PLAN (Bandol 1st & 2nd floor with big dims & grayscale CAD style) */}
+            {/* 2D ARCHITECTURAL FLOOR PLAN (Shows only the selected floor) */}
             <div className="mt-6 animate-fadeIn space-y-5">
               <InteractiveFloorPlan2D
                 model={selectedModel}
@@ -422,7 +541,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 onChangeFloorScope={setFloorScope}
               />
 
-              {/* Photorealistic 3D Dollhouse Render */}
+              {/* Photorealistic 3D Dollhouse Render (Always shows 2nd floor with stairs) */}
               <Photorealistic3DRender
                 model={selectedModel}
                 floorScope={floorScope}
@@ -454,7 +573,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   </div>
                   <p className="text-[11px] text-[#94A3B8] mt-0.5">
                     {lang === 'es'
-                      ? 'Toma una foto de tu sala o recámara en Siena Reserve y pruébate los colores en tiempo real.'
+                      ? 'Toma una foto de tu espacio en Siena Reserve y pruébate los colores en tiempo real.'
                       : 'Take a photo of your room in Siena Reserve and test flooring shades in real-time.'}
                   </p>
                 </div>
@@ -474,10 +593,10 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               </a>
             </div>
 
-            {/* Interactive Viewport Frame (Room / Plank / Stairs) */}
-            <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-sm">
+            {/* Interactive Viewport Frame (Room View / Plank Closeup) - No Staircase tab */}
+            <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0] overflow-x-auto [scrollbar-width:none]">
+                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
                   <button
                     type="button"
                     onClick={() => setViewMode3D('room')}
@@ -502,18 +621,6 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     <ZoomIn className="w-3.5 h-3.5 text-[#FF8407]" />
                     <span>{lang === 'es' ? 'Foto Tablón' : 'Plank Closeup'}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode3D('stairs')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                      viewMode3D === 'stairs'
-                        ? 'bg-[#0F172A] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#0F172A]'
-                    }`}
-                  >
-                    <Layers className="w-3.5 h-3.5" />
-                    <span>{lang === 'es' ? 'Escaleras' : 'Staircase'}</span>
-                  </button>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -530,32 +637,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   src={
                     viewMode3D === 'room'
                       ? selectedProduct.roomPreviewUrl || selectedProduct.imageUrl
-                      : viewMode3D === 'plank'
-                      ? selectedProduct.plankImageUrl || selectedProduct.imageUrl
-                      : selectedProduct.staircasePreviewUrl || selectedProduct.imageUrl
+                      : selectedProduct.plankImageUrl || selectedProduct.imageUrl
                   }
                   alt={selectedProduct.name}
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-all duration-300"
                 />
-
-                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between p-2.5 rounded-xl bg-black/80 backdrop-blur-md text-white border border-white/10 text-xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="w-4 h-4 rounded-full border border-white shrink-0 shadow-sm"
-                      style={{ backgroundColor: selectedProduct.colorHex }}
-                    ></span>
-                    <span className="font-black truncate">{selectedProduct.name}</span>
-                    <span className="text-white/70 text-[11px] hidden sm:inline truncate">
-                      ({selectedProduct.collectionName})
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] shrink-0">
-                    <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
-                    <span>•</span>
-                    <span>{selectedProduct.wearLayer}</span>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -568,8 +655,8 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
                     {lang === 'es'
-                      ? `Cálculo de Cajas: Modelo ${selectedModel.name}`
-                      : `Box Calculation: Model ${selectedModel.name}`}
+                      ? `Cálculo de Cajas: ${selectedModel.name}`
+                      : `Box Calculation: ${selectedModel.name}`}
                   </h4>
                   <p className="text-[11px] text-[#64748B]">
                     {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft {lang === 'es' ? 'por caja' : 'per box'}
@@ -580,7 +667,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
                 <div className="text-left sm:text-right">
                   <span className="text-[9px] text-[#64748B] block font-bold uppercase">
-                    {lang === 'es' ? 'Material (+10% margen)' : 'Required Material'}
+                    {lang === 'es' ? 'Material (+7% desperdicio)' : 'Material (+7% waste)'}
                   </span>
                   <span className="text-xs font-black text-[#0F172A]">
                     {quoteCalc.sqftMaterialRecommended} SF
@@ -598,169 +685,99 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               </div>
             </div>
 
-            {/* DEDICATED FILTERS: 1. PRODUCT TYPE | 2. THICKNESS / COLLECTION | 3. TONE */}
-            <div className="space-y-4 bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
-              {/* Filter 1: Product Type (Vinyl / Laminate / Hardwood) */}
-              <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#0F172A] block mb-2">
-                  {lang === 'es' ? '1. Tipo de Material / Producto:' : '1. Product Type / Material:'}
+            {/* SPC COLLECTION & THICKNESS FILTER - ENLARGED BUTTONS, NO TONE FILTER, NO FLAGSHIP */}
+            <div className="space-y-3 bg-[#FFFFFF] p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
+                  {lang === 'es' ? 'Colección y Espesor de Piso SPC:' : 'SPC Collection & Thickness:'}
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProductType('vinyl');
-                      setThicknessFilter('all');
-                    }}
-                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
-                      selectedProductType === 'vinyl'
-                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
-                        : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]'
-                    }`}
-                  >
-                    <div>
-                      <span className="text-xs font-black block">
-                        {lang === 'es' ? 'Pisos Vinílicos SPC' : 'SPC Luxury Vinyl Flooring'}
-                      </span>
-                      <span className="text-[10px] opacity-75">
-                        {lang === 'es' ? '100% Impermeables • 5.5mm a 8.0mm' : '100% Waterproof • 5.5mm to 8.0mm'}
-                      </span>
-                    </div>
-                    {selectedProductType === 'vinyl' && <Check className="w-4 h-4 text-[#FF8407]" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProductType('laminate');
-                      setThicknessFilter('all');
-                    }}
-                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
-                      selectedProductType === 'laminate'
-                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
-                        : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]'
-                    }`}
-                  >
-                    <div>
-                      <span className="text-xs font-black block">
-                        {lang === 'es' ? 'Piso Laminado AC4' : 'AC4 Laminate Flooring'}
-                      </span>
-                      <span className="text-[10px] opacity-75">
-                        {lang === 'es' ? '12.0mm • Scratch Guard Ultra' : '12.0mm • Scratch Guard Ultra'}
-                      </span>
-                    </div>
-                    {selectedProductType === 'laminate' && <Check className="w-4 h-4 text-[#FF8407]" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProductType('hardwood');
-                      setThicknessFilter('all');
-                    }}
-                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
-                      selectedProductType === 'hardwood'
-                        ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-md ring-2 ring-[#FF8407]'
-                        : 'bg-[#F8FAFC] text-[#475569] border-[#E2E8F0] hover:bg-[#F1F5F9]'
-                    }`}
-                  >
-                    <div>
-                      <span className="text-xs font-black block">
-                        {lang === 'es' ? 'Madera de Ingeniería' : 'Engineered Hardwood'}
-                      </span>
-                      <span className="text-[10px] opacity-75">
-                        {lang === 'es' ? '1/2" Roble Europeo Genuino' : '1/2" Genuine European Oak'}
-                      </span>
-                    </div>
-                    {selectedProductType === 'hardwood' && <Check className="w-4 h-4 text-[#FF8407]" />}
-                  </button>
-                </div>
+                <span className="text-xs text-slate-500 font-medium">
+                  {lang === 'es' ? 'Pisos Vinílicos 100% Impermeables' : '100% Waterproof SPC Vinyl'}
+                </span>
               </div>
 
-              {/* Filter 2: Specific Collections for Vinyl (5.5mm Pulse Select / 6.0mm Pulse Shield XL / 8.0mm XL Pulse) */}
-              {selectedProductType === 'vinyl' && (
-                <div>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-[#0F172A] block mb-1.5">
-                    {lang === 'es' ? '2. Colección & Espesor SPC:' : '2. SPC Collection & Thickness:'}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setThicknessFilter('all')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        thicknessFilter === 'all'
-                          ? 'bg-[#FF8407] text-black shadow-xs'
-                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
-                      }`}
-                    >
-                      {lang === 'es' ? 'Todos los Espesores' : 'All Thicknesses'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setThicknessFilter('5.5mm')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        thicknessFilter === '5.5mm'
-                          ? 'bg-[#FF8407] text-black shadow-xs'
-                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
-                      }`}
-                    >
-                      5.5 mm — Pulse Select
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setThicknessFilter('6mm')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        thicknessFilter === '6mm'
-                          ? 'bg-[#FF8407] text-black shadow-xs'
-                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
-                      }`}
-                    >
-                      6.0 mm — Pulse Shield XL
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setThicknessFilter('8mm')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        thicknessFilter === '8mm'
-                          ? 'bg-[#FF8407] text-black shadow-xs'
-                          : 'bg-[#F1F5F9] text-[#64748B] hover:text-black'
-                      }`}
-                    >
-                      8.0 mm — XL Pulse (Flagship)
-                    </button>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setThicknessFilter('5.5mm')}
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    thicknessFilter === '5.5mm'
+                      ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-lg ring-2 ring-[#FF8407]'
+                      : 'bg-[#F8FAFC] text-[#1E293B] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-base font-black">5.5 mm</span>
+                      {thicknessFilter === '5.5mm' && <Check className="w-4 h-4 text-[#FF8407]" />}
+                    </div>
+                    <span className="text-xs font-bold block opacity-90">Pulse Select</span>
+                    <span className="text-[11px] opacity-75 block mt-0.5">20 Mil Commercial Wear Layer</span>
                   </div>
+                  <div className="mt-3 pt-2 border-t border-white/20 flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#FF8407]">$1.69 / SF</span>
+                    <span className="text-[10px] opacity-70">7" x 48"</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setThicknessFilter('6mm')}
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    thicknessFilter === '6mm'
+                      ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-lg ring-2 ring-[#FF8407]'
+                      : 'bg-[#F8FAFC] text-[#1E293B] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-base font-black">6.0 mm</span>
+                      {thicknessFilter === '6mm' && <Check className="w-4 h-4 text-[#FF8407]" />}
+                    </div>
+                    <span className="text-xs font-bold block opacity-90">Pulse Shield XL</span>
+                    <span className="text-[11px] opacity-75 block mt-0.5">20 Mil • Formato Extra Largo</span>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-white/20 flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#FF8407]">$1.89 / SF</span>
+                    <span className="text-[10px] opacity-70">9" x 60" XL</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setThicknessFilter('8mm')}
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    thicknessFilter === '8mm'
+                      ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-lg ring-2 ring-[#FF8407]'
+                      : 'bg-[#F8FAFC] text-[#1E293B] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-base font-black">8.0 mm</span>
+                      {thicknessFilter === '8mm' && <Check className="w-4 h-4 text-[#FF8407]" />}
+                    </div>
+                    <span className="text-xs font-bold block opacity-90">XL Pulse</span>
+                    <span className="text-[11px] opacity-75 block mt-0.5">22 Mil Heavy Commercial • Pad IXPE</span>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-white/20 flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#FF8407]">$2.39 / SF</span>
+                    <span className="text-[10px] opacity-70">9" x 60" XL</span>
+                  </div>
+                </button>
+              </div>
+
+              {thicknessFilter !== 'all' && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setThicknessFilter('all')}
+                    className="text-xs text-[#FF8407] hover:underline font-bold cursor-pointer"
+                  >
+                    {lang === 'es' ? 'Mostrar todos los espesores' : 'Show all thicknesses'}
+                  </button>
                 </div>
               )}
-
-              {/* Filter 3: Color Tone */}
-              <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#0F172A] block mb-1.5">
-                  {lang === 'es' ? '3. Tono de Color:' : '3. Color Tone:'}
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    { id: 'all', label: lang === 'es' ? 'Todos los Tonos' : 'All Tones' },
-                    { id: 'warm', label: lang === 'es' ? 'Cálido (Warm)' : 'Warm' },
-                    { id: 'cool', label: lang === 'es' ? 'Frío / Gris (Cool)' : 'Cool / Gray' },
-                    { id: 'natural', label: lang === 'es' ? 'Natural' : 'Natural' },
-                    { id: 'light', label: lang === 'es' ? 'Claro (Light)' : 'Light' },
-                    { id: 'dark', label: lang === 'es' ? 'Oscuro (Dark)' : 'Dark' },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setToneFilter(t.id)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        toneFilter === t.id
-                          ? 'bg-[#0F172A] text-white shadow-xs'
-                          : 'bg-[#F8FAFC] border border-[#CBD5E1] text-[#64748B] hover:text-black'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Product Swatches Grid */}
@@ -796,10 +813,6 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"
                           />
-                          <div
-                            className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full border border-white shadow-sm"
-                            style={{ backgroundColor: p.colorHex }}
-                          ></div>
                         </div>
 
                         <span className="font-black text-xs text-[#0F172A] block truncate">{p.name}</span>
@@ -824,6 +837,11 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 })}
               </div>
             </div>
+
+            {/* DEDICATED STAIR DETAIL SECTION (Appears when stairs are in scope) */}
+            {(floorScope === 'floor1_stairs' || floorScope === 'floor2_stairs') && (
+              <StaircaseStepSection selectedProduct={selectedProduct} />
+            )}
           </div>
         )}
 
@@ -834,49 +852,18 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
           <div className="space-y-6 animate-fadeIn">
             <div>
               <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
-                {lang === 'es' ? 'Selecciona tu Paquete de Instalación' : 'Select Installation Package'}
+                {lang === 'es' ? 'Selecciona tu Paquete' : 'Select Package'}
               </h3>
               <p className="text-xs text-[#64748B] mt-0.5">
                 {lang === 'es'
-                  ? `Calculado para ${selectedModel.name} en Siena Reserve (${quoteCalc.sqftMaterialRecommended} SF recomendados).`
-                  : `Calculated for ${selectedModel.name} in Siena Reserve (${quoteCalc.sqftMaterialRecommended} SF recommended).`}
+                  ? `Calculado para ${selectedModel.name} en Siena Reserve (${quoteCalc.sqftMaterialRecommended} SF con +7% de desperdicio).`
+                  : `Calculated for ${selectedModel.name} in Siena Reserve (${quoteCalc.sqftMaterialRecommended} SF with +7% waste factor).`}
               </p>
             </div>
 
-            {/* Turnkey vs Material Tabs */}
-            <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1] w-full sm:w-auto self-start">
-              <button
-                type="button"
-                onClick={() => setPackageType('all')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  packageType === 'all' ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#64748B] hover:text-[#0F172A]'
-                }`}
-              >
-                {lang === 'es' ? 'Todos los Paquetes' : 'All Packages'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPackageType('turnkey')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  packageType === 'turnkey' ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#64748B] hover:text-[#0F172A]'
-                }`}
-              >
-                {lang === 'es' ? 'Llave en Mano Completo' : 'Turnkey Complete'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPackageType('material')}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  packageType === 'material' ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#64748B] hover:text-[#0F172A]'
-                }`}
-              >
-                {lang === 'es' ? 'Solo Material' : 'Material Only'}
-              </button>
-            </div>
-
-            {/* Package Cards Grid */}
+            {/* Package Cards Grid - Direct side by side display without filter */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredPackages.map((pkg) => {
+              {packagesList.map((pkg) => {
                 const isSelected = selectedPackage.id === pkg.id;
                 const calc = calculateQuotePrice(selectedModel, selectedProduct, pkg, floorScope);
 
@@ -899,8 +886,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div>
-                          <h4 className="font-black text-base text-[#0F172A]">{pkg.title}</h4>
-                          <p className="text-xs text-[#64748B] mt-0.5">{pkg.tagline}</p>
+                          <h4 className="font-black text-base text-[#0F172A]">
+                            {lang === 'es' ? pkg.title : (pkg.titleEn || pkg.title)}
+                          </h4>
+                          <p className="text-xs text-[#64748B] mt-0.5">
+                            {lang === 'es' ? pkg.tagline : (pkg.taglineEn || pkg.tagline)}
+                          </p>
                         </div>
                       </div>
 
@@ -915,17 +906,49 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                         <span className="text-xs font-bold text-slate-700">
                           {pkg.isTurnkey
                             ? lang === 'es'
-                              ? 'Llave en mano'
-                              : 'Turnkey'
+                              ? 'Material + Instalación'
+                              : 'Material + Install'
                             : lang === 'es'
                             ? 'Solo Material'
                             : 'Material Only'}
                         </span>
                       </div>
 
+                      {/* Cost Breakdown Pills inside card */}
+                      <div className="space-y-1.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[11px] text-slate-700 mb-3">
+                        <div className="flex items-center justify-between">
+                          <span>{lang === 'es' ? 'Material Piso:' : 'Floor Material:'}</span>
+                          <strong className="text-slate-900">{formatCurrency(calc.materialFloorCost)}</strong>
+                        </div>
+                        {calc.hasStairs && (
+                          <div className="flex items-center justify-between">
+                            <span>{lang === 'es' ? 'Material 15 Escalones:' : '15 Stair Steps Material:'}</span>
+                            <strong className="text-slate-900">{formatCurrency(calc.materialStairsCost)}</strong>
+                          </div>
+                        )}
+                        {pkg.includesLabor && (
+                          <>
+                            <div className="flex items-center justify-between">
+                              <span>{lang === 'es' ? 'Mano de Obra Piso ($2/SF):' : 'Floor Labor ($2/SF):'}</span>
+                              <strong className="text-slate-900">{formatCurrency(calc.laborFloorCost)}</strong>
+                            </div>
+                            {calc.hasStairs && (
+                              <div className="flex items-center justify-between">
+                                <span>{lang === 'es' ? 'Mano de Obra Escaleras:' : 'Stairs Labor:'}</span>
+                                <strong className="text-slate-900">{formatCurrency(calc.laborStairsCost)}</strong>
+                              </div>
+                            )}
+                          </>
+                        )}
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+                          <span>{lang === 'es' ? 'Flete y Entrega Local:' : 'Local Delivery:'}</span>
+                          <strong className="text-slate-900">{formatCurrency(calc.deliveryFee)}</strong>
+                        </div>
+                      </div>
+
                       {/* Features Checklist */}
                       <ul className="space-y-1.5 my-3">
-                        {pkg.features.map((feat, idx) => (
+                        {(lang === 'es' ? pkg.features : (pkg.featuresEn || pkg.features)).map((feat, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-xs text-[#334155]">
                             <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
                             <span>{feat}</span>
@@ -953,6 +976,21 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 );
               })}
             </div>
+
+            {/* Disclaimer note */}
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+              <Info className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+              <div>
+                <strong className="font-black block">
+                  {lang === 'es' ? 'Información sobre Precios e Instalación' : 'Pricing & Installation Notes'}
+                </strong>
+                <p className="mt-0.5 leading-relaxed text-amber-800 text-[11px]">
+                  {lang === 'es'
+                    ? 'Los servicios de instalación y remodelación son ejecutados por aliados expertos certificados. Para la opción Solo Material, el precio final de mano de obra puede variar tras la inspección presencial (ej. nivelación de piso, preparación especial).'
+                    : 'Installation and remodeling services are performed by certified expert partner contractors. For Material Only, installation costs may vary upon on-site inspection (e.g. subfloor leveling, special prep).'}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -969,21 +1007,10 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {lang === 'es' ? 'Resumen de Cotización' : 'Quote Summary'}
                   </span>
                   <h3 className="text-xl font-black text-[#0F172A] mt-1.5">
-                    Siena Reserve — {lang === 'es' ? 'Modelo' : 'Model'} {selectedModel.name}
+                    Siena Reserve — {selectedModel.name}
                   </h3>
                   <p className="text-xs text-[#64748B]">
-                    {lang === 'es' ? 'Alcance:' : 'Scope:'}{' '}
-                    {floorScope === 'floor1'
-                      ? lang === 'es'
-                        ? 'Solo 1er Piso'
-                        : '1st Floor Only'
-                      : floorScope === 'floor2'
-                      ? lang === 'es'
-                        ? 'Solo 2do Piso'
-                        : '2nd Floor Only'
-                      : lang === 'es'
-                      ? 'Casa Completa (Ambos Pisos)'
-                      : 'Entire Home (Both Floors)'}
+                    {lang === 'es' ? 'Alcance:' : 'Scope:'} {getScopeLabel()}
                   </p>
                 </div>
 
@@ -1007,7 +1034,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                   <span className="text-slate-500 font-medium block">
-                    {lang === 'es' ? 'Metraje de Material' : 'Material Coverage'}
+                    {lang === 'es' ? 'Metraje de Material (+7%)' : 'Material Coverage (+7%)'}
                   </span>
                   <strong className="text-slate-900 block mt-0.5">{quoteCalc.sqftMaterialRecommended} SF</strong>
                   <span className="text-[11px] text-slate-500">
@@ -1020,10 +1047,10 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {lang === 'es' ? 'Escaleras' : 'Stairs'}
                   </span>
                   <strong className="text-slate-900 block mt-0.5">
-                    {quoteCalc.stepsCount} {lang === 'es' ? 'Pasos' : 'Steps'}
+                    {quoteCalc.hasStairs ? (lang === 'es' ? '15 Escalones' : '15 Steps') : (lang === 'es' ? 'No incluidas' : 'None')}
                   </strong>
                   <span className="text-[11px] text-slate-500">
-                    {lang === 'es' ? 'Flush Stair Nose al ras' : 'Flush Stair Nose'}
+                    {quoteCalc.hasStairs ? (lang === 'es' ? 'Flush Stair Nose al ras' : 'Flush Stair Nose') : '-'}
                   </span>
                 </div>
 
@@ -1031,21 +1058,64 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   <span className="text-slate-500 font-medium block">
                     {lang === 'es' ? 'Paquete' : 'Package'}
                   </span>
-                  <strong className="text-slate-900 block mt-0.5">{selectedPackage.title}</strong>
+                  <strong className="text-slate-900 block mt-0.5">
+                    {lang === 'es' ? selectedPackage.title : (selectedPackage.titleEn || selectedPackage.title)}
+                  </strong>
                   <span className="text-[11px] text-emerald-600 font-bold">
                     {selectedPackage.isTurnkey
                       ? lang === 'es'
-                        ? 'Llave en Mano'
-                        : 'Turnkey'
+                        ? 'Material + Instalación'
+                        : 'Material + Install'
                       : lang === 'es'
-                      ? 'Material'
+                      ? 'Solo Material'
                       : 'Material Only'}
                   </span>
                 </div>
               </div>
 
+              {/* Detailed Itemized Table */}
+              <div className="mb-5 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                <h4 className="font-black text-slate-900 mb-2">
+                  {lang === 'es' ? 'Desglose Detallado de Costos' : 'Itemized Cost Breakdown'}
+                </h4>
+                <div className="space-y-2 text-slate-700">
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span>{lang === 'es' ? 'Material Piso SPC' : 'SPC Floor Material'} ({quoteCalc.sqftMaterialRecommended} SF @ ${quoteCalc.pricePerSqftMaterial.toFixed(2)}/SF):</span>
+                    <strong className="text-slate-900">{formatCurrency(quoteCalc.materialFloorCost)}</strong>
+                  </div>
+                  {quoteCalc.hasStairs && (
+                    <div className="flex justify-between py-1 border-b border-slate-200">
+                      <span>{lang === 'es' ? 'Material 15 Escalones Flush Stair Nose' : '15 Flush Stair Nose Pieces Material'}:</span>
+                      <strong className="text-slate-900">{formatCurrency(quoteCalc.materialStairsCost)}</strong>
+                    </div>
+                  )}
+                  {selectedPackage.includesLabor && (
+                    <>
+                      <div className="flex justify-between py-1 border-b border-slate-200">
+                        <span>{lang === 'es' ? 'Mano de Obra Instalación Piso' : 'Floor Installation Labor'} ({quoteCalc.sqftNet} SF @ $2.00/SF):</span>
+                        <strong className="text-slate-900">{formatCurrency(quoteCalc.laborFloorCost)}</strong>
+                      </div>
+                      {quoteCalc.hasStairs && (
+                        <div className="flex justify-between py-1 border-b border-slate-200">
+                          <span>{lang === 'es' ? 'Mano de Obra 15 Escalones' : '15 Stairs Installation Labor'}:</span>
+                          <strong className="text-slate-900">{formatCurrency(quoteCalc.laborStairsCost)}</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <div className="flex justify-between py-1 border-b border-slate-200">
+                    <span>{lang === 'es' ? 'Flete y Entrega a Obra' : 'Local Jobsite Delivery'}:</span>
+                    <strong className="text-slate-900">{formatCurrency(quoteCalc.deliveryFee)}</strong>
+                  </div>
+                  <div className="flex justify-between pt-2 text-sm font-black text-slate-900">
+                    <span className="text-[#FF8407]">{lang === 'es' ? 'TOTAL FINAL ESTIMADO' : 'ESTIMATED FINAL TOTAL'}:</span>
+                    <span className="text-[#FF8407] text-base">{formatCurrency(quoteCalc.totalPrice)}</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Contact Lead Form */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200">
                 <h4 className="text-sm font-black text-slate-900 mb-1">
                   {lang === 'es' ? 'Datos para Confirmación de Medidas' : 'Information for Measurement Verification'}
                 </h4>

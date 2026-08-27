@@ -3,6 +3,7 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { FLOOR_PLAN_MODELS, COMMUNITIES } from './data/communitiesAndModels';
 import { FLOORING_PRODUCTS, PRICING_PACKAGES } from './data/products';
 import { FloorPlanModel, FlooringProduct, PricingPackage, ResidentialCommunity } from './types';
+import { calculateQuotePrice } from './utils/pricingCalculator';
 import { GalleryItem, GALLERY_ITEMS } from './components/GallerySection';
 import { fetchLiveDatabase } from './services/googleSheetSync';
 
@@ -25,8 +26,8 @@ export default function App() {
 
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(COMMUNITIES[0]);
   const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(FLOOR_PLAN_MODELS[3] || FLOOR_PLAN_MODELS[0]); // Default to Reserve
-  const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(FLOORING_PRODUCTS[2]);
-  const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(PRICING_PACKAGES[2]);
+  const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(FLOORING_PRODUCTS[2] || FLOORING_PRODUCTS[0]);
+  const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(PRICING_PACKAGES[0]);
   
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
 
@@ -44,6 +45,34 @@ export default function App() {
           setLiveGallery(data.galleryItems);
         }
         setIsSyncedWithSheet(true);
+
+        if (data.models && data.models.length > 0) {
+          setSelectedModel((prev) => {
+            const found = data.models.find(
+              (m) =>
+                m.id === prev.id ||
+                m.slug === prev.slug ||
+                m.name.toLowerCase() === prev.name.toLowerCase()
+            );
+            return found || data.models[0];
+          });
+        }
+        if (data.products && data.products.length > 0) {
+          setSelectedProduct((prev) => {
+            const found = data.products.find(
+              (p) => p.id === prev.id || p.code === prev.code
+            );
+            return found || data.products[0];
+          });
+        }
+        if (data.packages && data.packages.length > 0) {
+          setSelectedPackage((prev) => {
+            const found = data.packages.find(
+              (pkg) => pkg.id === prev.id || pkg.title.toLowerCase() === prev.title.toLowerCase()
+            );
+            return found || data.packages[0];
+          });
+        }
       }
     });
   };
@@ -69,9 +98,8 @@ export default function App() {
     }
   };
 
-  const currentTotal = selectedPackage.pricePerSqft 
-    ? Math.round(selectedModel.sqft * selectedPackage.pricePerSqft) 
-    : selectedPackage.price;
+  const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage, 'floor1_stairs');
+  const currentTotal = quoteCalc.totalPrice;
 
   return (
     <LanguageProvider>
@@ -168,6 +196,7 @@ export default function App() {
           initialModel={selectedModel}
           initialProduct={selectedProduct}
           initialPackage={selectedPackage}
+          initialFloorScope="floor1_stairs"
           modelsList={liveModels}
           productsList={liveProducts}
           packagesList={livePackages}

@@ -1,6 +1,6 @@
-export type FloorScope = 'floor1' | 'floor2' | 'both';
+export type FloorScope = 'floor1' | 'floor1_stairs' | 'floor2' | 'floor2_stairs';
 
-export type ProductType = 'vinyl' | 'laminate' | 'hardwood';
+export type ProductType = 'vinyl';
 
 export interface RoomDetail {
   name: string;
@@ -14,7 +14,7 @@ export interface FloorPlanModel {
   id: string; // Unique: {community_slug}_{collection_slug}_{model_slug}
   slug: string;
   name: string;
-  displayNameSafe?: string; // e.g. "Modelo tipo similar a Reserve"
+  displayNameSafe?: string; // e.g. "B Model (Bandol)"
   communityId: string;
   communityName: string;
   collection: string;
@@ -25,11 +25,11 @@ export interface FloorPlanModel {
   zip: string;
   sqft: number; // Total construction sqft
   sqftFirstFloor?: number; // 1st floor net area
-  sqftFirstFloorRec?: number; // 1st floor recommended (+10%)
+  sqftFirstFloorRec?: number; // 1st floor recommended (+7%)
   sqftSecondFloor: number; // 2nd floor net area
-  sqftSecondFloorRec?: number; // 2nd floor recommended (+10%)
+  sqftSecondFloorRec?: number; // 2nd floor recommended (+7%)
   sqftNet: number; // Net flooring area (minus wet baths / AC)
-  sqftMaterialRecommended: number; // Net + ~10% overage - USED FOR QUOTING
+  sqftMaterialRecommended: number; // Net + ~7% overage
   priceFrom?: number;
   stepsCount: number;
   bedrooms: number;
@@ -78,7 +78,7 @@ export interface Community {
   description: string;
   heroImage: string;
   badge?: string;
-  logoApproved?: boolean; // Default false until developer approval
+  logoApproved?: boolean;
 }
 
 export type ResidentialCommunity = Community;
@@ -93,13 +93,15 @@ export interface FlooringProduct {
   name: string;
   productType?: ProductType;
   category: FlooringCategory;
-  collectionName: 'Pulse Select' | 'Pulse Shield XL' | 'XL Pulse' | 'PulseSelect' | 'PulseShield XL' | 'Waterproof Rigid Core SPC' | string;
+  collectionName: 'Pulse Select' | 'Pulse Shield XL' | 'XL Pulse' | string;
   thickness: string;
   wearLayer: string;
   plankDimensions: string;
   padding: string;
   planksPerBox: number;
   sqftPerBox: number;
+  pricePerSqft: number;
+  stairMaterialCost: number; // For 17 steps
   finish: string;
   installationType: string;
   tone: 'warm' | 'cool' | 'natural' | 'dark' | 'light';
@@ -118,63 +120,74 @@ export interface FlooringProduct {
   staircasePreviewUrl?: string;
 }
 
+export interface ServiceProvider {
+  id: string;
+  name: string;
+  coverageZone: string;
+  phone: string;
+  email: string;
+  rating: number;
+  reviewsCount: number;
+  specialty: string;
+  badge?: string;
+  note?: string;
+  verified: boolean;
+}
+
+export type ProductOrServiceMode = 'materials_only' | 'turnkey_installation';
+
+export interface InstallationQuestionnaire {
+  needsRemoval: boolean;
+  subfloorType?: 'concrete' | 'plywood' | 'mixed';
+  hasFurniture: boolean;
+  hasElevator?: boolean;
+  urgencyDays?: string;
+}
+
 export interface PricingPackage {
   id: string;
   title: string;
+  titleEn?: string;
   tagline: string;
+  taglineEn?: string;
   thickness: string;
   wearLayer: string;
   plankSize: string;
-  basePriceAt530Sqft: number;
-  ratePerSqftMaterial: number;
-  ratePerSqftLabor?: number;
-  stairFlatFee: number;
-  price: number; // default base price
-  pricePerSqft?: number;
   isTurnkey: boolean;
   isBestValue?: boolean;
   isPremium?: boolean;
   badge?: string;
   includesLabor: boolean;
   features: string[];
-  inclusions: string[];
-  specs: { label: string; value: string }[];
+  featuresEn?: string[];
+  inclusions?: string[];
+  inclusionsEn?: string[];
+  specs?: { label: string; value: string }[];
+  price?: number;
+  pricePerSqft?: number;
+  basePriceAt530Sqft?: number;
+  ratePerSqftMaterial?: number;
+  ratePerSqftLabor?: number;
+  stairFlatFee?: number;
 }
-
-export interface ServiceProvider {
-  id: string;
-  name: string;
-  coverageZone: string;
-  phone: string;
-  email?: string;
-  rating: number;
-  reviewsCount: number;
-  specialty: string;
-  badge?: string;
-  note: string;
-  verified: boolean;
-}
-
-export interface InstallationQuestionnaire {
-  isFurnished: boolean;
-  needsCarpetRemoval: boolean;
-  baseboardOption: 'reuse' | 'replace_quarter_round';
-  stairsCount: number; // Auto-completed from model
-}
-
-export type ProductOrServiceMode = 'both' | 'product_only' | 'service_only';
 
 export interface PricingQuoteCalculation {
-  sqftMaterialRecommended: number;
   sqftNet: number;
+  wasteSqft: number;
+  sqftMaterialRecommended: number;
   stepsCount: number;
+  hasStairs: boolean;
   product: FlooringProduct;
   package: PricingPackage;
-  materialRate: number;
-  materialCost: number;
-  laborCost: number;
-  stairCost: number;
-  questionnaireAdjustment?: number;
+  pricePerSqftMaterial: number;
+  materialFloorCost: number;
+  materialStairsCost: number;
+  totalMaterialCost: number;
+  deliveryFee: number;
+  laborRatePerSqft: number;
+  laborFloorCost: number;
+  laborStairsCost: number;
+  totalLaborCost: number;
   boxesCount: number;
   sqftPerBox: number;
   totalBoxesSqft: number;

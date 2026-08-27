@@ -11,8 +11,8 @@ interface LanguageContextType {
 const DICTIONARY: Record<Language, Record<string, string>> = {
   en: {
     // Header & Announcement
-    specialistTag: "Miami-Dade & Kendall 2nd Floor Specialists",
-    stairBadge: "Calculated Net Area + 15 Custom Stairs",
+    specialistTag: "Miami-Dade & Homestead Townhome Specialists",
+    stairBadge: "Flooring Solution for Siena Reserve",
     callUs: "Call (786) 658-3677",
     getFreeQuote: "Get Free Quote",
     chooseCommunity: "Choose your community: Altamira • Terra Sol • Luminara • Paradis",
@@ -121,8 +121,8 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
   },
   es: {
     // Header & Announcement
-    specialistTag: "Especialistas en Pisos en Miami-Dade y Kendall",
-    stairBadge: "Área Neta Calculada + 15 Escalones a Medida",
+    specialistTag: "Especialistas en Pisos en Miami-Dade y Homestead",
+    stairBadge: "Solución de Pisos para Siena Reserve",
     callUs: "Llamar (786) 658-3677",
     getFreeQuote: "Cotización Gratuita",
     chooseCommunity: "Escoge tu conjunto: Altamira • Terra Sol • Luminara • Paradis",

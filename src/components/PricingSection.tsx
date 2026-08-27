@@ -123,7 +123,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                   <div className="mb-6 pb-6 border-b border-current/10">
                     <div className="flex items-baseline gap-1">
                       <span className="text-4xl sm:text-5xl font-black tracking-tight">
-                        ${(pkg.pricePerSqft ? Math.round(model.sqft * pkg.pricePerSqft) : pkg.price).toLocaleString()}
+                        ${((pkg.pricePerSqft ? Math.round(model.sqft * pkg.pricePerSqft) : pkg.price) || 0).toLocaleString()}
                       </span>
                       <span
                         className={`text-xs font-bold ${
@@ -138,7 +138,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                         pkg.isBestValue ? 'text-[#CBD5E1]' : 'text-[#64748B]'
                       }`}
                     >
-                      {model.sqft} sq ft Net Area + 15 Custom Stairs
+                      {model.sqft} sq ft Net Area + 15 Flush Stair Noses
                     </p>
                   </div>
 

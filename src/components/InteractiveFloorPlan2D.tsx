@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FloorPlanModel, FlooringProduct, FloorScope } from '../types';
 import { useLanguage } from '../context/LanguageContext';
-import { Layers, Sparkles } from 'lucide-react';
+import { Layers, Sparkles, Eye, Ruler } from 'lucide-react';
 
 interface InteractiveFloorPlan2DProps {
   model: FloorPlanModel;
@@ -28,22 +28,16 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
   const woodSecondaryColor = selectedProduct.secondaryColorHex || '#a1815d';
 
   // Active view level calculation
-  const activeLevel = floorScope === 'both' ? activeTabDual : floorScope;
+  const isFloor1 = floorScope === 'floor1' || floorScope === 'floor1_stairs';
+  const hasStairs = floorScope === 'floor1_stairs' || floorScope === 'floor2_stairs';
 
   // Calculate dynamic metraje based on scope
-  const sqftNet =
-    floorScope === 'floor1'
-      ? model.sqftFirstFloor || 510
-      : floorScope === 'floor2'
-      ? model.sqftSecondFloor || 465
-      : model.sqftNet || 975;
+  const sqftNet = isFloor1
+    ? model.sqftFirstFloor || 510
+    : model.sqftSecondFloor || 465;
 
-  const sqftRec =
-    floorScope === 'floor1'
-      ? model.sqftFirstFloorRec || 560
-      : floorScope === 'floor2'
-      ? model.sqftSecondFloorRec || 520
-      : model.sqftMaterialRecommended || 1080;
+  const wasteSqft = Math.ceil(sqftNet * 0.07);
+  const sqftRec = sqftNet + wasteSqft;
 
   const boxesCount = Math.ceil(sqftRec / (selectedProduct.sqftPerBox || 24.26));
 
@@ -522,86 +516,48 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             </span>
             <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
               {floorScope === 'floor1'
-                ? 'Solo 1er Piso'
+                ? lang === 'es' ? 'Solo 1er Piso' : '1st Floor Only'
+                : floorScope === 'floor1_stairs'
+                ? lang === 'es' ? '1er Piso + Escaleras' : '1st Floor + Stairs'
                 : floorScope === 'floor2'
-                ? 'Solo 2do Piso'
-                : 'Casa Completa (Ambos Pisos)'}
+                ? lang === 'es' ? 'Solo 2do Piso' : '2nd Floor Only'
+                : lang === 'es' ? '2do Piso + Escaleras' : '2nd Floor + Stairs'}
             </span>
           </div>
 
           <p className="text-xs sm:text-sm text-[#64748B] mt-1.5 font-medium">
-            Superficie a Instalar:{' '}
-            <strong className="text-[#000000] font-black">{sqftNet} sq ft netos</strong> •{' '}
-            Material Recomendado (+10%):{' '}
-            <strong className="text-[#FF8407] font-black">{sqftRec} sq ft ({boxesCount} cajas)</strong>
-            {floorScope !== 'floor1' && (
+            {lang === 'es' ? 'Superficie a Instalar:' : 'Installation Area:'}{' '}
+            <strong className="text-[#000000] font-black">{sqftNet} sq ft {lang === 'es' ? 'netos' : 'net'}</strong> •{' '}
+            {lang === 'es' ? 'Material Recomendado (+7% desperdicio):' : 'Recommended Material (+7% waste):'}{' '}
+            <strong className="text-[#FF8407] font-black">{sqftRec} sq ft ({boxesCount} {lang === 'es' ? 'cajas' : 'boxes'})</strong>
+            {hasStairs && (
               <>
-                {' '}• <strong className="text-[#000000] font-black">15 Escalones Flush Nose</strong>
+                {' '}• <strong className="text-[#000000] font-black">{lang === 'es' ? '15 Escalones Flush Stair Nose' : '15 Steps Flush Stair Nose'}</strong>
               </>
             )}
           </p>
         </div>
 
-        {/* Action Controls & Scope Switcher inside 2D Viewer */}
+        {/* Action Controls - Prominent 2D Dimension Toggle Button */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          {/* If Both Floors is chosen, show floor selector tabs */}
-          {floorScope === 'both' && (
-            <div className="flex items-center bg-[#F1F5F9] p-1 rounded-xl border border-[#CBD5E1]">
-              <button
-                type="button"
-                onClick={() => setActiveTabDual('both')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTabDual === 'both'
-                    ? 'bg-[#000000] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#000000]'
-                }`}
-              >
-                {lang === 'es' ? 'Ambos Pisos' : 'Both Floors'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTabDual('floor1')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTabDual === 'floor1'
-                    ? 'bg-[#000000] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#000000]'
-                }`}
-              >
-                {lang === 'es' ? '1er Piso' : '1st Floor'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTabDual('floor2')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeTabDual === 'floor2'
-                    ? 'bg-[#000000] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#000000]'
-                }`}
-              >
-                {lang === 'es' ? '2do Piso' : '2nd Floor'}
-              </button>
-            </div>
-          )}
-
-          {/* Toggle Dimensions button */}
           <button
             type="button"
             onClick={() => setShowDimensions(!showDimensions)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black flex items-center gap-2 transition-all cursor-pointer shadow-md ${
               showDimensions
-                ? 'bg-[#000000] text-[#FFFFFF]'
-                : 'bg-[#F1F5F9] text-[#64748B] hover:text-[#000000]'
+                ? 'bg-[#FF8407] text-[#000000] ring-2 ring-[#FF8407]/50 shadow-lg'
+                : 'bg-[#0F172A] text-white hover:bg-[#1E293B] border border-slate-700'
             }`}
           >
-            <Layers className="w-3.5 h-3.5 text-[#FF8407]" />
+            {showDimensions ? <Eye className="w-4 h-4 text-black" /> : <Ruler className="w-4 h-4 text-[#FF8407]" />}
             <span>
               {showDimensions
                 ? lang === 'es'
-                  ? 'Medidas Grandes ON'
-                  : 'Big Dims ON'
+                  ? '✓ Dimensiones Visibles en Plano 2D'
+                  : '✓ 2D Plan Dimensions Visible'
                 : lang === 'es'
-                ? 'Ver Medidas'
-                : 'Show Dims'}
+                ? 'Ver Dimensiones en el Plano 2D'
+                : 'View Dimensions on 2D Plan'}
             </span>
           </button>
         </div>
@@ -613,11 +569,11 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none"></div>
 
         {/* SVG Definition Container */}
-        <div className={`w-full ${activeLevel === 'both' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'max-w-xl mx-auto'}`}>
+        <div className="w-full max-w-xl mx-auto">
           {/* ========================================================
               FIRST FLOOR (PLANTA BAJA) SVG
               ======================================================== */}
-          {(activeLevel === 'floor1' || activeLevel === 'both') && (
+          {isFloor1 ? (
             <div className="flex flex-col items-center">
               <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-white/20">
                 <span className="text-sm sm:text-base font-black text-white tracking-wide uppercase flex items-center gap-2">
@@ -625,7 +581,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                   {lang === 'es' ? '1er Piso (Planta Baja)' : '1st Floor (Ground Level)'}
                 </span>
                 <span className="text-xs font-bold text-slate-300 font-mono">
-                  ~{model.sqftFirstFloor || 510} SF {lang === 'es' ? 'Neto' : 'Net'}
+                  ~{model.sqftFirstFloor || 510} SF {lang === 'es' ? 'Neto' : 'Net'} {hasStairs ? (lang === 'es' ? '+ 17 Escalones' : '+ 17 Steps') : ''}
                 </span>
               </div>
 
@@ -672,12 +628,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                 <rect x="40" y="80" width="420" height="740" rx="8" fill="none" stroke="#FFFFFF" strokeWidth="5" />
               </svg>
             </div>
-          )}
-
-          {/* ========================================================
-              SECOND FLOOR (PLANTA ALTA) SVG
-              ======================================================== */}
-          {(activeLevel === 'floor2' || activeLevel === 'both') && (
+          ) : (
             <div className="flex flex-col items-center">
               <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-white/20">
                 <span className="text-sm sm:text-base font-black text-white tracking-wide uppercase flex items-center gap-2">
@@ -685,7 +636,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                   {lang === 'es' ? '2do Piso (Planta Alta)' : '2nd Floor (Upper Level)'}
                 </span>
                 <span className="text-xs font-bold text-slate-300 font-mono">
-                  ~{model.sqftSecondFloor || 465} SF {lang === 'es' ? '+ 15 Escalones' : '+ 15 Custom Stairs'}
+                  ~{model.sqftSecondFloor || 465} SF {hasStairs ? (lang === 'es' ? '+ 17 Escalones' : '+ 17 Steps') : (lang === 'es' ? 'Neto' : 'Net')}
                 </span>
               </div>
 
@@ -729,12 +680,14 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded-sm bg-[#FF8407]"></span>
-              <span className="font-bold text-[#FF8407]">
-                {lang === 'es' ? '15 Escalones Flush Nose' : '15 Custom Flush Stairs'}
-              </span>
-            </div>
+            {hasStairs && (
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 rounded-sm bg-[#FF8407]"></span>
+                <span className="font-bold text-[#FF8407]">
+                  {lang === 'es' ? '17 Escalones Square Step Nose' : '17 Steps Square Step Nose'}
+                </span>
+              </div>
+            )}
           </div>
 
           <span className="text-[11px] text-slate-400 font-mono">

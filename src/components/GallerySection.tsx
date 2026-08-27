@@ -287,8 +287,8 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
             </h3>
             <p className="text-xs text-[#94A3B8]">
               {lang === 'es'
-                ? 'Obtén tu presupuesto exacto en minutos para Bandol, Casis, Monte Carlo, Reserve o Vence.'
-                : 'Get your exact quote in minutes tailored for Bandol, Casis, Monte Carlo, Reserve, or Vence.'}
+                ? 'Obtén tu presupuesto exacto en minutos para B Model, C Model, M Model, R Model o V Model.'
+                : 'Get your exact quote in minutes tailored for B Model, C Model, M Model, R Model, or V Model.'}
             </p>
           </div>
 
