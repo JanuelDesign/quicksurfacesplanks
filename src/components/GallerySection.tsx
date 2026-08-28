@@ -68,7 +68,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 'gallery-03',
     fileName: 'gallery-03.webp',
-    title: "Owner's Suite Principal en Madera SPC",
+    title: "Owner's Suite Principal en Vinilo SPC",
     titleEn: "Primary Owner's Suite & Master Bed Flow",
     community: 'Siena Reserve / Luminara',
     location: 'Homestead, FL',

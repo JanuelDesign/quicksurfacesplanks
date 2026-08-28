@@ -104,8 +104,8 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
               <line key={i} x1="375" y1={370 + i * 10.5} x2="460" y2={370 + i * 10.5} stroke="#FF8407" strokeWidth="2" />
             ))}
             <rect x="380" y="435" width="75" height="34" rx="4" fill="#000000" fillOpacity="0.9" stroke="#FFFFFF" strokeWidth="1.5" />
-            <text x="417" y="450" fill="#FF8407" fontSize="11" fontWeight="900" textAnchor="middle">ESCALERAS</text>
-            <text x="417" y="463" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">17 PASOS (UP)</text>
+            <text x="417" y="450" fill="#FF8407" fontSize="11" fontWeight="900" textAnchor="middle">{lang === 'es' ? 'ESCALERAS' : 'STAIRS'}</text>
+            <text x="417" y="463" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">{lang === 'es' ? '17 PASOS (UP)' : '17 STEPS (UP)'}</text>
           </g>
 
           {/* Bath 3 (Existing Tile) */}
@@ -118,7 +118,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
               <g>
                 <rect x="100" y="590" width="115" height="32" rx="4" fill="#000000" fillOpacity="0.9" stroke="#94A3B8" strokeWidth="1" />
                 <text x="157" y="605" fill="#FFFFFF" fontSize="12" fontWeight="900" textAnchor="middle">BATH 3</text>
-                <text x="157" y="617" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">(Baldosa Existente)</text>
+                <text x="157" y="617" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">{lang === 'es' ? '(Baldosa Existente)' : '(Existing Tile)'}</text>
               </g>
             )}
           </g>
@@ -145,7 +145,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
               <g>
                 <rect x="295" y="640" width="100" height="34" rx="6" fill="#000000" fillOpacity="0.9" stroke="#FFFFFF" strokeWidth="1.5" />
                 <text x="345" y="658" fill="#FFFFFF" fontSize="14" fontWeight="900" textAnchor="middle">FOYER</text>
-                <text x="345" y="670" fill="#FF8407" fontSize="10" fontWeight="800" textAnchor="middle">ENTRADA</text>
+                <text x="345" y="670" fill="#FF8407" fontSize="10" fontWeight="800" textAnchor="middle">{lang === 'es' ? 'ENTRADA' : 'ENTRY'}</text>
               </g>
             )}
           </g>
@@ -251,8 +251,8 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <line key={i} x1="365" y1={350 + i * 11} x2="460" y2={350 + i * 11} stroke="#FF8407" strokeWidth="2" />
           ))}
           <rect x="372" y="420" width="82" height="38" rx="4" fill="#000000" fillOpacity="0.92" stroke="#FF8407" strokeWidth="1.5" />
-          <text x="413" y="436" fill="#FF8407" fontSize="11" fontWeight="900" textAnchor="middle">ESCALERAS</text>
-          <text x="413" y="450" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">17 PASOS (UP)</text>
+          <text x="413" y="436" fill="#FF8407" fontSize="11" fontWeight="900" textAnchor="middle">{lang === 'es' ? 'ESCALERAS' : 'STAIRS'}</text>
+          <text x="413" y="450" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">{lang === 'es' ? '17 PASOS (UP)' : '17 STEPS (UP)'}</text>
         </g>
 
         {/* Powder Room (1/2 Baño - Tile) */}
@@ -264,7 +264,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <g>
               <rect x="52" y="605" width="115" height="32" rx="4" fill="#000000" fillOpacity="0.9" stroke="#94A3B8" strokeWidth="1" />
               <text x="109" y="620" fill="#FFFFFF" fontSize="12" fontWeight="900" textAnchor="middle">1/2 BATH</text>
-              <text x="109" y="632" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">(Baldosa)</text>
+              <text x="109" y="632" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">{lang === 'es' ? '(Baldosa)' : '(Tile)'}</text>
             </g>
           )}
         </g>
@@ -292,7 +292,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <g>
               <rect x="335" y="640" width="105" height="34" rx="6" fill="#000000" fillOpacity="0.9" stroke="#FFFFFF" strokeWidth="1.5" />
               <text x="387" y="658" fill="#FFFFFF" fontSize="14" fontWeight="900" textAnchor="middle">FOYER</text>
-              <text x="387" y="670" fill="#FF8407" fontSize="10" fontWeight="800" textAnchor="middle">ENTRADA</text>
+              <text x="387" y="670" fill="#FF8407" fontSize="10" fontWeight="800" textAnchor="middle">{lang === 'es' ? 'ENTRADA' : 'ENTRY'}</text>
             </g>
           )}
         </g>
@@ -375,7 +375,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <g>
               <rect x="318" y="115" width="80" height="34" rx="4" fill="#000000" fillOpacity="0.9" stroke="#94A3B8" strokeWidth="1" />
               <text x="358" y="132" fill="#FFFFFF" fontSize="13" fontWeight="900" textAnchor="middle">BATH 1</text>
-              <text x="358" y="144" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">(Baldosa)</text>
+              <text x="358" y="144" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">{lang === 'es' ? '(Baldosa)' : '(Tile)'}</text>
             </g>
           )}
         </g>
@@ -410,7 +410,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <line key={i} x1="334" y1={380 + i * 10} x2="456" y2={380 + i * 10} stroke="#FF8407" strokeWidth="2" />
           ))}
           <rect x="345" y="445" width="100" height="42" rx="6" fill="#000000" fillOpacity="0.9" stroke="#FF8407" strokeWidth="2" />
-          <text x="395" y="462" fill="#FF8407" fontSize="12" fontWeight="900" textAnchor="middle">17 ESCALONES</text>
+          <text x="395" y="462" fill="#FF8407" fontSize="12" fontWeight="900" textAnchor="middle">{lang === 'es' ? '17 ESCALONES' : '17 STEPS'}</text>
           <text x="395" y="477" fill="#FFFFFF" fontSize="9" fontWeight="800" textAnchor="middle">SQUARE STEP NOSE</text>
         </g>
 
@@ -440,7 +440,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                 <g>
                   <rect x="320" y="650" width="115" height="34" rx="4" fill="#000000" fillOpacity="0.9" stroke="#94A3B8" strokeWidth="1" />
                   <text x="377" y="667" fill="#FFFFFF" fontSize="13" fontWeight="900" textAnchor="middle">BATH 2</text>
-                  <text x="377" y="679" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">(Baldosa Existente)</text>
+                  <text x="377" y="679" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">{lang === 'es' ? '(Baldosa Existente)' : '(Existing Tile)'}</text>
                 </g>
               )}
             </g>
@@ -484,7 +484,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                 <g>
                   <rect x="377" y="640" width="76" height="34" rx="4" fill="#000000" fillOpacity="0.9" stroke="#94A3B8" strokeWidth="1" />
                   <text x="415" y="657" fill="#FFFFFF" fontSize="11" fontWeight="900" textAnchor="middle">BATH 2</text>
-                  <text x="415" y="669" fill="#94A3B8" fontSize="8" fontWeight="700" textAnchor="middle">(Baldosa)</text>
+                  <text x="415" y="669" fill="#94A3B8" fontSize="8" fontWeight="700" textAnchor="middle">{lang === 'es' ? '(Baldosa)' : '(Tile)'}</text>
                 </g>
               )}
             </g>

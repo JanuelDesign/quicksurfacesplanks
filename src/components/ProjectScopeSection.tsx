@@ -29,8 +29,8 @@ export const ProjectScopeSection: React.FC<ProjectScopeSectionProps> = ({ model 
       title: lang === 'es' ? 'Medición Precisa' : 'Precision Measurement',
       desc:
         lang === 'es'
-          ? `\${model.sqft} sq ft de área neta más factor de desperdicio calculado para optimizar la compra de materiales y minimizar costos.`
-          : `\${model.sqft} sq ft net area plus calculated waste factor to optimize material purchases and minimize project costs.`,
+          ? `${model.sqft} sq ft de área neta más factor de desperdicio calculado para optimizar la compra de materiales y minimizar costos.`
+          : `${model.sqft} sq ft net area plus calculated waste factor to optimize material purchases and minimize project costs.`,
     },
     {
       title: lang === 'es' ? 'Escaleras Integradas' : 'Integrated Master Stairs',
@@ -85,7 +85,7 @@ export const ProjectScopeSection: React.FC<ProjectScopeSectionProps> = ({ model 
       desc:
         lang === 'es'
           ? 'Colocación profesional del piso con técnicas avanzadas y adhesivos de alta calidad.'
-          : `Precision laser-guided installation across \${model.sqft} sq ft with expansion margins and click-lock integrity.`,
+          : `Precision laser-guided installation across ${model.sqft} sq ft with expansion margins and click-lock integrity.`,
     },
     {
       step: '03',

@@ -65,8 +65,8 @@ export const SienaReserveHero: React.FC<SienaReserveHeroProps> = () => {
             </h1>
             <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-2xl leading-relaxed">
               {lang === 'es'
-                ? 'A medida para Modelos B, C, MC, R & V. Pisos 100% impermeables SPC Luxury Vinyl, Laminados y Madera de Ingeniería con 17 escalones Square Step Nose a medida.'
-                : 'Custom-fit for Models B, C, MC, R & V. 100% waterproof SPC Luxury Vinyl, Laminate and Engineered Hardwood with 17 custom Square Step Noses.'}
+                ? 'A medida para Modelos B, C, MC, R & V. Pisos 100% impermeables SPC Luxury Vinyl, con 17 escalones Square Step Nose a medida.'
+                : 'Custom-fit for Models B, C, MC, R & V. 100% waterproof SPC Luxury Vinyl, with 17 custom Square Step Nose.'}
             </p>
           </div>
         </div>
