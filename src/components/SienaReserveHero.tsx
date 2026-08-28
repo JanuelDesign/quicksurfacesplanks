@@ -10,10 +10,8 @@ interface SienaReserveHeroProps {
 export const SienaReserveHero: React.FC<SienaReserveHeroProps> = () => {
   const { lang } = useLanguage();
   const BANNER_CANDIDATES = [
-    '/images/banners/siena-reserve-entrance.webp',
     'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/banners/siena-reserve-entrance.webp',
-    '/images/banners/siena-reserve-entrance.jpg',
-    '/images/banners/siena-reserve-entrance.png',
+    '/images/banners/siena-reserve-entrance.webp',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85',
   ];
 
@@ -67,8 +65,8 @@ export const SienaReserveHero: React.FC<SienaReserveHeroProps> = () => {
             </h1>
             <p className="text-xs sm:text-sm text-slate-200 mt-2 max-w-2xl leading-relaxed">
               {lang === 'es'
-                ? 'A medida para Modelos B, C, MC, R & V. Pisos 100% impermeables SPC Luxury Vinyl, Laminados y Madera de Ingeniería con 15 escalones Flush Stair Nose a medida.'
-                : 'Custom-fit for Models B, C, MC, R & V. 100% waterproof SPC Luxury Vinyl, Laminate and Engineered Hardwood with 15 custom Flush Stair Noses.'}
+                ? 'A medida para Modelos B, C, MC, R & V. Pisos 100% impermeables SPC Luxury Vinyl, Laminados y Madera de Ingeniería con 17 escalones Square Step Nose a medida.'
+                : 'Custom-fit for Models B, C, MC, R & V. 100% waterproof SPC Luxury Vinyl, Laminate and Engineered Hardwood with 17 custom Square Step Noses.'}
             </p>
           </div>
         </div>

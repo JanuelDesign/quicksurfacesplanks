@@ -38,14 +38,14 @@ export const GALLERY_ITEMS: GalleryItem[] = [
   {
     id: 'gallery-01',
     fileName: 'gallery-01.webp',
-    title: 'Escaleras 15 Peldaños con Flush Stair Nose',
-    titleEn: '15-Step Custom Staircase with Flush Nosing',
+    title: 'Escaleras 17 Peldaños con Square Step Nose',
+    titleEn: '17-Step Custom Staircase with Square Step Nosing',
     community: 'Siena Reserve / Altamira',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-01.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-01.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=85',
-    tag: '15 Peldaños Flush Nose',
-    tagEn: '15-Step Stairs',
+    tag: '17 Peldaños Square Step Nose',
+    tagEn: '17-Step Stairs',
     collection: '8mm',
     productName: '8.0mm Liv Oak Flagship',
     productCode: '347',
@@ -57,7 +57,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Continuous 2nd Floor Landing & Hallway Flow',
     community: 'Siena Reserve / Terra Sol',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-02.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-02.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85',
     tag: 'Pasillo Continuo Sin Cortes',
     tagEn: 'Seamless Hallway',
@@ -72,7 +72,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: "Primary Owner's Suite & Master Bed Flow",
     community: 'Siena Reserve / Luminara',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-03.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-03.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=85',
     tag: 'Owner Suite Master',
     tagEn: 'Master Suite',
@@ -87,7 +87,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Square-Edge Custom Stair Tread Detail',
     community: 'Siena Reserve / Paradis',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-04.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-04.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=85',
     tag: 'Artesanía en Escaleras',
     tagEn: 'Stair Craft Detail',
@@ -102,7 +102,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Walk-In Closet & Dressing Room Integration',
     community: 'Siena Reserve / Altamira',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-05.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-05.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=85',
     tag: 'Walk-In Closets',
     tagEn: 'Custom Closets',
@@ -117,7 +117,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Secondary Bedroom with XL Grand Planks',
     community: 'Siena Reserve',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-06.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-06.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85',
     tag: 'Tablones XL Grand',
     tagEn: 'XL Grand Planks',
@@ -132,7 +132,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Open Concept Great Room & Living Flow',
     community: 'Siena Reserve',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-07.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-07.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85',
     tag: 'Sala & Comedor Abierto',
     tagEn: 'Great Room Living',
@@ -147,7 +147,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Waterfall Island Kitchen with Waterproof SPC',
     community: 'Siena Reserve',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-08.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-08.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=85',
     tag: 'Cocina Impermeable',
     tagEn: 'Waterproof Kitchen',
@@ -162,7 +162,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     titleEn: 'Grand Foyer & Main Entrance Vinyl Flooring',
     community: 'Siena Reserve / Adora Collection',
     location: 'Homestead, FL',
-    imageUrl: '/images/gallery/gallery-09.webp',
+    imageUrl: 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-09.webp',
     fallbackUrl: 'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?auto=format&fit=crop&w=1200&q=85',
     tag: 'Entrada y Recibidor',
     tagEn: 'Main Entrance Foyer',
@@ -242,8 +242,8 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
           </h2>
           <p className="mt-1.5 text-[#64748B] text-xs sm:text-sm max-w-lg mx-auto">
             {lang === 'es'
-              ? 'Explora las fotos de proyectos terminados en escaleras de 15 peldaños, habitaciones y pasillos continuos.'
-              : 'Explore verified photos of completed projects across 15-step staircases, bedrooms, and continuous hallways.'}
+              ? 'Explora las fotos de proyectos terminados en escaleras de 17 peldaños Square Step Nose, habitaciones y pasillos continuos.'
+              : 'Explore verified photos of completed projects across 17-step Square Step Nose staircases, bedrooms, and continuous hallways.'}
           </p>
         </div>
 

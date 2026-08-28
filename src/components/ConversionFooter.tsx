@@ -161,7 +161,7 @@ export const ConversionFooter: React.FC<ConversionFooterProps> = ({ model, onOpe
                 <li>8.0mm Flagship SPC (22 Mils Wear Layer)</li>
                 <li>5.5mm Classic SPC (20 Mils Wear Layer)</li>
                 <li>6.0mm PulseShield XL (20 Mils)</li>
-                <li>15 Escalones con Tablones Originales</li>
+                <li>17 Escalones Square Step Nose</li>
                 <li>Bajo Piso Acústico HD EVA Integrado</li>
               </ul>
             </div>

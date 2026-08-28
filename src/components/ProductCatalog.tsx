@@ -114,18 +114,18 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           <h2 className="text-2xl sm:text-4xl font-black text-[#000000] tracking-tight">
             {lang === 'es' ? (
               <>
-                Pisos SPC Impermeables & <span className="text-[#FF8407]">15 Escalones Flush Stair Nose</span>
+                Pisos SPC Impermeables & <span className="text-[#FF8407]">17 Escalones Square Step Nose</span>
               </>
             ) : (
               <>
-                Waterproof SPC Flooring & <span className="text-[#FF8407]">15 Flush Stair Noses</span>
+                Waterproof SPC Flooring & <span className="text-[#FF8407]">17 Square Step Noses</span>
               </>
             )}
           </h2>
           <p className="mt-2 text-[#4B5563] text-xs sm:text-sm leading-relaxed">
             {lang === 'es'
-              ? 'Colecciones certificadas de pisos vinílicos SPC rígidos de 5.5mm, 6.0mm y 8.0mm con piezas Flush Stair Nose a juego para Siena Reserve.'
-              : 'Certified rigid core SPC luxury vinyl in 5.5mm, 6.0mm and 8.0mm with matching custom Flush Stair Nose steps for Siena Reserve.'}
+              ? 'Colecciones certificadas de pisos vinílicos SPC rígidos de 5.5mm, 6.0mm y 8.0mm con piezas Square Step Nose a juego para Siena Reserve.'
+              : 'Certified rigid core SPC luxury vinyl in 5.5mm, 6.0mm and 8.0mm with matching custom Square Step Nose steps for Siena Reserve.'}
           </p>
         </div>
 
@@ -265,12 +265,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredProducts.map((prod) => {
+              {filteredProducts.map((prod, idx) => {
                 const isCurrentlyVisualized = prod.id === selectedProduct.id;
 
                 return (
                   <div
-                    key={prod.id}
+                    key={`${prod.id}-${idx}`}
                     className={`group rounded-3xl bg-[#FFFFFF] border overflow-hidden flex flex-col justify-between transition-all duration-200 ${
                       isCurrentlyVisualized
                         ? 'border-[#FF8407] shadow-xl ring-2 ring-[#FF8407]/50'

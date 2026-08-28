@@ -54,8 +54,8 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
       image: selectedProduct.plankImageUrl || selectedProduct.imageUrl,
     },
     stairs: {
-      title: lang === 'es' ? "15 Escalones a Medida (Staircase)" : "15 Custom Matching Stair Steps",
-      desc: lang === 'es' ? "Peldaños pegados con los mismos tablones para continuidad total" : "Stair treads bonded with matching planks for seamless transition",
+      title: lang === 'es' ? "17 Escalones Square Step Nose (Staircase)" : "17 Custom Square Step Nose Stair Steps",
+      desc: lang === 'es' ? "Peldaños Square Step pegados con los mismos tablones para continuidad total" : "Square step treads bonded with matching planks for seamless transition",
       image: selectedProduct.staircasePreviewUrl || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
     },
   };
@@ -138,7 +138,7 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    <span>{lang === 'es' ? '15 Escalones' : '15 Stairs'}</span>
+                    <span>{lang === 'es' ? '17 Escalones' : '17 Stairs'}</span>
                   </button>
                 </div>
 
@@ -201,7 +201,7 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
               </div>
               <div className="p-2 rounded-xl bg-[#F8FAFC]">
                 <span className="text-[#64748B] block text-[10px]">Stairs Match</span>
-                <span className="font-black text-[#FF8407]">15 Steps Exact</span>
+                <span className="font-black text-[#FF8407]">17 Steps Exact</span>
               </div>
             </div>
           </div>
@@ -246,11 +246,11 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
 
               {/* Swatches Grid with Real Plank Thumbnails */}
               <div className="grid grid-cols-3 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-                {filteredProducts.map((prod) => {
+                {filteredProducts.map((prod, idx) => {
                   const isSelected = prod.id === selectedProduct.id;
                   return (
                     <button
-                      key={prod.id}
+                      key={`${prod.id}-${idx}`}
                       onClick={() => onSelectProduct(prod)}
                       className={`group relative rounded-2xl overflow-hidden border p-2 text-left transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected

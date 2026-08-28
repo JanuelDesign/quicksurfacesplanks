@@ -358,7 +358,7 @@ export const PRICING_PACKAGES: PricingPackage[] = [
     includesLabor: true,
     features: [
       'Piso SPC 100% impermeable con acolchado acústico integrado (+7% desperdicio)',
-      '15 Escalones Flush Stair Nose a medida al ras (si se incluye escalera)',
+      '17 Escalones Square Step Nose a medida al ras (si se incluye escalera)',
       'Mano de obra especializada ($2.00/SF piso + $1,200 escalera)',
       'Desmonte de alfombra existente y preparación de superficie',
       'Desmonte y reinstalación cuidadosa de baseboards (rodapiés)',
@@ -366,7 +366,7 @@ export const PRICING_PACKAGES: PricingPackage[] = [
     ],
     featuresEn: [
       '100% waterproof SPC flooring with acoustic backing (+7% waste factor)',
-      '15 custom flush Flush Stair Nose pieces (if stairs included)',
+      '17 custom square Square Step Nose pieces (if stairs included)',
       'Certified labor ($2.00/SF floor + $1,200 stairs labor)',
       'Existing carpet removal and subfloor preparation',
       'Baseboard removal and precision reinstallation',
@@ -384,7 +384,7 @@ export const PRICING_PACKAGES: PricingPackage[] = [
     ],
     specs: [
       { label: 'Piso / Labor', value: '$2.00 / sq ft' },
-      { label: 'Escaleras / Labor', value: '$1,200.00 (15 Pasos)' },
+      { label: 'Escaleras / Labor', value: '$1,200.00 (17 Pasos)' },
       { label: 'Entrega / Delivery', value: '$60.00 Fijo' },
       { label: 'Desperdicio', value: '+7% Fijo en Material' },
     ],
@@ -397,8 +397,8 @@ export const PRICING_PACKAGES: PricingPackage[] = [
     id: 'mat-only',
     title: 'Solo Material',
     titleEn: 'Material Only',
-    tagline: 'Suministro de piso SPC y Flush Stair Nose con flete local',
-    taglineEn: 'SPC flooring and Flush Stair Nose supply with local delivery',
+    tagline: 'Suministro de piso SPC y Square Step Nose con flete local',
+    taglineEn: 'SPC flooring and Square Step Nose supply with local delivery',
     thickness: 'SPC 5.5mm / 6.0mm / 8.0mm',
     wearLayer: '20 - 22 mil Commercial',
     plankSize: 'Formato estándar & XL 9"x60"',
@@ -407,13 +407,13 @@ export const PRICING_PACKAGES: PricingPackage[] = [
     features: [
       'Piso SPC 100% impermeable con acolchado acústico integrado',
       'Cálculo exacto con +7% de desperdicio fijo para cortes e instalación',
-      '15 piezas de escalón Flush Stair Nose a juego (si aplica)',
+      '17 piezas de escalón Square Step Nose a juego (si aplica)',
       'Flete y entrega local en Homestead ($60.00)',
     ],
     featuresEn: [
       '100% waterproof SPC flooring with acoustic backing',
       'Exact calculation with +7% fixed waste factor for cuts',
-      '15 matching Flush Stair Nose pieces (if applicable)',
+      '17 matching Square Step Nose pieces (if applicable)',
       'Local jobsite delivery in Homestead ($60.00)',
     ],
     inclusions: [

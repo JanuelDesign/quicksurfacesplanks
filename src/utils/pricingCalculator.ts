@@ -34,7 +34,7 @@ export function calculateQuotePrice(
 
   // 3. Stairs determination
   const hasStairs = floorScope === 'floor1_stairs' || floorScope === 'floor2_stairs';
-  const stepsCount = hasStairs ? 15 : 0;
+  const stepsCount = hasStairs ? 17 : 0;
 
   // 4. Material costs
   const category = product?.category || '5.5mm';

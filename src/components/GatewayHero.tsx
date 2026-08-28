@@ -204,7 +204,7 @@ export const GatewayHero: React.FC<GatewayHeroProps> = ({
                       </div>
                       <div className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />
-                        <span>15 Custom Matching Stair Steps</span>
+                        <span>17 Square Step Nose Stair Steps</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407]" />

@@ -5,6 +5,7 @@ import { FLOORING_PRODUCTS, PRICING_PACKAGES } from './data/products';
 import { FloorPlanModel, FlooringProduct, PricingPackage, ResidentialCommunity } from './types';
 import { calculateQuotePrice } from './utils/pricingCalculator';
 import { GalleryItem, GALLERY_ITEMS } from './components/GallerySection';
+import { TestimonialItem, TESTIMONIALS } from './data/testimonials';
 import { fetchLiveDatabase } from './services/googleSheetSync';
 
 import { Navbar } from './components/Navbar';
@@ -22,6 +23,7 @@ export default function App() {
   const [liveProducts, setLiveProducts] = useState<FlooringProduct[]>(FLOORING_PRODUCTS);
   const [livePackages, setLivePackages] = useState<PricingPackage[]>(PRICING_PACKAGES);
   const [liveGallery, setLiveGallery] = useState<GalleryItem[]>(GALLERY_ITEMS);
+  const [liveTestimonials, setLiveTestimonials] = useState<TestimonialItem[]>(TESTIMONIALS);
   const [isSyncedWithSheet, setIsSyncedWithSheet] = useState<boolean>(false);
 
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(COMMUNITIES[0]);
@@ -43,6 +45,9 @@ export default function App() {
         setLivePackages(data.packages);
         if (data.galleryItems && data.galleryItems.length > 0) {
           setLiveGallery(data.galleryItems);
+        }
+        if (data.testimonials && data.testimonials.length > 0) {
+          setLiveTestimonials(data.testimonials);
         }
         setIsSyncedWithSheet(true);
 
@@ -187,6 +192,7 @@ export default function App() {
         <AboutModal
           isOpen={isAboutModalOpen}
           onClose={() => setIsAboutModalOpen(false)}
+          testimonialsList={liveTestimonials}
         />
 
         {/* Booking Drawer Modal */}

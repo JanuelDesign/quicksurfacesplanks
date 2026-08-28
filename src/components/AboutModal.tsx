@@ -19,16 +19,17 @@ import { TESTIMONIALS, TestimonialItem } from '../data/testimonials';
 interface AboutModalProps {
   isOpen: boolean;
   onClose: () => void;
+  testimonialsList?: TestimonialItem[];
 }
 
-export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
+export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, testimonialsList }) => {
   const { lang } = useLanguage();
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState<number>(0);
   const [activeLightboxImg, setActiveLightboxImg] = useState<{ src: string; title: string } | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  const testimonials = TESTIMONIALS;
+  const testimonials = testimonialsList && testimonialsList.length > 0 ? testimonialsList : TESTIMONIALS;
 
   // Auto-cycle carousel every 5s if not paused
   useEffect(() => {
@@ -296,7 +297,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>
-                  {lang === 'es' ? 'Escaleras perfectas al ras (Flush Stair Nose)' : 'Seamless flush stair nosings with zero lips'}
+                  {lang === 'es' ? 'Escaleras perfectas (17 Square Step Nose)' : 'Seamless square step stair nosings (17 Steps)'}
                 </span>
               </div>
               <div className="flex items-center gap-2">

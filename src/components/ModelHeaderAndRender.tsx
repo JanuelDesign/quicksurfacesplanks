@@ -308,7 +308,7 @@ export const ModelHeaderAndRender: React.FC<ModelHeaderAndRenderProps> = ({
                     5
                   </span>
                   <div>
-                    <strong className="text-[#000000] block text-xs">15 Custom Matching Staircase Steps</strong>
+                    <strong className="text-[#000000] block text-xs">17 Square Step Nose Staircase Steps</strong>
                     <span className="text-[#64748B]">{t('labor5')}</span>
                   </div>
                 </div>

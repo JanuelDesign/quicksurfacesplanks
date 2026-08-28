@@ -41,14 +41,17 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
   const { lang } = useLanguage();
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string; subtitle: string } | null>(null);
 
+  const [imgError, setImgError] = useState<boolean>(false);
+
   // Dynamically select the 2nd floor 3D dollhouse render for the active model
-  const renderSrc = MODEL_RENDER_MAP[model.slug] || MODEL_RENDER_MAP[model.id] || bModelRender;
+  const fallbackSrc = MODEL_RENDER_MAP[model.slug] || MODEL_RENDER_MAP[model.id] || bModelRender;
+  const renderSrc = !imgError && model.render3DImage ? model.render3DImage : fallbackSrc;
 
   const floor2Rooms = model.secondFloorRooms || [
     { name: "Owner's Suite", dimensions: "12' 0\" x 10' 10\"", sqft: 130 },
     { name: 'Walk-In Closet', dimensions: 'Standard', sqft: 36 },
     { name: 'Bedroom 2', dimensions: "12' 0\" x 10' 0\"", sqft: 120 },
-    { name: '15 Flush Stair Noses & Hall', dimensions: '15 Treads', sqft: 101 },
+    { name: '17 Square Step Noses & Hall', dimensions: '17 Treads', sqft: 101 },
   ];
 
   return (
@@ -62,7 +65,7 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
               {lang === 'es' ? 'Render 3D Fotorrealista' : 'Photorealistic 3D Render'}
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-bold text-[#64748B]">
-              {lang === 'es' ? '2do Piso con 15 Escalones' : '2nd Floor with 15 Stairs'}
+              {lang === 'es' ? '2do Piso con 17 Escalones' : '2nd Floor with 17 Stairs'}
             </span>
           </div>
 
@@ -70,7 +73,7 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
             {lang === 'es' ? `Render 3D: Modelo ${model.name}` : `3D Render: Model ${model.name}`}
           </h3>
           <p className="text-xs sm:text-sm text-[#64748B] mt-0.5 font-medium">
-            {model.communityName} · {model.collection} • {lang === 'es' ? 'Corte Dollhouse con recámaras, pasillo continuo y 15 escalones Flush Stair Nose' : 'Dollhouse cutaway showcasing bedrooms, seamless hallway, and 15 Flush Stair Nose steps'}
+            {model.communityName} · {model.collection} • {lang === 'es' ? 'Corte Dollhouse con recámaras, pasillo continuo y 17 escalones Square Step Nose' : 'Dollhouse cutaway showcasing bedrooms, seamless hallway, and 17 Square Step Nose steps'}
           </p>
         </div>
 
@@ -78,8 +81,8 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
           type="button"
           onClick={() => setZoomedImage({
             src: renderSrc,
-            title: `${model.name} — Render 3D 2do Piso & 15 Escalones`,
-            subtitle: `Siena Reserve Townhomes • Owner's Suite, Bedroom 2, Pasillo y 15 Escalones Flush Stair Nose`,
+            title: `${model.name} — Render 3D 2do Piso & 17 Escalones`,
+            subtitle: `Siena Reserve Townhomes • Owner's Suite, Bedroom 2, Pasillo y 17 Escalones Square Step Nose`,
           })}
           className="px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-md self-start sm:self-center shrink-0"
         >
@@ -91,19 +94,24 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
       {/* Render 3D Main Image Frame - Clean and Unobstructed */}
       <div className="relative rounded-2xl overflow-hidden border-2 border-[#1E293B] bg-[#0A0A0B] shadow-2xl group">
         <img
-          key={model.id}
+          key={`${model.id}-${renderSrc}`}
           src={renderSrc}
           alt={`Render 3D 2do Piso y Escaleras - ${model.name}`}
           className="w-full h-[320px] sm:h-[420px] md:h-[480px] object-cover transition-transform duration-700 group-hover:scale-[1.01]"
           loading="lazy"
           referrerPolicy="no-referrer"
+          onError={() => {
+            if (!imgError && model.render3DImage) {
+              setImgError(true);
+            }
+          }}
         />
 
         {/* Subtle Top Floating Badge */}
         <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
           <span className="px-3 py-1 rounded-xl bg-black/75 backdrop-blur-md text-white text-xs font-black border border-white/20 flex items-center gap-1.5 shadow-lg">
             <span className="w-2 h-2 rounded-full bg-[#FF8407] animate-pulse"></span>
-            <span>{model.name} · {lang === 'es' ? '2do Piso + 15 Escalones' : '2nd Floor + 15 Stairs'}</span>
+            <span>{model.name} · {lang === 'es' ? '2do Piso + 17 Escalones' : '2nd Floor + 17 Stairs'}</span>
           </span>
         </div>
       </div>

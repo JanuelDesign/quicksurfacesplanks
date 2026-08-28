@@ -211,13 +211,13 @@ export const FloorPlanSVG: React.FC<FloorPlanSVGProps> = ({
             </text>
           </g>
 
-          {/* Center: Stairs (15 Custom Steps) & Hallway */}
+          {/* Center: Stairs (17 Square Steps) & Hallway */}
           <g
             className="cursor-pointer transition-opacity"
             onMouseEnter={() => setHoveredRoom(5)}
             onMouseLeave={() => setHoveredRoom(null)}
           >
-            {/* Staircase Run with 15 steps */}
+            {/* Staircase Run with 17 steps */}
             <rect
               x="30"
               y="275"
@@ -228,21 +228,21 @@ export const FloorPlanSVG: React.FC<FloorPlanSVGProps> = ({
               stroke={hoveredRoom === 5 ? '#FF8407' : '#262626'}
               strokeWidth={hoveredRoom === 5 ? 3 : 1.5}
             />
-            {/* 15 step lines */}
-            {Array.from({ length: 15 }).map((_, i) => (
+            {/* 17 step lines */}
+            {Array.from({ length: 17 }).map((_, i) => (
               <line
                 key={i}
                 x1="30"
-                y1={275 + i * 9.6}
+                y1={275 + i * (145 / 17)}
                 x2="120"
-                y2={275 + i * 9.6}
+                y2={275 + i * (145 / 17)}
                 stroke="#000000"
                 strokeWidth="1.2"
               />
             ))}
             <rect x="35" y="325" width="80" height="28" rx="4" fill="#000000" fillOpacity="0.9" />
             <text x="75" y="340" textAnchor="middle" fill="#FF8407" fontSize="10" fontWeight="bold">
-              15 Custom Steps
+              17 Square Steps
             </text>
             <text x="75" y="350" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="bold">
               (Down / Glued)
@@ -351,7 +351,7 @@ export const FloorPlanSVG: React.FC<FloorPlanSVGProps> = ({
         </div>
         <div className="p-2.5 rounded-xl bg-[#141414] border border-[#262626]">
           <p className="text-[#A4A4A4]">Stairs Count</p>
-          <p className="text-[#FF8407] font-bold text-sm">15 Custom Steps</p>
+          <p className="text-[#FF8407] font-bold text-sm">17 Square Steps</p>
         </div>
         <div className="p-2.5 rounded-xl bg-[#141414] border border-[#262626]">
           <p className="text-[#A4A4A4]">Baseboards</p>

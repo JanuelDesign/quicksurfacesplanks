@@ -9,7 +9,7 @@ export const SERVICE_PROVIDERS: ServiceProvider[] = [
     email: 'install@mastercraftmiami.com',
     rating: 4.9,
     reviewsCount: 142,
-    specialty: 'Instalación SPC rígido, 15 escalones integrados Flush Nose y retiro de alfombra',
+    specialty: 'Instalación SPC rígido, 17 escalones integrados Square Step Nose y retiro de alfombra',
     badge: 'Especialista Homestead',
     note: 'Equipo certificado con más de 120 townhomes entregados en comunidades de Homestead (Siena Reserve, Altamira, Terra Sol).',
     verified: true,

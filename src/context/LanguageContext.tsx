@@ -27,7 +27,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     heroPackages: "TURNKEY OPTIONS",
     heroResidentialBadge: "Residential Flooring Project",
     heroResidentialTagline: "Professional Installation in Homestead & Miami-Dade",
-    heroSpecsBrief: "100% Waterproof SPC Rigid Core • 20-22 Mils Wear Layer • 15 Continuous Stairs",
+    heroSpecsBrief: "100% Waterproof SPC Rigid Core • 20-22 Mils Wear Layer • 17 Continuous Stairs",
     
     // Community Selector
     selectCommunityTitle: "Select Your Residential Community",
@@ -39,7 +39,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     
     // Model Page Header
     residentialProject: "Residential Flooring Project",
-    residentialModelDesc: "Complete home luxury renovation featuring precision net installation plus 15 integrated custom stairs. 100% waterproof rigid core SPC, continuous flow, and guaranteed durability.",
+    residentialModelDesc: "Complete home luxury renovation featuring precision net installation plus 17 integrated custom square step nose stairs. 100% waterproof rigid core SPC, continuous flow, and guaranteed durability.",
     onlyMaterialTitle: "ONLY MATERIAL",
     onlyMaterialSub: "Doorstep Delivery + FL Taxes Included",
     laborTitle: "LABOR (INSTALLATION)",
@@ -48,7 +48,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     labor2: "Subfloor smoothing & patch repairs if necessary",
     labor3: "Precision floor installation across entire area",
     labor4: "Careful baseboard removal & reinstallation",
-    labor5: "Custom stair installation glued with matching planks (15 steps)",
+    labor5: "Custom stair installation glued with matching planks (17 square step nose)",
     
     // Render & Blueprints
     view3DRender: "Render 3D Fotorrealista",
@@ -94,17 +94,17 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     
     // Gallery
     galleryTitle: "Recent South Florida Transformations",
-    gallerySubtitle: "Real installation craftsmanship on 15-step staircases, primary bedrooms, and seamless hallway transitions in your neighborhood.",
+    gallerySubtitle: "Real installation craftsmanship on 17-step staircases, primary bedrooms, and seamless hallway transitions in your neighborhood.",
     
     // Sticky & Footer
     footerReadyPrompt: "Ready to upgrade your home with luxury vinyl?",
-    footerStartingFrom: "Net Area + 15 Custom Stairs from $1,550 flat package",
+    footerStartingFrom: "Net Area + 17 Square Step Nose from $1,550 flat package",
     bookNowBtn: "Book Installation",
     warranty25: "25-Year Warranty",
     warranty25Desc: "Heavy residential wear & tear",
     waterproof100: "100% Waterproof SPC",
     waterproof100Desc: "Zero swelling or water damage",
-    customSteps15: "Custom 15 Stairs",
+    customSteps15: "17 Square Step Nose",
     customSteps15Desc: "Glued matching stair planks",
     turnkey2Days: "Fast Turnkey Delivery",
     turnkey2DaysDesc: "Clean, dust-free execution",
@@ -137,7 +137,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     heroPackages: "OPCIONES PAQUETE",
     heroResidentialBadge: "Proyecto Residencial",
     heroResidentialTagline: "Instalación Profesional en Homestead & Miami-Dade",
-    heroSpecsBrief: "Vinil SPC 100% Resistente al Agua • Capa 20-22 Mils • 15 Escalones Continuos",
+    heroSpecsBrief: "Vinil SPC 100% Resistente al Agua • Capa 20-22 Mils • 17 Escalones Continuos",
     
     // Community Selector
     selectCommunityTitle: "Selecciona tu Conjunto Residencial",
@@ -149,7 +149,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     
     // Model Page Header
     residentialProject: "Proyecto Residencial de Pisos",
-    residentialModelDesc: "Renovación completa con instalación profesional en área neta calculada más 15 escalones a medida. Vinil SPC 100% impermeable, diseño continuo y durabilidad garantizada.",
+    residentialModelDesc: "Renovación completa con instalación profesional en área neta calculada más 17 escalones square step nose a medida. Vinil SPC 100% impermeable, diseño continuo y durabilidad garantizada.",
     onlyMaterialTitle: "SOLO MATERIAL",
     onlyMaterialSub: "Entrega Directa en Sitio + Impuestos Incluidos",
     laborTitle: "MANO DE OBRA (LABOR)",
@@ -158,7 +158,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     labor2: "Parches y nivelación menor de superficies si es necesario",
     labor3: "Instalación profesional del piso en toda el área",
     labor4: "Desinstalación y reinstalación cuidadosa de zócalos",
-    labor5: "Instalación de 15 escalones pegados con mismos tablones",
+    labor5: "Instalación de 17 escalones square step nose pegados con mismos tablones",
     
     // Render & Blueprints
     view3DRender: "Render 3D Fotorrealista",
@@ -204,17 +204,17 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     
     // Gallery
     galleryTitle: "Trabajos Realizados en la Comunidad",
-    gallerySubtitle: "Resultados de instalaciones profesionales en escaleras de 15 peldaños, dormitorios y pasillos en Homestead y Miami-Dade.",
+    gallerySubtitle: "Resultados de instalaciones profesionales en escaleras de 17 peldaños, dormitorios y pasillos en Homestead y Miami-Dade.",
     
     // Sticky & Footer
     footerReadyPrompt: "¿Listo para renovar los pisos de tu casa?",
-    footerStartingFrom: "Área Neta + 15 Escalones desde $1,550 Paquete Completo",
+    footerStartingFrom: "Área Neta + 17 Escalones desde $1,550 Paquete Completo",
     bookNowBtn: "Reservar Instalación",
     warranty25: "Garantía 25 Años",
     warranty25Desc: "Uso residencial intensivo",
     waterproof100: "100% Impermeable SPC",
     waterproof100Desc: "Cero absorción de humedad",
-    customSteps15: "15 Escalones a Medida",
+    customSteps15: "17 Escalones Square Step Nose",
     customSteps15Desc: "Pegados con el mismo tablón",
     turnkey2Days: "Entrega Rápida",
     turnkey2DaysDesc: "Sin polvo, rápido y limpio",

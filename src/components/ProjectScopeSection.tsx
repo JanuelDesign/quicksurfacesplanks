@@ -36,8 +36,8 @@ export const ProjectScopeSection: React.FC<ProjectScopeSectionProps> = ({ model 
       title: lang === 'es' ? 'Escaleras Integradas' : 'Integrated Master Stairs',
       desc:
         lang === 'es'
-          ? 'Instalación profesional en 15 escalones utilizando el mismo material del piso para mantener continuidad visual perfecta.'
-          : 'Professional installation across 15 steps using the exact same flooring material for seamless visual continuity.',
+          ? 'Instalación profesional en 17 escalones Square Step Nose utilizando el mismo material del piso para mantener continuidad visual perfecta.'
+          : 'Professional installation across 17 Square Step Nose steps using the exact same flooring material for seamless visual continuity.',
     },
     {
       title: lang === 'es' ? 'Preparación Completa' : 'Complete Prep & Subfloor',
@@ -92,8 +92,8 @@ export const ProjectScopeSection: React.FC<ProjectScopeSectionProps> = ({ model 
       title: lang === 'es' ? 'Escaleras' : 'Stairs',
       desc:
         lang === 'es'
-          ? 'Instalación especializada en 15 escalones manteniendo continuidad visual perfecta.'
-          : 'Specialized 15-step custom fabrication and structural adhesive bonding with matching planks.',
+          ? 'Instalación especializada en 17 escalones Square Step Nose manteniendo continuidad visual perfecta.'
+          : 'Specialized 17-step custom fabrication and structural adhesive bonding with matching planks.',
     },
     {
       step: '04',

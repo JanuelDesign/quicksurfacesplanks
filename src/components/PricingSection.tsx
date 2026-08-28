@@ -138,7 +138,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                         pkg.isBestValue ? 'text-[#CBD5E1]' : 'text-[#64748B]'
                       }`}
                     >
-                      {model.sqft} sq ft Net Area + 15 Flush Stair Noses
+                      {model.sqft} sq ft Net Area + 17 Square Step Noses
                     </p>
                   </div>
 
@@ -206,7 +206,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                   <th className="py-3.5 px-4">{lang === 'es' ? 'Opción / Paquete' : 'Option / Package'}</th>
                   <th className="py-3.5 px-4">{lang === 'es' ? 'Material SPC' : 'SPC Material'}</th>
                   <th className="py-3.5 px-4">{lang === 'es' ? 'Capa Desgaste' : 'Wear Layer'}</th>
-                  <th className="py-3.5 px-4">{lang === 'es' ? 'Instalación & 15 Peldaños' : 'Installation & 15 Steps'}</th>
+                  <th className="py-3.5 px-4">{lang === 'es' ? 'Instalación & 17 Peldaños' : 'Installation & 17 Steps'}</th>
                   <th className="py-3.5 px-4">{lang === 'es' ? 'Desinstalación Alfombra' : 'Carpet Removal'}</th>
                   <th className="py-3.5 px-4 text-right">{lang === 'es' ? 'Precio Final' : 'Final Price'}</th>
                 </tr>
@@ -235,7 +235,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                   </td>
                   <td className="py-4 px-4">5.5mm Classic SPC</td>
                   <td className="py-4 px-4 font-mono">20 Mil</td>
-                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida (15 escalones)' : 'Included (15 steps)'}</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida (17 escalones)' : 'Included (17 steps)'}</td>
                   <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida & Zócalos' : 'Included & Baseboards'}</td>
                   <td className="py-4 px-4 text-right font-black text-lg text-[#000000]">$4,500</td>
                 </tr>
@@ -246,7 +246,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                   </td>
                   <td className="py-4 px-4">8.0mm Flagship SPC</td>
                   <td className="py-4 px-4 font-mono text-[#FF8407] font-bold">22 Mil Ultra</td>
-                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida (15 escalones)' : 'Included (15 steps)'}</td>
+                  <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida (17 escalones)' : 'Included (17 steps)'}</td>
                   <td className="py-4 px-4 font-bold text-[#000000]">{lang === 'es' ? 'Incluida & Zócalos' : 'Included & Baseboards'}</td>
                   <td className="py-4 px-4 text-right font-black text-lg text-[#FF8407]">$5,000</td>
                 </tr>

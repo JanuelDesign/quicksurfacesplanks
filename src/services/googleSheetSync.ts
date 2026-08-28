@@ -2,11 +2,18 @@ import { FloorPlanModel, FlooringProduct, PricingPackage } from '../types';
 import { COMMUNITIES as DEFAULT_COMMUNITIES, FLOOR_PLAN_MODELS as DEFAULT_MODELS } from '../data/communitiesAndModels';
 import { FLOORING_PRODUCTS as DEFAULT_PRODUCTS, PRICING_PACKAGES as DEFAULT_PACKAGES } from '../data/products';
 import { GalleryItem, GALLERY_ITEMS as DEFAULT_GALLERY_ITEMS } from '../components/GallerySection';
+import { TestimonialItem, TESTIMONIALS as DEFAULT_TESTIMONIALS } from '../data/testimonials';
 
 const SHEET_ID = '1AMavYDq0jmyc9_8sab_5ICUGY5N860ahiCM0ignx76A';
 
+export const SIENA_RESERVE_BANNER_URL = 'https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/banners/siena-reserve-entrance.webp';
+
 // Helper to parse CSV rows safely handling quotes
 function parseCSV(text: string): string[][] {
+  if (!text || text.startsWith('/*O_o*/') || text.includes('"status":"error"')) {
+    return [];
+  }
+
   const lines: string[][] = [];
   let row: string[] = [];
   let inQuotes = false;
@@ -50,9 +57,9 @@ function parseCSV(text: string): string[][] {
 }
 
 // Helper to normalize image URLs
-function normalizeImageUrl(url: string | undefined): string {
+export function normalizeImageUrl(url: string | undefined): string {
   if (!url) return '';
-  let cleanUrl = url.trim();
+  let cleanUrl = url.trim().replace(/^["']|["']$/g, '');
   if (cleanUrl.includes('github.com') && cleanUrl.includes('/blob/')) {
     cleanUrl = cleanUrl
       .replace('https://github.com/', 'https://raw.githubusercontent.com/')
@@ -71,23 +78,47 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export async function fetchLiveDatabase() {
+export interface LiveDatabaseResult {
+  models: FloorPlanModel[];
+  products: FlooringProduct[];
+  packages: PricingPackage[];
+  galleryItems: GalleryItem[];
+  testimonials: TestimonialItem[];
+  bannerUrl: string;
+  isLive: boolean;
+}
+
+export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
   try {
-    const [commRes, floorRes, priceRes, galleryRes] = await Promise.all([
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Communities_Models`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Products_Colors`).then(r => r.ok ? r : fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flooring_Catalog`)),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Pricing_Packages`),
-      fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Gallery_Photos`).then(r => r.ok ? r : fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Gallery_Projects`)),
+    const fetchSheet = async (sheetName: string) => {
+      try {
+        const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`);
+        if (!res.ok) return '';
+        const text = await res.text();
+        if (text.startsWith('/*O_o*/') || text.includes('"status":"error"')) return '';
+        return text;
+      } catch (e) {
+        console.warn(`Failed fetching sheet: ${sheetName}`, e);
+        return '';
+      }
+    };
+
+    const [commText, floorText, priceText, galleryText, aboutText] = await Promise.all([
+      fetchSheet('Communities_Models'),
+      fetchSheet('Products_Colors'),
+      fetchSheet('Pricing_Packages'),
+      fetchSheet('Gallery_Projects'),
+      fetchSheet('About_Us_Photos'),
     ]);
 
     let models = DEFAULT_MODELS;
     let products = DEFAULT_PRODUCTS;
     let packages = DEFAULT_PACKAGES;
     let galleryItems = DEFAULT_GALLERY_ITEMS;
+    let testimonials = DEFAULT_TESTIMONIALS;
 
     // 1. Parse Models
-    if (commRes.ok) {
-      const commText = await commRes.text();
+    if (commText) {
       const rows = parseCSV(commText);
       if (rows.length > 1) {
         const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
@@ -128,6 +159,7 @@ export async function fetchLiveDatabase() {
         const facadeImgIdx = header.indexOf('image_facade');
 
         const parsedModels: FloorPlanModel[] = [];
+        const seenModelIds = new Set<string>();
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (!r[nameIdx]) continue;
@@ -139,7 +171,14 @@ export async function fetchLiveDatabase() {
           const collectionSlug = r[colSlugIdx] || slugify(collectionName.replace('Collection', ''));
           const modelSlug = slugify(modelName);
 
-          const uniqueId = r[idIdx] || `${communitySlug}_${collectionSlug}_${modelSlug}`;
+          const rawUniqueId = r[idIdx] || `${communitySlug}_${collectionSlug}_${modelSlug}`;
+          let uniqueId = rawUniqueId;
+          let counter = 1;
+          while (seenModelIds.has(uniqueId)) {
+            uniqueId = `${rawUniqueId}_${counter}`;
+            counter++;
+          }
+          seenModelIds.add(uniqueId);
 
           const totalSqft = parseInt(r[sqftIdx], 10) || 1400;
           const raw1st = sqft1stIdx !== -1 && r[sqft1stIdx] ? parseInt(r[sqft1stIdx], 10) : 0;
@@ -183,7 +222,7 @@ export async function fetchLiveDatabase() {
             sqftNet,
             sqftMaterialRecommended,
             priceFrom: priceFromIdx !== -1 && r[priceFromIdx] ? parseInt(r[priceFromIdx], 10) : undefined,
-            stepsCount: parseInt(r[stepsIdx], 10) || 15,
+            stepsCount: parseInt(r[stepsIdx], 10) || 17,
             bedrooms: parseInt(r[bedIdx], 10) || 3,
             baths: parseFloat(r[bathIdx]) || 2.5,
             floorLevel: '1er & 2do Piso',
@@ -201,7 +240,7 @@ export async function fetchLiveDatabase() {
               `Total Construcción: ${totalSqft} SF`,
               `1er Piso (+7% Desperdicio): ~${sqftFirstFloorRec} SF`,
               `2do Piso (+7% Desperdicio): ~${sqftSecondFloorRec} SF`,
-              'Escaleras: 15 Escalones Flush Stair Nose',
+              'Escaleras: 17 Escalones Square Step Nose',
             ],
             description: r[descIdx] || `${modelName} en ${communityName} · ${collectionName}`,
             floorPlanImage: planImgIdx !== -1 && r[planImgIdx] ? normalizeImageUrl(r[planImgIdx]) : defaultMatch?.floorPlanImage,
@@ -220,8 +259,7 @@ export async function fetchLiveDatabase() {
     }
 
     // 2. Parse Products
-    if (floorRes.ok) {
-      const floorText = await floorRes.text();
+    if (floorText) {
       const rows = parseCSV(floorText);
       if (rows.length > 1) {
         const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
@@ -248,6 +286,7 @@ export async function fetchLiveDatabase() {
         );
 
         const parsedProducts: FlooringProduct[] = [];
+        const seenProductIds = new Set<string>();
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (!r[nameIdx]) continue;
@@ -291,8 +330,17 @@ export async function fetchLiveDatabase() {
           const defaultStairCost = productCategory === '8mm' ? 747.72 : productCategory === '6mm' ? 676.37 : 589.00;
           const stairMaterialCost = stairCostIdx !== -1 && r[stairCostIdx] ? parseFloat(r[stairCostIdx]) : defaultStairCost;
 
+          const rawProdId = (r[idIdx] || `prod-${slugify(r[nameIdx]) || i}`).trim();
+          let uniqueProdId = rawProdId;
+          let counter = 1;
+          while (seenProductIds.has(uniqueProdId)) {
+            uniqueProdId = `${rawProdId}-${counter}`;
+            counter++;
+          }
+          seenProductIds.add(uniqueProdId);
+
           parsedProducts.push({
-            id: r[idIdx] || `prod-${i}`,
+            id: uniqueProdId,
             code: r[codeIdx] || `0${i}`,
             name: r[nameIdx],
             category: productCategory,
@@ -327,13 +375,12 @@ export async function fetchLiveDatabase() {
     }
 
     // 3. Parse Pricing Packages
-    if (priceRes.ok) {
-      const priceText = await priceRes.text();
+    if (priceText) {
       const rows = parseCSV(priceText);
       if (rows.length > 1) {
         const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
-        const idIdx = header.indexOf('id');
-        const titleIdx = header.indexOf('title');
+        const idIdx = header.indexOf('id') !== -1 ? header.indexOf('id') : header.indexOf('package_id');
+        const titleIdx = header.indexOf('title') !== -1 ? header.indexOf('title') : header.indexOf('package_name');
         const taglineIdx = header.indexOf('tagline');
         const thickIdx = header.indexOf('thickness');
         const wearIdx = header.indexOf('wear_layer');
@@ -341,13 +388,14 @@ export async function fetchLiveDatabase() {
         const priceIdx = header.indexOf('price');
         const base530Idx = header.indexOf('base_price_at_530_sqft');
         const rateMatIdx = header.indexOf('rate_per_sqft_material');
-        const rateLaborIdx = header.indexOf('rate_per_sqft_labor');
-        const stairFeeIdx = header.indexOf('stair_flat_fee');
+        const rateLaborIdx = header.indexOf('rate_per_sqft_labor') !== -1 ? header.indexOf('rate_per_sqft_labor') : header.indexOf('labor_rate_floor');
+        const stairFeeIdx = header.indexOf('stair_flat_fee') !== -1 ? header.indexOf('stair_flat_fee') : header.indexOf('labor_rate_stairs');
         const turnkeyIdx = header.indexOf('is_turnkey');
         const laborIdx = header.indexOf('includes_labor');
-        const badgeIdx = header.indexOf('badge');
+        const badgeIdx = header.indexOf('badge') !== -1 ? header.indexOf('badge') : header.indexOf('badge_text');
 
         const parsedPackages: PricingPackage[] = [];
+        const seenPackageIds = new Set<string>();
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (!r[titleIdx]) continue;
@@ -358,8 +406,17 @@ export async function fetchLiveDatabase() {
           const rateMat = rateMatIdx !== -1 && r[rateMatIdx] ? parseFloat(r[rateMatIdx]) : (isPrem ? 3.8679 : 2.9245);
           const stairFee = stairFeeIdx !== -1 && r[stairFeeIdx] ? parseInt(r[stairFeeIdx], 10) : (isTurnkey ? 2950 : 0);
 
+          const rawPkgId = (r[idIdx] || `pkg-${slugify(r[titleIdx]) || i}`).trim();
+          let uniquePkgId = rawPkgId;
+          let counter = 1;
+          while (seenPackageIds.has(uniquePkgId)) {
+            uniquePkgId = `${rawPkgId}-${counter}`;
+            counter++;
+          }
+          seenPackageIds.add(uniquePkgId);
+
           parsedPackages.push({
-            id: r[idIdx] || `pkg-${i}`,
+            id: uniquePkgId,
             title: r[titleIdx],
             tagline: r[taglineIdx] || '',
             thickness: r[thickIdx] || (isPrem ? '8.0mm' : '5.5mm'),
@@ -367,7 +424,7 @@ export async function fetchLiveDatabase() {
             plankSize: r[plankIdx] || (isPrem ? '9" x 60"' : '7" x 48"'),
             basePriceAt530Sqft: basePrice,
             ratePerSqftMaterial: rateMat,
-            ratePerSqftLabor: rateLaborIdx !== -1 && r[rateLaborIdx] ? parseFloat(r[rateLaborIdx]) : 0,
+            ratePerSqftLabor: rateLaborIdx !== -1 && r[rateLaborIdx] ? parseFloat(r[rateLaborIdx]) : (isTurnkey ? 2.0 : 0),
             stairFlatFee: stairFee,
             price: basePrice,
             isTurnkey: isTurnkey,
@@ -376,7 +433,7 @@ export async function fetchLiveDatabase() {
             features: [
               `Piso SPC ${r[thickIdx] || '5.5mm'} (${r[wearIdx] || '20 mil'})`,
               `Formato: ${r[plankIdx] || '7" x 48"'}`,
-              isTurnkey ? '15 Escalones Flush Stair Nose incluidos' : 'Entrega directa en Homestead',
+              isTurnkey ? '17 Escalones Square Step Nose incluidos' : 'Entrega directa en Homestead',
               'Garantía de fábrica 25 años contra humedad',
             ],
             inclusions: [
@@ -393,9 +450,8 @@ export async function fetchLiveDatabase() {
       }
     }
 
-    // 4. Parse Gallery Projects (if available)
-    if (galleryRes && galleryRes.ok) {
-      const galleryText = await galleryRes.text();
+    // 4. Parse Gallery Projects (Tab: Gallery_Projects)
+    if (galleryText) {
       const rows = parseCSV(galleryText);
       if (rows.length > 1) {
         const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
@@ -420,40 +476,53 @@ export async function fetchLiveDatabase() {
         const craftEnIdx = header.findIndex((h) => h === 'craft_highlights_en' || h === 'craft_highlights_en');
 
         const parsedGallery: GalleryItem[] = [];
+        const seenGalleryIds = new Set<string>();
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
-          if (!r[titleEsIdx] && !r[idIdx]) continue;
+          if (!r[titleEsIdx] && !r[idIdx] && !r[imgIdx]) continue;
 
-          const rawCraftEs = r[craftEsIdx] || '';
+          const rawCraftEs = craftEsIdx !== -1 && r[craftEsIdx] ? r[craftEsIdx] : '';
           const craftListEs = rawCraftEs.includes('|')
             ? rawCraftEs.split('|').map((s) => s.trim()).filter(Boolean)
-            : rawCraftEs ? [rawCraftEs] : ['Flush Nosing integrado sin tropiezos', 'Pegado estructural de máxima adherencia'];
+            : rawCraftEs ? [rawCraftEs] : ['Square Step Nose integrado sin tropiezos', 'Pegado estructural de máxima adherencia'];
 
-          const rawCraftEn = r[craftEnIdx] || '';
+          const rawCraftEn = craftEnIdx !== -1 && r[craftEnIdx] ? r[craftEnIdx] : '';
           const craftListEn = rawCraftEn.includes('|')
             ? rawCraftEn.split('|').map((s) => s.trim()).filter(Boolean)
-            : rawCraftEn ? [rawCraftEn] : ['Seamless flush nosing with zero trip hazard', 'Structural polyurethane full-spread adhesion'];
+            : rawCraftEn ? [rawCraftEn] : ['Seamless square step nosing with zero trip hazard', 'Structural polyurethane full-spread adhesion'];
 
-          const rawImg = normalizeImageUrl(r[imgIdx]);
+          const rawImg = imgIdx !== -1 && r[imgIdx] ? normalizeImageUrl(r[imgIdx]) : '';
+
+          const rawGalId = (idIdx !== -1 && r[idIdx] ? r[idIdx] : `gal-${i}`).trim();
+          let uniqueGalId = rawGalId;
+          let counter = 1;
+          while (seenGalleryIds.has(uniqueGalId)) {
+            uniqueGalId = `${rawGalId}-${counter}`;
+            counter++;
+          }
+          seenGalleryIds.add(uniqueGalId);
+
+          const tagEs = (tagEsIdx !== -1 && r[tagEsIdx]) ? r[tagEsIdx] : 'Instalación Real Siena Reserve';
+          const tagEn = (tagEnIdx !== -1 && r[tagEnIdx]) ? r[tagEnIdx] : 'Real Installation Siena Reserve';
 
           parsedGallery.push({
-            id: r[idIdx] || `gal-${i}`,
-            fileName: r[fileIdx] || `gallery_image_${i}.webp`,
-            title: r[titleEsIdx] || 'Instalación de Pisos SPC en Homestead',
-            titleEn: r[titleEnIdx] || r[titleEsIdx] || 'Homestead SPC Flooring Installation',
-            spaceType: (r[spaceTypeIdx] as any) || 'stairs',
-            spaceLabel: r[spaceLabelEsIdx] || 'Espacio Interior',
-            spaceLabelEn: r[spaceLabelEnIdx] || r[spaceLabelEsIdx] || 'Interior Space',
-            collection: (r[colIdx] as any) || '8mm',
-            productName: r[prodNameIdx] || '8.0mm Liv Oak Flagship',
-            productCode: r[prodCodeIdx] || '347',
-            community: r[commIdx] || 'Siena Reserve',
-            location: r[locIdx] || 'Homestead, FL',
-            imageUrl: rawImg || DEFAULT_GALLERY_ITEMS[0]?.imageUrl || '',
-            tag: r[tagEsIdx] || 'Instalación Real',
-            tagEn: r[tagEnIdx] || r[tagEsIdx] || 'Real Install',
-            description: r[descEsIdx] || 'Instalación profesional con garantía de 25 años.',
-            descriptionEn: r[descEnIdx] || r[descEsIdx] || 'Professional installation with 25-year warranty.',
+            id: uniqueGalId,
+            fileName: (fileIdx !== -1 && r[fileIdx]) ? r[fileIdx] : `gallery-0${i}.webp`,
+            title: (titleEsIdx !== -1 && r[titleEsIdx]) ? r[titleEsIdx] : tagEs,
+            titleEn: (titleEnIdx !== -1 && r[titleEnIdx]) ? r[titleEnIdx] : tagEn,
+            spaceType: (spaceTypeIdx !== -1 && r[spaceTypeIdx]) ? (r[spaceTypeIdx] as any) : 'stairs',
+            spaceLabel: (spaceLabelEsIdx !== -1 && r[spaceLabelEsIdx]) ? r[spaceLabelEsIdx] : tagEs,
+            spaceLabelEn: (spaceLabelEnIdx !== -1 && r[spaceLabelEnIdx]) ? r[spaceLabelEnIdx] : tagEn,
+            collection: (colIdx !== -1 && r[colIdx]) ? (r[colIdx] as any) : '8mm',
+            productName: (prodNameIdx !== -1 && r[prodNameIdx]) ? r[prodNameIdx] : 'Piso Vinílico SPC',
+            productCode: (prodCodeIdx !== -1 && r[prodCodeIdx]) ? r[prodCodeIdx] : 'Q-01',
+            community: (commIdx !== -1 && r[commIdx]) ? r[commIdx] : 'Siena Reserve',
+            location: (locIdx !== -1 && r[locIdx]) ? r[locIdx] : 'Homestead, FL',
+            imageUrl: rawImg || `https://raw.githubusercontent.com/JanuelDesign/quicksurfacesplanks/refs/heads/main/public/images/gallery/gallery-0${i}.webp`,
+            tag: tagEs,
+            tagEn: tagEn,
+            description: (descEsIdx !== -1 && r[descEsIdx]) ? r[descEsIdx] : 'Instalación profesional con garantía de 25 años.',
+            descriptionEn: (descEnIdx !== -1 && r[descEnIdx]) ? r[descEnIdx] : 'Professional installation with 25-year warranty.',
             craftHighlights: craftListEs,
             craftHighlightsEn: craftListEn,
           });
@@ -462,11 +531,58 @@ export async function fetchLiveDatabase() {
       }
     }
 
+    // 5. Parse About Us & Testimonials (Tab: About_Us_Photos)
+    if (aboutText) {
+      const rows = parseCSV(aboutText);
+      if (rows.length > 1) {
+        const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
+        const idIdx = header.indexOf('id');
+        const nameIdx = header.findIndex((h) => h === 'client_name' || h === 'name');
+        const roleEsIdx = header.findIndex((h) => h === 'role_es' || h === 'role');
+        const roleEnIdx = header.findIndex((h) => h === 'role_en' || h === 'roleen');
+        const commIdx = header.indexOf('community');
+        const quoteEsIdx = header.findIndex((h) => h === 'quote_es' || h === 'quote');
+        const quoteEnIdx = header.findIndex((h) => h === 'quote_en' || h === 'quoteen');
+        const tagEsIdx = header.indexOf('tag_es');
+        const tagEnIdx = header.indexOf('tag_en');
+        const ratingIdx = header.indexOf('rating');
+        const imgIdx = header.findIndex((h) => h === 'image_url' || h === 'image');
+
+        const parsedTestimonials: TestimonialItem[] = [];
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r[nameIdx]) continue;
+
+          const rawImg = imgIdx !== -1 && r[imgIdx] ? normalizeImageUrl(r[imgIdx]) : '';
+          const ratingVal = ratingIdx !== -1 && r[ratingIdx] ? parseFloat(r[ratingIdx]) : 5;
+
+          parsedTestimonials.push({
+            id: (idIdx !== -1 && r[idIdx] ? r[idIdx] : `testimonio-${i}`).trim(),
+            clientName: r[nameIdx],
+            role: (roleEsIdx !== -1 && r[roleEsIdx]) ? r[roleEsIdx] : 'Cliente Residencial',
+            roleEn: (roleEnIdx !== -1 && r[roleEnIdx]) ? r[roleEnIdx] : 'Residential Client',
+            community: (commIdx !== -1 && r[commIdx]) ? r[commIdx] : 'Homestead, FL',
+            imageFileName: `about-0${i}.webp`,
+            githubUrl: rawImg,
+            localUrl: rawImg,
+            rating: isNaN(ratingVal) ? 5 : ratingVal,
+            quote: (quoteEsIdx !== -1 && r[quoteEsIdx]) ? r[quoteEsIdx] : 'Excelente calidad de los pisos y atención impecable.',
+            quoteEn: (quoteEnIdx !== -1 && r[quoteEnIdx]) ? r[quoteEnIdx] : 'Outstanding flooring quality and flawless craftsmanship.',
+            tag: (tagEsIdx !== -1 && r[tagEsIdx]) ? r[tagEsIdx] : 'Cliente Verificado',
+            tagEn: (tagEnIdx !== -1 && r[tagEnIdx]) ? r[tagEnIdx] : 'Verified Client',
+          });
+        }
+        if (parsedTestimonials.length > 0) testimonials = parsedTestimonials;
+      }
+    }
+
     return {
       models,
       products,
       packages,
       galleryItems,
+      testimonials,
+      bannerUrl: SIENA_RESERVE_BANNER_URL,
       isLive: true,
     };
   } catch (error) {
@@ -476,6 +592,8 @@ export async function fetchLiveDatabase() {
       products: DEFAULT_PRODUCTS,
       packages: DEFAULT_PACKAGES,
       galleryItems: DEFAULT_GALLERY_ITEMS,
+      testimonials: DEFAULT_TESTIMONIALS,
+      bannerUrl: SIENA_RESERVE_BANNER_URL,
       isLive: false,
     };
   }

@@ -97,15 +97,15 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             )}
           </g>
 
-          {/* Stairs (15 Steps) */}
+          {/* Stairs (17 Steps) */}
           <g className="cursor-pointer" onClick={() => handleRoomClick('Stairs')}>
             <rect x="375" y="370" width="85" height="180" fill="#1F2937" stroke="#FFFFFF" strokeWidth="2" />
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((i) => (
-              <line key={i} x1="375" y1={370 + i * 12} x2="460" y2={370 + i * 12} stroke="#FF8407" strokeWidth="2" />
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((i) => (
+              <line key={i} x1="375" y1={370 + i * 10.5} x2="460" y2={370 + i * 10.5} stroke="#FF8407" strokeWidth="2" />
             ))}
             <rect x="380" y="435" width="75" height="34" rx="4" fill="#000000" fillOpacity="0.9" stroke="#FFFFFF" strokeWidth="1.5" />
             <text x="417" y="450" fill="#FF8407" fontSize="11" fontWeight="900" textAnchor="middle">ESCALERAS</text>
-            <text x="417" y="463" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">15 PASOS (UP)</text>
+            <text x="417" y="463" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">17 PASOS (UP)</text>
           </g>
 
           {/* Bath 3 (Existing Tile) */}
@@ -244,15 +244,15 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
           )}
         </g>
 
-        {/* Stairs (15 Steps) */}
+        {/* Stairs (17 Steps) */}
         <g className="cursor-pointer" onClick={() => handleRoomClick('Stairs')}>
           <rect x="365" y="350" width="95" height="190" fill="#1F2937" stroke="#FFFFFF" strokeWidth="2" />
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((i) => (
-            <line key={i} x1="365" y1={350 + i * 12.5} x2="460" y2={350 + i * 12.5} stroke="#FF8407" strokeWidth="2" />
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((i) => (
+            <line key={i} x1="365" y1={350 + i * 11} x2="460" y2={350 + i * 11} stroke="#FF8407" strokeWidth="2" />
           ))}
           <rect x="372" y="420" width="82" height="38" rx="4" fill="#000000" fillOpacity="0.92" stroke="#FF8407" strokeWidth="1.5" />
           <text x="413" y="436" fill="#FF8407" fontSize="11" fontWeight="900" textAnchor="middle">ESCALERAS</text>
-          <text x="413" y="450" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">15 PASOS (UP)</text>
+          <text x="413" y="450" fill="#FFFFFF" fontSize="10" fontWeight="800" textAnchor="middle">17 PASOS (UP)</text>
         </g>
 
         {/* Powder Room (1/2 Baño - Tile) */}
@@ -402,16 +402,16 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
           <text x="282" y="488" fill="#FFFFFF" fontSize="12" fontWeight="900" textAnchor="middle">HVAC</text>
         </g>
 
-        {/* Hallway & Stairs Arrival (15 Steps) */}
+        {/* Hallway & Stairs Arrival (17 Steps) */}
         <g>
           <rect x="194" y="324" width="140" height="250" fill="url(#planksTextureFloor)" />
           <rect x="334" y="380" width="122" height="174" fill="#1F2937" stroke="#FFFFFF" strokeWidth="2.5" />
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((i) => (
-            <line key={i} x1="334" y1={380 + i * 11.5} x2="456" y2={380 + i * 11.5} stroke="#FF8407" strokeWidth="2" />
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((i) => (
+            <line key={i} x1="334" y1={380 + i * 10} x2="456" y2={380 + i * 10} stroke="#FF8407" strokeWidth="2" />
           ))}
           <rect x="345" y="445" width="100" height="42" rx="6" fill="#000000" fillOpacity="0.9" stroke="#FF8407" strokeWidth="2" />
-          <text x="395" y="464" fill="#FF8407" fontSize="13" fontWeight="900" textAnchor="middle">15 ESCALONES</text>
-          <text x="395" y="479" fill="#FFFFFF" fontSize="11" fontWeight="800" textAnchor="middle">FLUSH NOSE</text>
+          <text x="395" y="462" fill="#FF8407" fontSize="12" fontWeight="900" textAnchor="middle">17 ESCALONES</text>
+          <text x="395" y="477" fill="#FFFFFF" fontSize="9" fontWeight="800" textAnchor="middle">SQUARE STEP NOSE</text>
         </g>
 
         {/* Bandol 2nd Floor (Bed 2 + Bath 2) vs Casis/Monte Carlo/Reserve/Vence (Bed 2 + Bed 3 + Bath 2) */}
@@ -532,7 +532,7 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <strong className="text-[#FF8407] font-black">{sqftRec} sq ft ({boxesCount} {lang === 'es' ? 'cajas' : 'boxes'})</strong>
             {hasStairs && (
               <>
-                {' '}• <strong className="text-[#000000] font-black">{lang === 'es' ? '15 Escalones Flush Stair Nose' : '15 Steps Flush Stair Nose'}</strong>
+                {' '}• <strong className="text-[#000000] font-black">{lang === 'es' ? '17 Escalones Square Step Nose' : '17 Steps Square Step Nose'}</strong>
               </>
             )}
           </p>

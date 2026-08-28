@@ -46,12 +46,12 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
             </span>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              {lang === 'es' ? '15 Escalones Flush Nose' : '15 Flush Stair Noses'}
+              {lang === 'es' ? '17 Escalones Square Step Nose' : '17 Square Step Noses'}
             </span>
           </div>
 
           <h3 className="text-lg sm:text-xl font-black text-[#000000] tracking-tight">
-            Flush Stair Nose — {lang === 'es' ? '15 Escalones a Juego' : '15 Matching Custom Steps'}
+            Square Step Nose — {lang === 'es' ? '17 Escalones a Juego' : '17 Matching Custom Steps'}
           </h3>
           <p className="text-xs text-[#64748B] mt-0.5">
             {lang === 'es'
@@ -64,7 +64,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
         <div className="flex items-center gap-3 bg-[#FFFBF7] p-3 rounded-2xl border border-[#FF8407]/30 self-start sm:self-center">
           <div>
             <span className="text-[10px] font-black uppercase text-[#64748B] block">
-              {lang === 'es' ? 'Costo Material (15 Escalones)' : 'Stair Material (15 Steps)'}
+              {lang === 'es' ? 'Costo Material (17 Escalones)' : 'Stair Material (17 Steps)'}
             </span>
             <span className="text-xl font-black text-[#FF8407] block leading-tight">
               {formatCurrency(stairCost)}
@@ -73,7 +73,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
           <div className="h-8 w-px bg-[#FF8407]/20"></div>
           <div className="text-right">
             <span className="text-[10px] font-bold text-slate-500 block">
-              {lang === 'es' ? 'Perfil Flush' : 'Flush Profile'}
+              {lang === 'es' ? 'Perfil Square Step' : 'Square Step Profile'}
             </span>
             <span className="text-xs font-black text-slate-900">
               100% Waterproof
@@ -84,7 +84,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
 
       {/* 2 Main Visual Cards Grid: 360 Piece View & Installed Illustration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        {/* CARD 1: 360° Flush Square Step Nose Piece */}
+        {/* CARD 1: 360° Square Step Nose Piece */}
         <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#CBD5E1] flex flex-col justify-between relative group hover:border-[#FF8407]/60 transition-all">
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -94,10 +94,10 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                    {lang === 'es' ? 'Pieza Flush Stair Nose (Perfil al Ras)' : 'Flush Stair Nose Piece (Flush Profile)'}
+                    {lang === 'es' ? 'Pieza Square Step Nose (Perfil al Ras)' : 'Square Step Nose Piece (Square Profile)'}
                   </h4>
                   <span className="text-[10px] text-[#64748B]">
-                    {lang === 'es' ? 'Transición al ras sin pestañas sobresalientes' : 'Seamless flush transition without raised lips'}
+                    {lang === 'es' ? 'Transición al ras sin pestañas sobresalientes' : 'Seamless square transition without raised lips'}
                   </span>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                 className="relative transition-transform duration-500 ease-out flex flex-col items-center justify-center"
                 style={{ transform: `rotate(${rotationAngle}deg)` }}
               >
-                {/* Visual Architectural Profile Drawing of the Flush Stair Nose */}
+                {/* Visual Architectural Profile Drawing of the Square Step Nose */}
                 <svg width="220" height="130" viewBox="0 0 220 130" className="drop-shadow-2xl">
                   <defs>
                     <linearGradient id="stairNoseWood" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -159,10 +159,10 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
 
                   {/* Measurement Callouts */}
                   <text x="100" y="24" fill="#FFFFFF" fontSize="10" fontWeight="900" textAnchor="middle">
-                    FLUSH SPC WEAR LAYER ({selectedProduct.wearLayer})
+                    SQUARE STEP SPC WEAR LAYER ({selectedProduct.wearLayer})
                   </text>
                   <text x="190" y="90" fill="#FF8407" fontSize="9" fontWeight="900" textAnchor="start">
-                    FLUSH NOSE
+                    SQUARE NOSE
                   </text>
                   <text x="100" y="62" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">
                     Acoustic Pad 1.5-2.0mm
@@ -205,7 +205,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-[#FF8407] text-black flex items-center justify-center font-black text-xs">
-                  15
+                  17
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
@@ -218,7 +218,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
               </div>
 
               <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black">
-                {lang === 'es' ? '15 Pasos' : '15 Treads'}
+                {lang === 'es' ? '17 Pasos' : '17 Treads'}
               </span>
             </div>
 
@@ -229,7 +229,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                   selectedProduct.staircasePreviewUrl ||
                   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'
                 }
-                alt="Escalera Flush Stair Nose Instalada en Siena Reserve"
+                alt="Escalera Square Step Nose Instalada en Siena Reserve"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
               />
@@ -278,13 +278,13 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
         <div>
           <strong className="text-[#0F172A] block">
             {lang === 'es'
-              ? 'Especificaciones Técnicas Flush Stair Nose'
-              : 'Flush Stair Nose Technical Notes'}
+              ? 'Especificaciones Técnicas Square Step Nose'
+              : 'Square Step Nose Technical Notes'}
           </strong>
           <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
             {lang === 'es'
-              ? 'El modelo Flush Stair Nose elimina los perfiles sobresalientes tradicionales (bullnose) que generan tropiezos. Se ensambla al ras con el tablón del piso y el riser, logrando una estética moderna y limpia en los 15 escalones de los townhomes de Siena Reserve.'
-              : 'The Flush Stair Nose model replaces bulky protruding overlap nosing to eliminate trip hazards. It clicks flush into your SPC plank and riser, ensuring a clean, modern aesthetic across all 15 steps in Siena Reserve townhomes.'}
+              ? 'El modelo Square Step Nose elimina los perfiles sobresalientes tradicionales (bullnose) que generan tropiezos. Se ensambla al ras con el tablón del piso y el riser, logrando una estética moderna y limpia en los 17 escalones de los townhomes de Siena Reserve.'
+              : 'The Square Step Nose model replaces bulky protruding overlap nosing to eliminate trip hazards. It clicks flush into your SPC plank and riser, ensuring a clean, modern aesthetic across all 17 steps in Siena Reserve townhomes.'}
           </p>
         </div>
       </div>
@@ -302,8 +302,8 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
               <h4 className="font-black text-base text-slate-900">
                 {selectedCardModal === '360'
-                  ? lang === 'es' ? 'Perfil Arquitectónico Flush Stair Nose' : 'Flush Stair Nose Architectural Profile'
-                  : lang === 'es' ? 'Escalera de 15 Pasos Instalada' : 'Installed 15-Step Staircase'}
+                  ? lang === 'es' ? 'Perfil Arquitectónico Square Step Nose' : 'Square Step Nose Architectural Profile'
+                  : lang === 'es' ? 'Escalera de 17 Pasos Instalada' : 'Installed 17-Step Staircase'}
               </h4>
               <button
                 type="button"
@@ -320,7 +320,7 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                   <div className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-[#FF8407]/20 border border-[#FF8407] flex items-center justify-center">
                     <Layers className="w-12 h-12 text-[#FF8407]" />
                   </div>
-                  <h5 className="font-black text-lg">Flush Stair Nose Profile (15 Steps)</h5>
+                  <h5 className="font-black text-lg">Square Step Nose Profile (17 Steps)</h5>
                   <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
                     {lang === 'es'
                       ? 'Pieza monobloque moldeada con la misma película de desgaste y veta de tu piso SPC elegido.'

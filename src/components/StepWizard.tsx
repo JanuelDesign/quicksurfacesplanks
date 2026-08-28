@@ -15,6 +15,7 @@ import { SienaReserveHero } from './SienaReserveHero';
 import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
 import { Photorealistic3DRender } from './Photorealistic3DRender';
 import { StaircaseStepSection } from './StaircaseStepSection';
+import { ColorSelectorModal } from './ColorSelectorModal';
 import {
   ArrowLeft,
   ChevronRight,
@@ -36,6 +37,7 @@ import {
   ZoomIn,
   Truck,
   Wrench,
+  Palette,
 } from 'lucide-react';
 
 interface StepWizardProps {
@@ -71,10 +73,14 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   // Active step in the workflow (1: Model & Scope, 2: Product & Color, 3: Package, 4: Summary)
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Model selection (defaults to B Model)
-  const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(
-    modelsList.find((m) => m.slug === 'b-model' || m.slug === 'bandol') || modelsList[0] || SIENA_RESERVE_MODELS[0]
-  );
+  // Model selection (defaults to initialModel or B Model)
+  const [selectedModel, setSelectedModel] = useState<FloorPlanModel>(() => {
+    if (initialModel) {
+      const found = modelsList.find((m) => m.id === initialModel.id || m.slug === initialModel.slug);
+      if (found) return found;
+    }
+    return modelsList.find((m) => m.slug === 'b-model' || m.slug === 'bandol') || modelsList[0] || SIENA_RESERVE_MODELS[0];
+  });
 
   // Floor Scope (4 options: floor1, floor1_stairs, floor2, floor2_stairs)
   const [floorScope, setFloorScope] = useState<FloorScope>('floor1_stairs');
@@ -82,15 +88,32 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   // Thickness filter (5.5mm, 6mm, 8mm, or all)
   const [thicknessFilter, setThicknessFilter] = useState<string>('all');
 
-  const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(
-    productsList[0] || FLOORING_PRODUCTS[0]
-  );
+  const [selectedProduct, setSelectedProduct] = useState<FlooringProduct>(() => {
+    if (initialProduct) {
+      const found = productsList.find((p) => p.id === initialProduct.id || p.code === initialProduct.code);
+      if (found) return found;
+    }
+    return productsList[0] || FLOORING_PRODUCTS[0];
+  });
   const [viewMode3D, setViewMode3D] = useState<'room' | 'plank'>('room');
+  const [isColorModalOpen, setIsColorModalOpen] = useState<boolean>(false);
+  const roomSceneRef = useRef<HTMLDivElement>(null);
+
+  const handleSelectProductWithScroll = (product: FlooringProduct) => {
+    setSelectedProduct(product);
+    if (roomSceneRef.current) {
+      roomSceneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   // Package Selection
-  const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(
-    packagesList.find((p) => p.isTurnkey) || packagesList[0] || PRICING_PACKAGES[0]
-  );
+  const [selectedPackage, setSelectedPackage] = useState<PricingPackage>(() => {
+    if (initialPackage) {
+      const found = packagesList.find((p) => p.id === initialPackage.id);
+      if (found) return found;
+    }
+    return packagesList.find((p) => p.isTurnkey) || packagesList[0] || PRICING_PACKAGES[0];
+  });
   const [packageType, setPackageType] = useState<'all' | 'turnkey' | 'material'>('all');
 
   // Lead Form Data
@@ -108,19 +131,27 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 
   // Sync selected model if fresh models load
   useEffect(() => {
-    const matchingModel = modelsList.find(
-      (m) => m.id === selectedModel.id || m.slug === selectedModel.slug
-    );
-    if (matchingModel && matchingModel !== selectedModel) {
-      setSelectedModel(matchingModel);
+    if (modelsList && modelsList.length > 0) {
+      const matchingModel = modelsList.find(
+        (m) => m.id === selectedModel.id || m.slug === selectedModel.slug || m.name.toLowerCase() === selectedModel.name.toLowerCase()
+      );
+      if (matchingModel) {
+        setSelectedModel(matchingModel);
+      } else {
+        setSelectedModel(modelsList[0]);
+      }
     }
   }, [modelsList]);
 
   // Sync selected product when live products load
   useEffect(() => {
-    const freshProduct = productsList.find((p) => p.id === selectedProduct.id);
-    if (freshProduct && freshProduct !== selectedProduct) {
-      setSelectedProduct(freshProduct);
+    if (productsList && productsList.length > 0) {
+      const freshProduct = productsList.find((p) => p.id === selectedProduct.id || p.code === selectedProduct.code);
+      if (freshProduct) {
+        setSelectedProduct(freshProduct);
+      } else {
+        setSelectedProduct(productsList[0]);
+      }
     }
   }, [productsList]);
 
@@ -166,7 +197,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     },
     {
       title: lang === 'es' ? 'Catálogo SPC y Selección de Color' : 'SPC Catalog & Color Selection',
-      subtitle: lang === 'es' ? 'Pisos Vinílicos SPC 100% Impermeables con 15 Escalones Flush Nose' : '100% Waterproof SPC Vinyl with 15 Flush Stair Noses',
+      subtitle: lang === 'es' ? 'Pisos Vinílicos SPC 100% Impermeables con 17 Escalones Square Step Nose' : '100% Waterproof SPC Vinyl with 17 Square Step Noses',
     },
     {
       title: lang === 'es' ? 'Paquetes de Instalación y Estimado' : 'Installation Packages & Estimate',
@@ -202,11 +233,11 @@ export const StepWizard: React.FC<StepWizardProps> = ({
       case 'floor1':
         return lang === 'es' ? 'Solo 1er Piso (~510 SF)' : '1st Floor Only (~510 SF)';
       case 'floor1_stairs':
-        return lang === 'es' ? '1er Piso + 15 Escalones Flush Nose (~510 SF + 15 Esc.)' : '1st Floor + 15 Flush Stair Noses (~510 SF + 15 Steps)';
+        return lang === 'es' ? '1er Piso + 17 Escalones Square Step Nose (~510 SF + 17 Esc.)' : '1st Floor + 17 Square Step Noses (~510 SF + 17 Steps)';
       case 'floor2':
         return lang === 'es' ? 'Solo 2do Piso (~465 SF)' : '2nd Floor Only (~465 SF)';
       case 'floor2_stairs':
-        return lang === 'es' ? '2do Piso + 15 Escalones Flush Nose (~465 SF + 15 Esc.)' : '2nd Floor + 15 Flush Stair Noses (~465 SF + 15 Steps)';
+        return lang === 'es' ? '2do Piso + 17 Escalones Square Step Nose (~465 SF + 17 Esc.)' : '2nd Floor + 17 Square Step Noses (~465 SF + 17 Steps)';
     }
   };
 
@@ -223,7 +254,7 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 🏡 *Modelo:* ${selectedModel.name}
 📐 *Área Seleccionada:* ${scopeLabel}
 📦 *Material Recomendado (+7%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} cajas)
-🪜 *Escaleras:* ${quoteCalc.hasStairs ? '15 Escalones Flush Stair Nose a juego' : 'No incluidas'}
+🪜 *Escaleras:* ${quoteCalc.hasStairs ? '17 Escalones Square Step Nose a juego' : 'No incluidas'}
 
 🎨 *Piso SPC Elegido:*
 • Producto: #${selectedProduct.code} ${selectedProduct.name}
@@ -251,7 +282,7 @@ _Hola QuickSurfaces! Deseo confirmar la visita técnica para ver las muestras f�
 🏡 *Model:* ${selectedModel.name}
 📐 *Selected Scope:* ${scopeLabel}
 📦 *Recommended Material (+7%):* ${quoteCalc.sqftMaterialRecommended} SF (${quoteCalc.boxesCount} boxes)
-🪜 *Stairs:* ${quoteCalc.hasStairs ? '15 Custom Flush Stair Noses' : 'Not included'}
+🪜 *Stairs:* ${quoteCalc.hasStairs ? '17 Custom Square Step Noses' : 'Not included'}
 
 🎨 *Selected SPC Flooring:*
 • Product: #${selectedProduct.code} ${selectedProduct.name}
@@ -433,7 +464,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {floorScope === 'floor1_stairs' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                   </div>
                   <span className="text-[11px] text-[#FF8407] font-bold mt-2 block">
-                    ~{selectedModel.sqftFirstFloorRec || 546} SF + 15 Esc.
+                    ~{selectedModel.sqftFirstFloorRec || 546} SF + 17 Esc.
                   </span>
                 </button>
 
@@ -473,7 +504,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {floorScope === 'floor2_stairs' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                   </div>
                   <span className="text-[11px] text-[#FF8407] font-bold mt-2 block">
-                    ~{selectedModel.sqftSecondFloorRec || 498} SF + 15 Esc.
+                    ~{selectedModel.sqftSecondFloorRec || 498} SF + 17 Esc.
                   </span>
                 </button>
               </div>
@@ -485,8 +516,8 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 <div className="min-w-0">
                   <span className="text-xs font-black uppercase tracking-wider text-[#0F172A] block truncate">
                     {lang === 'es'
-                      ? `Modelos Townhome en Siena Reserve (${SIENA_RESERVE_MODELS.length})`
-                      : `Townhome Models in Siena Reserve (${SIENA_RESERVE_MODELS.length})`}
+                      ? `Modelos Townhome en Siena Reserve (${modelsList.length})`
+                      : `Townhome Models in Siena Reserve (${modelsList.length})`}
                   </span>
                   <span className="text-[11px] text-[#64748B] block font-medium truncate">
                     {lang === 'es' ? 'Seleccionado actualmente:' : 'Currently selected:'}{' '}
@@ -496,7 +527,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                {SIENA_RESERVE_MODELS.map((m) => {
+                {modelsList.map((m) => {
                   const isSelected = selectedModel.id === m.id || selectedModel.slug === m.slug;
                   return (
                     <button
@@ -556,7 +587,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
         ======================================================== */}
         {currentStep === 2 && (
           <div className="space-y-5 animate-fadeIn">
-            {/* ROOMVO 3D VISUALIZER CALLOUT */}
+            {/* 1. ROOMVO 3D VISUALIZER CALLOUT */}
             <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] p-3.5 sm:p-4 rounded-2xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md border border-[#334155]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#FF8407]/20 border border-[#FF8407]/40 flex items-center justify-center shrink-0">
@@ -593,104 +624,15 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               </a>
             </div>
 
-            {/* Interactive Viewport Frame (Room View / Plank Closeup) - No Staircase tab */}
-            <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode3D('room')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                      viewMode3D === 'room'
-                        ? 'bg-[#0F172A] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#0F172A]'
-                    }`}
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>{lang === 'es' ? 'Render Habitación' : 'Room View'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode3D('plank')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                      viewMode3D === 'plank'
-                        ? 'bg-[#0F172A] text-white shadow-xs'
-                        : 'text-[#64748B] hover:text-[#0F172A]'
-                    }`}
-                  >
-                    <ZoomIn className="w-3.5 h-3.5 text-[#FF8407]" />
-                    <span>{lang === 'es' ? 'Foto Tablón' : 'Plank Closeup'}</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {renderStockBadge(selectedProduct)}
-                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] truncate max-w-[220px]">
-                    #{selectedProduct.code} {selectedProduct.name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Main Image Viewer */}
-              <div className="relative h-56 sm:h-72 w-full rounded-xl overflow-hidden bg-[#E2E8F0] border border-[#CBD5E1]">
-                <img
-                  src={
-                    viewMode3D === 'room'
-                      ? selectedProduct.roomPreviewUrl || selectedProduct.imageUrl
-                      : selectedProduct.plankImageUrl || selectedProduct.imageUrl
-                  }
-                  alt={selectedProduct.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transition-all duration-300"
-                />
-              </div>
-            </div>
-
-            {/* Smart Box Calculator */}
-            <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] text-[#FF8407] flex items-center justify-center shrink-0 border border-[#FF8407]/30">
-                  <Box className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                    {lang === 'es'
-                      ? `Cálculo de Cajas: ${selectedModel.name}`
-                      : `Box Calculation: ${selectedModel.name}`}
-                  </h4>
-                  <p className="text-[11px] text-[#64748B]">
-                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft {lang === 'es' ? 'por caja' : 'per box'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
-                <div className="text-left sm:text-right">
-                  <span className="text-[9px] text-[#64748B] block font-bold uppercase">
-                    {lang === 'es' ? 'Material (+7% desperdicio)' : 'Material (+7% waste)'}
-                  </span>
-                  <span className="text-xs font-black text-[#0F172A]">
-                    {quoteCalc.sqftMaterialRecommended} SF
-                  </span>
-                </div>
-                <div className="h-6 w-px bg-[#CBD5E1]"></div>
-                <div className="text-right">
-                  <span className="text-[9px] text-[#FF8407] block font-bold uppercase">
-                    {lang === 'es' ? 'Cajas Requeridas' : 'Boxes to Deliver'}
-                  </span>
-                  <span className="text-sm font-black text-[#FF8407]">
-                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* SPC COLLECTION & THICKNESS FILTER - ENLARGED BUTTONS, NO TONE FILTER, NO FLAGSHIP */}
+            {/* 2. SPC COLLECTION & THICKNESS FILTER - MOVED FIRST (DIRECTLY UNDER ROOMVO) */}
             <div className="space-y-3 bg-[#FFFFFF] p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
-                  {lang === 'es' ? 'Colección y Espesor de Piso SPC:' : 'SPC Collection & Thickness:'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#FF8407]" />
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
+                    {lang === 'es' ? 'Colección y Espesor de Piso SPC:' : 'SPC Collection & Thickness:'}
+                  </span>
+                </div>
                 <span className="text-xs text-slate-500 font-medium">
                   {lang === 'es' ? 'Pisos Vinílicos 100% Impermeables' : '100% Waterproof SPC Vinyl'}
                 </span>
@@ -780,25 +722,151 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               )}
             </div>
 
-            {/* Product Swatches Grid */}
+            {/* 3. Interactive Viewport Frame (Room View / Plank Closeup) */}
+            <div ref={roomSceneRef} className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[#E2E8F0] shadow-xs space-y-3 scroll-mt-20">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode3D('room')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                      viewMode3D === 'room'
+                        ? 'bg-[#0F172A] text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-[#0F172A]'
+                    }`}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>{lang === 'es' ? 'Render Habitación' : 'Room View'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode3D('plank')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                      viewMode3D === 'plank'
+                        ? 'bg-[#0F172A] text-white shadow-xs'
+                        : 'text-[#64748B] hover:text-[#0F172A]'
+                    }`}
+                  >
+                    <ZoomIn className="w-3.5 h-3.5 text-[#FF8407]" />
+                    <span>{lang === 'es' ? 'Foto Tablón' : 'Plank Closeup'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {renderStockBadge(selectedProduct)}
+                  <span className="text-xs font-black text-[#0F172A] px-2.5 py-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] truncate max-w-[200px]">
+                    #{selectedProduct.code} {selectedProduct.name}
+                  </span>
+                </div>
+              </div>
+
+              {/* Main Image Viewer */}
+              <div className="relative h-60 sm:h-80 w-full rounded-xl overflow-hidden bg-[#E2E8F0] border border-[#CBD5E1]">
+                <img
+                  src={
+                    viewMode3D === 'room'
+                      ? selectedProduct.roomPreviewUrl || selectedProduct.imageUrl
+                      : selectedProduct.plankImageUrl || selectedProduct.imageUrl
+                  }
+                  alt={selectedProduct.name}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover transition-all duration-300"
+                />
+              </div>
+
+              {/* Action Bar Underneath Photo Card */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
+                <div className="text-xs text-[#64748B] flex items-center gap-1.5">
+                  <span className="font-black text-[#0F172A]">#{selectedProduct.code} {selectedProduct.name}</span>
+                  <span>•</span>
+                  <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
+                  <span>•</span>
+                  <span>{selectedProduct.wearLayer}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsColorModalOpen(true)}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-black shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.01]"
+                >
+                  <Palette className="w-4 h-4 text-[#FF8407]" />
+                  <span>
+                    {lang === 'es'
+                      ? `Cambiar Color (${selectedProduct.name})`
+                      : `Switch Color (${selectedProduct.name})`}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* 4. Smart Box Calculator */}
+            <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] text-[#FF8407] flex items-center justify-center shrink-0 border border-[#FF8407]/30">
+                  <Box className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
+                    {lang === 'es'
+                      ? `Cálculo de Cajas: ${selectedModel.name}`
+                      : `Box Calculation: ${selectedModel.name}`}
+                  </h4>
+                  <p className="text-[11px] text-[#64748B]">
+                    {selectedProduct.collectionName} • {selectedProduct.sqftPerBox} sq ft {lang === 'es' ? 'por caja' : 'per box'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E2E8F0]">
+                <div className="text-left sm:text-right">
+                  <span className="text-[9px] text-[#64748B] block font-bold uppercase">
+                    {lang === 'es' ? 'Material (+7% desperdicio)' : 'Material (+7% waste)'}
+                  </span>
+                  <span className="text-xs font-black text-[#0F172A]">
+                    {quoteCalc.sqftMaterialRecommended} SF
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-[#CBD5E1]"></div>
+                <div className="text-right">
+                  <span className="text-[9px] text-[#FF8407] block font-bold uppercase">
+                    {lang === 'es' ? 'Cajas Requeridas' : 'Boxes to Deliver'}
+                  </span>
+                  <span className="text-sm font-black text-[#FF8407]">
+                    {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Product Swatches Grid */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                  {lang === 'es' ? `Colores Disponibles (${filteredProducts.length})` : `Available Colors (${filteredProducts.length})`}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                    {lang === 'es' ? `Colores Disponibles (${filteredProducts.length})` : `Available Colors (${filteredProducts.length})`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsColorModalOpen(true)}
+                    className="text-[11px] text-[#FF8407] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Palette className="w-3 h-3" />
+                    <span>{lang === 'es' ? 'Abrir en Modal' : 'Open in Modal'}</span>
+                  </button>
+                </div>
                 <span className="text-xs text-[#64748B]">
                   {lang === 'es' ? 'Toca para seleccionar y previsualizar' : 'Click to select and preview'}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {filteredProducts.map((p) => {
+                {filteredProducts.map((p, idx) => {
                   const isSelected = selectedProduct.id === p.id;
                   return (
                     <button
-                      key={p.id}
+                      key={`${p.id}-${idx}`}
                       type="button"
-                      onClick={() => setSelectedProduct(p)}
+                      onClick={() => handleSelectProductWithScroll(p)}
                       className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
                           ? 'border-[#FF8407] bg-[#FFFBF7] shadow-lg ring-2 ring-[#FF8407]'
@@ -838,7 +906,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               </div>
             </div>
 
-            {/* DEDICATED STAIR DETAIL SECTION (Appears when stairs are in scope) */}
+            {/* 6. DEDICATED STAIR DETAIL SECTION (Appears when stairs are in scope) */}
             {(floorScope === 'floor1_stairs' || floorScope === 'floor2_stairs') && (
               <StaircaseStepSection selectedProduct={selectedProduct} />
             )}
@@ -922,7 +990,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                         </div>
                         {calc.hasStairs && (
                           <div className="flex items-center justify-between">
-                            <span>{lang === 'es' ? 'Material 15 Escalones:' : '15 Stair Steps Material:'}</span>
+                            <span>{lang === 'es' ? 'Material 17 Escalones:' : '17 Stair Steps Material:'}</span>
                             <strong className="text-slate-900">{formatCurrency(calc.materialStairsCost)}</strong>
                           </div>
                         )}
@@ -1047,10 +1115,10 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {lang === 'es' ? 'Escaleras' : 'Stairs'}
                   </span>
                   <strong className="text-slate-900 block mt-0.5">
-                    {quoteCalc.hasStairs ? (lang === 'es' ? '15 Escalones' : '15 Steps') : (lang === 'es' ? 'No incluidas' : 'None')}
+                    {quoteCalc.hasStairs ? (lang === 'es' ? '17 Escalones' : '17 Steps') : (lang === 'es' ? 'No incluidas' : 'None')}
                   </strong>
                   <span className="text-[11px] text-slate-500">
-                    {quoteCalc.hasStairs ? (lang === 'es' ? 'Flush Stair Nose al ras' : 'Flush Stair Nose') : '-'}
+                    {quoteCalc.hasStairs ? (lang === 'es' ? 'Square Step Nose al ras' : 'Square Step Nose') : '-'}
                   </span>
                 </div>
 
@@ -1085,7 +1153,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   </div>
                   {quoteCalc.hasStairs && (
                     <div className="flex justify-between py-1 border-b border-slate-200">
-                      <span>{lang === 'es' ? 'Material 15 Escalones Flush Stair Nose' : '15 Flush Stair Nose Pieces Material'}:</span>
+                      <span>{lang === 'es' ? 'Material 17 Escalones Square Step Nose' : '17 Square Step Nose Pieces Material'}:</span>
                       <strong className="text-slate-900">{formatCurrency(quoteCalc.materialStairsCost)}</strong>
                     </div>
                   )}
@@ -1097,7 +1165,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                       </div>
                       {quoteCalc.hasStairs && (
                         <div className="flex justify-between py-1 border-b border-slate-200">
-                          <span>{lang === 'es' ? 'Mano de Obra 15 Escalones' : '15 Stairs Installation Labor'}:</span>
+                          <span>{lang === 'es' ? 'Mano de Obra 17 Escalones' : '17 Stairs Installation Labor'}:</span>
                           <strong className="text-slate-900">{formatCurrency(quoteCalc.laborStairsCost)}</strong>
                         </div>
                       )}
@@ -1264,6 +1332,27 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
           </a>
         )}
       </div>
+
+      {/* Live Color Selector & Room View Modal */}
+      <ColorSelectorModal
+        isOpen={isColorModalOpen}
+        onClose={() => {
+          setIsColorModalOpen(false);
+          if (roomSceneRef.current) {
+            roomSceneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+        products={productsList}
+        selectedProduct={selectedProduct}
+        onSelectProduct={(product) => {
+          setSelectedProduct(product);
+          if (roomSceneRef.current) {
+            roomSceneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }}
+        thicknessFilter={thicknessFilter}
+        onChangeThicknessFilter={(filter) => setThicknessFilter(filter)}
+      />
     </div>
   );
 };

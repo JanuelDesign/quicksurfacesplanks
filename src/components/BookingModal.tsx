@@ -144,11 +144,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       case 'floor1':
         return lang === 'es' ? '1) Solo 1er Piso' : '1) 1st Floor Only';
       case 'floor1_stairs':
-        return lang === 'es' ? '2) 1er Piso + 15 Escalones' : '2) 1st Floor + 15 Stairs';
+        return lang === 'es' ? '2) 1er Piso + 17 Escalones' : '2) 1st Floor + 17 Stairs';
       case 'floor2':
         return lang === 'es' ? '3) Solo 2do Piso' : '3) 2nd Floor Only';
       case 'floor2_stairs':
-        return lang === 'es' ? '4) 2do Piso + 15 Escalones' : '4) 2nd Floor + 15 Stairs';
+        return lang === 'es' ? '4) 2do Piso + 17 Escalones' : '4) 2nd Floor + 17 Stairs';
       default:
         return lang === 'es' ? '1er Piso + Escaleras' : '1st Floor + Stairs';
     }
@@ -224,7 +224,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       phone: phone.trim(),
       email: email.trim() || 'No especificado',
       community: currentModel.communityName,
-      model: `${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} SF + ${quoteCalculation.hasStairs ? '15 Flush Stair Noses' : 'Sin escaleras'})`,
+      model: `${currentModel.name} (~${quoteCalculation.sqftMaterialRecommended} SF + ${quoteCalculation.hasStairs ? '17 Square Step Noses' : 'Sin escaleras'})`,
       scope: getScopeLabel(),
       address: address.trim() || currentModel.address || 'Siena Reserve / Homestead FL',
       package: `${currentPackage.title} ($${quoteCalculation.totalPrice.toLocaleString()})`,
@@ -265,7 +265,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         `📞 Teléfono: ${phone || 'N/A'}\n` +
         `🏡 Comunidad: ${currentModel.communityName}\n` +
         `📐 Modelo: ${currentModel.name} (${getScopeLabel()})\n` +
-        `📏 Metraje: ~${quoteCalculation.sqftMaterialRecommended} sq ft ${quoteCalculation.hasStairs ? '+ 15 Flush Stair Noses' : ''}\n` +
+        `📏 Metraje: ~${quoteCalculation.sqftMaterialRecommended} sq ft ${quoteCalculation.hasStairs ? '+ 17 Square Step Noses' : ''}\n` +
         `📦 Paquete: ${currentPackage.title}\n` +
         `🎨 Color SPC: ${currentColor.name} (#${currentColor.code})\n` +
         `💰 Tarifa Estimada: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
@@ -276,7 +276,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         `📞 Phone: ${phone || 'N/A'}\n` +
         `🏡 Community: ${currentModel.communityName}\n` +
         `📐 Model: ${currentModel.name} (${getScopeLabel()})\n` +
-        `📏 Coverage: ~${quoteCalculation.sqftMaterialRecommended} sq ft ${quoteCalculation.hasStairs ? '+ 15 Flush Stair Noses' : ''}\n` +
+        `📏 Coverage: ~${quoteCalculation.sqftMaterialRecommended} sq ft ${quoteCalculation.hasStairs ? '+ 17 Square Step Noses' : ''}\n` +
         `📦 Package: ${currentPackage.title}\n` +
         `🎨 SPC Color: ${currentColor.name} (#${currentColor.code})\n` +
         `💰 Estimated Rate: $${quoteCalculation.totalPrice.toLocaleString()}\n` +
@@ -366,7 +366,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Escaleras Integradas:' : 'Custom Staircase:'}</span>
-                  <span className="font-bold text-[#0F172A]">{quoteCalculation.hasStairs ? (lang === 'es' ? '15 Escalones Flush Stair Nose' : '15 Flush Stair Noses') : (lang === 'es' ? 'No incluidas' : 'Not included')}</span>
+                  <span className="font-bold text-[#0F172A]">{quoteCalculation.hasStairs ? (lang === 'es' ? '17 Escalones Square Step Nose' : '17 Square Step Noses') : (lang === 'es' ? 'No incluidas' : 'Not included')}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>{lang === 'es' ? 'Piso SPC Seleccionado:' : 'Selected SPC Floor:'}</span>
@@ -440,9 +440,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {[
                       { id: 'floor1', labelEs: '1) Solo 1er Piso', labelEn: '1) 1st Floor Only', sf: currentModel.sqftFirstFloorRec || 546 },
-                      { id: 'floor1_stairs', labelEs: '2) 1er Piso + Esc.', labelEn: '2) 1st Fl + Stairs', sf: `${currentModel.sqftFirstFloorRec || 546} SF + 15 Esc.` },
+                      { id: 'floor1_stairs', labelEs: '2) 1er Piso + Esc.', labelEn: '2) 1st Fl + Stairs', sf: `${currentModel.sqftFirstFloorRec || 546} SF + 17 Esc.` },
                       { id: 'floor2', labelEs: '3) Solo 2do Piso', labelEn: '3) 2nd Floor Only', sf: currentModel.sqftSecondFloorRec || 498 },
-                      { id: 'floor2_stairs', labelEs: '4) 2do Piso + Esc.', labelEn: '4) 2nd Fl + Stairs', sf: `${currentModel.sqftSecondFloorRec || 498} SF + 15 Esc.` },
+                      { id: 'floor2_stairs', labelEs: '4) 2do Piso + Esc.', labelEn: '4) 2nd Fl + Stairs', sf: `${currentModel.sqftSecondFloorRec || 498} SF + 17 Esc.` },
                     ].map((item) => {
                       const isSel = floorScope === item.id;
                       return (
@@ -519,8 +519,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       onChange={(e) => setSelectedColorId(e.target.value)}
                       className="w-full p-2.5 rounded-xl bg-[#FFFFFF] border border-[#CBD5E1] font-bold text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF8407] cursor-pointer shadow-2xs text-xs"
                     >
-                      {activeProducts.map((c) => (
-                        <option key={c.id} value={c.id}>
+                      {activeProducts.map((c, idx) => (
+                        <option key={`${c.id}-${idx}`} value={c.id}>
                           #{c.code} {c.name} ({c.category})
                         </option>
                       ))}
@@ -532,7 +532,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <div className="mt-2 pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
                   <div className="space-y-0.5">
                     <div className="text-[11px] text-[#64748B]">
-                      <strong className="text-[#0F172A]">{currentModel.name}</strong> • {getScopeLabel()}: (~{quoteCalculation.sqftMaterialRecommended} sq ft) {quoteCalculation.hasStairs ? (lang === 'es' ? '+ 15 Flush Stair Noses' : '+ 15 Flush Stair Noses') : (lang === 'es' ? '(Sin Escaleras)' : '(No Stairs)')}
+                      <strong className="text-[#0F172A]">{currentModel.name}</strong> • {getScopeLabel()}: (~{quoteCalculation.sqftMaterialRecommended} sq ft) {quoteCalculation.hasStairs ? (lang === 'es' ? '+ 17 Square Step Noses' : '+ 17 Square Step Noses') : (lang === 'es' ? '(Sin Escaleras)' : '(No Stairs)')}
                     </div>
                     <div className="text-[10px] text-[#94A3B8]">
                       {lang === 'es' ? 'Color:' : 'Color:'} <span className="font-semibold text-[#0F172A]">{currentColor.name}</span> ({currentColor.thickness} - {currentColor.wearLayer})
