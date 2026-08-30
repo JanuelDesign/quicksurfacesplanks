@@ -1,67 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlooringProduct } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { formatCurrency, getStairMaterialCost } from '../utils/pricingCalculator';
 import {
+  StairTechnicalImage,
+  StairVerticalCard,
+  StairProjectItem,
+  STAIR_TECHNICAL_IMAGES,
+  STAIR_VERTICAL_CARDS,
+  INSTALLED_STAIRS_CAROUSEL,
+} from '../data/stairsGallery';
+import {
   Layers,
-  Sparkles,
-  ShieldCheck,
-  RotateCw,
   CheckCircle2,
   Info,
   Maximize2,
   X,
-  Compass,
+  ChevronLeft,
+  ChevronRight,
+  ImageIcon,
 } from 'lucide-react';
 
 interface StaircaseStepSectionProps {
   selectedProduct: FlooringProduct;
+  stairTechnicalImages?: StairTechnicalImage[];
+  stairVerticalCards?: StairVerticalCard[];
+  stairCarouselItems?: StairProjectItem[];
 }
 
 export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
   selectedProduct,
+  stairTechnicalImages = STAIR_TECHNICAL_IMAGES,
+  stairVerticalCards = STAIR_VERTICAL_CARDS,
+  stairCarouselItems = INSTALLED_STAIRS_CAROUSEL,
 }) => {
   const { lang } = useLanguage();
-  const [rotationAngle, setRotationAngle] = useState<number>(0);
-  const [selectedCardModal, setSelectedCardModal] = useState<'360' | 'installed' | null>(null);
+  const [carouselIndex, setCarouselIndex] = useState<number>(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState<boolean>(false);
+  const [selectedLightbox, setSelectedLightbox] = useState<{
+    src: string;
+    title: string;
+    subtitle?: string;
+  } | null>(null);
 
   const stairCost = selectedProduct.stairMaterialCost || getStairMaterialCost(selectedProduct.category);
 
-  const rotateNext = () => {
-    setRotationAngle((prev) => (prev + 45) % 360);
+  // Carousel autoplay
+  useEffect(() => {
+    if (isCarouselPaused || stairCarouselItems.length === 0) return;
+    const timer = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1) % stairCarouselItems.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [isCarouselPaused, stairCarouselItems.length]);
+
+  const handleNextCarousel = () => {
+    if (stairCarouselItems.length === 0) return;
+    setCarouselIndex((prev) => (prev + 1) % stairCarouselItems.length);
   };
+
+  const handlePrevCarousel = () => {
+    if (stairCarouselItems.length === 0) return;
+    setCarouselIndex((prev) => (prev - 1 + stairCarouselItems.length) % stairCarouselItems.length);
+  };
+
+  const activeStairProject = stairCarouselItems[carouselIndex] || stairCarouselItems[0];
 
   return (
     <div
       id="staircase-step-section"
-      className="mt-6 bg-[#FFFFFF] rounded-3xl p-5 sm:p-7 border border-[#E2E8F0] shadow-xl overflow-hidden font-sans animate-fadeIn"
+      className="mt-6 bg-[#FFFFFF] rounded-3xl p-4 sm:p-7 border border-[#E2E8F0] shadow-xl overflow-hidden font-sans animate-fadeIn space-y-6"
     >
-      {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-[#E2E8F0]">
+      {/* ================= SECTION HEADER ================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E2E8F0]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#000000] text-[#FF8407] text-[10px] font-black tracking-widest uppercase">
               <Layers className="w-3 h-3 text-[#FF8407]" />
-              {lang === 'es' ? 'Detalle de Escaleras' : 'Staircase Specification'}
+              <span>{lang === 'es' ? 'Detalle de Escaleras' : 'Staircase Specification'}</span>
             </span>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              {lang === 'es' ? '17 Escalones Square Step Nose' : '17 Square Step Noses'}
+              <span>{lang === 'es' ? '17 Escalones Square Step Nose' : '17 Square Step Noses'}</span>
             </span>
           </div>
 
-          <h3 className="text-lg sm:text-xl font-black text-[#000000] tracking-tight">
-            Square Step Nose — {lang === 'es' ? '17 Escalones a Juego' : '17 Matching Custom Steps'}
+          <h3 className="text-lg sm:text-2xl font-black text-[#000000] tracking-tight">
+            Square Step Nose — <span>{lang === 'es' ? '17 Escalones a Juego' : '17 Matching Custom Steps'}</span>
           </h3>
-          <p className="text-xs text-[#64748B] mt-0.5">
+          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
             {lang === 'es'
               ? `Fabricados exclusivamente en el mismo tono #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.thickness}) para Siena Reserve.`
               : `Manufactured in the exact matching tone #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.thickness}) for Siena Reserve.`}
           </p>
         </div>
 
-        {/* Cost & Summary Tag */}
-        <div className="flex items-center gap-3 bg-[#FFFBF7] p-3 rounded-2xl border border-[#FF8407]/30 self-start sm:self-center">
+        {/* Cost Tag */}
+        <div className="flex items-center gap-3 bg-[#FFFBF7] p-3 rounded-2xl border border-[#FF8407]/30 self-start sm:self-center shrink-0">
           <div>
             <span className="text-[10px] font-black uppercase text-[#64748B] block">
               {lang === 'es' ? 'Costo Material (17 Escalones)' : 'Stair Material (17 Steps)'}
@@ -82,201 +117,271 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
         </div>
       </div>
 
-      {/* 2 Main Visual Cards Grid: 360 Piece View & Installed Illustration */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        {/* CARD 1: 360° Square Step Nose Piece */}
-        <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#CBD5E1] flex flex-col justify-between relative group hover:border-[#FF8407]/60 transition-all">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#000000] text-[#FF8407] flex items-center justify-center font-bold text-xs">
-                  360°
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                    {lang === 'es' ? 'Pieza Square Step Nose (Perfil al Ras)' : 'Square Step Nose Piece (Square Profile)'}
-                  </h4>
-                  <span className="text-[10px] text-[#64748B]">
-                    {lang === 'es' ? 'Transición al ras sin pestañas sobresalientes' : 'Seamless square transition without raised lips'}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={rotateNext}
-                className="px-2.5 py-1 rounded-lg bg-[#FFFFFF] border border-[#CBD5E1] text-[11px] font-bold text-[#0F172A] hover:bg-[#F1F5F9] flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
-                title={lang === 'es' ? 'Girar pieza' : 'Rotate piece'}
-              >
-                <RotateCw className="w-3 h-3 text-[#FF8407]" />
-                <span>{lang === 'es' ? 'Girar' : 'Rotate'}</span>
-              </button>
-            </div>
-
-            {/* Interactive 3D / Angle Step Nose Canvas Rendering */}
-            <div className="relative h-52 w-full rounded-xl overflow-hidden bg-gradient-to-b from-[#1E293B] via-[#0F172A] to-[#020617] border border-[#334155] flex items-center justify-center p-4">
-              <div
-                className="relative transition-transform duration-500 ease-out flex flex-col items-center justify-center"
-                style={{ transform: `rotate(${rotationAngle}deg)` }}
-              >
-                {/* Visual Architectural Profile Drawing of the Square Step Nose */}
-                <svg width="220" height="130" viewBox="0 0 220 130" className="drop-shadow-2xl">
-                  <defs>
-                    <linearGradient id="stairNoseWood" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={selectedProduct.colorHex || '#C5A986'} />
-                      <stop offset="50%" stopColor={selectedProduct.secondaryColorHex || '#8C6C46'} />
-                      <stop offset="100%" stopColor={selectedProduct.colorHex || '#C5A986'} />
-                    </linearGradient>
-                    <linearGradient id="coreRigid" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#475569" />
-                      <stop offset="100%" stopColor="#1E293B" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Stair Tread Board */}
-                  <rect x="20" y="30" width="160" height="18" rx="2" fill="url(#stairNoseWood)" stroke="#FF8407" strokeWidth="1.5" />
-                  
-                  {/* Square Bullnose / Front Drop */}
-                  <path
-                    d="M 180 30 L 198 30 L 198 75 L 180 75 Z"
-                    fill="url(#stairNoseWood)"
-                    stroke="#FF8407"
-                    strokeWidth="1.5"
-                  />
-
-                  {/* SPC Core Layer View */}
-                  <rect x="25" y="36" width="150" height="7" fill="url(#coreRigid)" />
-                  <rect x="183" y="36" width="10" height="34" fill="url(#coreRigid)" />
-
-                  {/* Click-lock interlocking groove on the back edge */}
-                  <path d="M 20 30 L 14 34 L 14 44 L 20 48 Z" fill="#334155" stroke="#94A3B8" strokeWidth="1" />
-
-                  {/* Riser underneath */}
-                  <rect x="162" y="75" width="18" height="50" fill="#E2E8F0" stroke="#94A3B8" strokeWidth="1" strokeDasharray="3 2" />
-
-                  {/* Acoustic pad indicator */}
-                  <line x1="20" y1="48" x2="180" y2="48" stroke="#10B981" strokeWidth="2.5" strokeDasharray="4 2" />
-
-                  {/* Measurement Callouts */}
-                  <text x="100" y="24" fill="#FFFFFF" fontSize="10" fontWeight="900" textAnchor="middle">
-                    SQUARE STEP SPC WEAR LAYER ({selectedProduct.wearLayer})
-                  </text>
-                  <text x="190" y="90" fill="#FF8407" fontSize="9" fontWeight="900" textAnchor="start">
-                    SQUARE NOSE
-                  </text>
-                  <text x="100" y="62" fill="#94A3B8" fontSize="9" fontWeight="700" textAnchor="middle">
-                    Acoustic Pad 1.5-2.0mm
-                  </text>
-                </svg>
-              </div>
-
-              {/* Angle Badge */}
-              <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-black/70 backdrop-blur-md text-[10px] text-slate-300 font-mono flex items-center gap-1 border border-white/10">
-                <Compass className="w-3 h-3 text-[#FF8407]" />
-                <span>{rotationAngle}° / 360° Profile</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedCardModal('360')}
-                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black text-white cursor-pointer transition-all border border-white/10"
-                title={lang === 'es' ? 'Ver en grande' : 'Enlarge view'}
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+      {/* =========================================================================
+          ROW 1: TWO TECHNICAL IMAGES (Perfil Square Step Nose y Diagrama de Ensamble)
+      ========================================================================= */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
+              <span>{lang === 'es' ? '1. Perfil y Diagrama de Ensamble' : '1. Profile & Assembly Technical Images'}</span>
+            </h4>
           </div>
-
-          <div className="mt-3 pt-2.5 border-t border-slate-200 text-[11px] text-slate-600 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700">{lang === 'es' ? 'Sistema:' : 'System:'}</span>
-              <span>{lang === 'es' ? 'Click-Lock al ras continuo' : 'Continuous flush Click-Lock'}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700">{lang === 'es' ? 'Espesor:' : 'Thickness:'}</span>
-              <span className="font-black text-[#FF8407]">{selectedProduct.thickness}</span>
-            </div>
-          </div>
+          <span className="text-[11px] font-bold text-slate-500">
+            {lang === 'es' ? '2 Imágenes Técnicas' : '2 Technical Images'}
+          </span>
         </div>
 
-        {/* CARD 2: Photorealistic Illustration of Installed Stairs */}
-        <div className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#CBD5E1] flex flex-col justify-between relative group hover:border-[#FF8407]/60 transition-all">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#FF8407] text-black flex items-center justify-center font-black text-xs">
-                  17
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-[#0F172A]">
-                    {lang === 'es' ? 'Ilustración Escalera Instalada' : 'Installed Staircase Illustration'}
-                  </h4>
-                  <span className="text-[10px] text-[#64748B]">
-                    {lang === 'es' ? 'Acabado en Siena Reserve Townhomes' : 'Finished look in Siena Reserve Townhomes'}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {stairTechnicalImages.map((item) => (
+            <div
+              key={item.id}
+              className="bg-[#F8FAFC] rounded-2xl p-4 border border-[#CBD5E1] flex flex-col justify-between group hover:border-[#FF8407] transition-all shadow-xs"
+            >
+              <div>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h5 className="text-xs sm:text-sm font-black text-[#0F172A]">
+                      {lang === 'es' ? item.title : item.titleEn}
+                    </h5>
+                    <p className="text-[11px] text-[#64748B] mt-0.5">
+                      {lang === 'es' ? item.subtitle : item.subtitleEn}
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/30 text-[10px] font-black uppercase shrink-0">
+                    {lang === 'es' ? item.tag : item.tagEn}
                   </span>
+                </div>
+
+                {/* Clean Image Container with Zoom capability */}
+                <div className="relative h-64 sm:h-72 w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200">
+                  <img
+                    src={item.imageUrl}
+                    alt={lang === 'es' ? item.title : item.titleEn}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  {/* Zoom Button */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedLightbox({
+                        src: item.imageUrl,
+                        title: lang === 'es' ? item.title : item.titleEn,
+                        subtitle: lang === 'es' ? item.subtitle : item.subtitleEn,
+                      })
+                    }
+                    className="absolute top-3 right-3 p-2 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer transition-all border border-white/20 shadow-md"
+                    title={lang === 'es' ? 'Ver imagen en grande' : 'Enlarge view'}
+                  >
+                    <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                  </button>
                 </div>
               </div>
 
-              <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-black">
-                {lang === 'es' ? '17 Pasos' : '17 Treads'}
+              <div className="mt-3 pt-2.5 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
+                <span className="font-bold text-slate-700">
+                  {lang === 'es' ? 'Acabado:' : 'Finish:'}
+                </span>
+                <span className="font-bold text-emerald-700">
+                  {lang === 'es' ? 'Zero Overlap • Cero Tropiezos' : 'Zero Overlap • Smooth Flush'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* =========================================================================
+          ROW 2: TWO 9:16 VERTICAL CARDS (CLEAN IMAGES WITHOUT OVERLAY TEXT)
+      ========================================================================= */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
+              <span>{lang === 'es' ? '2. Formato Vertical 9:16' : '2. Vertical 9:16 Showcase'}</span>
+            </h4>
+          </div>
+          <span className="text-[11px] font-bold text-slate-500">
+            {lang === 'es' ? 'Fotografía Limpia' : 'Clean Photography'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {stairVerticalCards.map((card) => {
+            return (
+              <div
+                key={card.id}
+                className="bg-white rounded-3xl overflow-hidden border border-[#CBD5E1] shadow-md flex flex-col group hover:border-[#FF8407] transition-all"
+              >
+                {/* 9:16 Clean Photo Frame (No text covering the photo) */}
+                <div className="relative aspect-[9/16] w-full bg-slate-950 overflow-hidden">
+                  <img
+                    src={card.imageUrl}
+                    alt={lang === 'es' ? card.title : card.titleEn}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+
+                  {/* Top Badge & Zoom Button */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                    <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md text-[10px] font-black text-[#FF8407] border border-white/20 uppercase tracking-wider">
+                      {lang === 'es' ? card.badge : card.badgeEn}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedLightbox({
+                          src: card.imageUrl,
+                          title: lang === 'es' ? card.title : card.titleEn,
+                          subtitle: lang === 'es' ? card.subtitle : card.subtitleEn,
+                        })
+                      }
+                      className="p-2 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer transition-all border border-white/20 shadow-md"
+                      title={lang === 'es' ? 'Ver en grande' : 'Enlarge view'}
+                    >
+                      <Maximize2 className="w-3.5 h-3.5 text-[#FF8407]" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Clean Caption Card Below Photo */}
+                <div className="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0]">
+                  <h5 className="text-sm font-black text-[#0F172A]">
+                    {lang === 'es' ? card.title : card.titleEn}
+                  </h5>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    {lang === 'es' ? card.subtitle : card.subtitleEn}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* =========================================================================
+          ROW 3: CAROUSEL CARD (CLEAN PHOTOS WITHOUT OVERLAY TEXT)
+      ========================================================================= */}
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FF8407]"></span>
+            <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
+              <span>{lang === 'es' ? '3. Galería de Escaleras Instaladas' : '3. Installed Staircases Gallery'}</span>
+            </h4>
+          </div>
+          <span className="text-[11px] font-bold text-slate-500">
+            {carouselIndex + 1} / {stairCarouselItems.length}
+          </span>
+        </div>
+
+        <div
+          className="relative bg-white rounded-3xl overflow-hidden border border-[#CBD5E1] shadow-xl group"
+          onMouseEnter={() => setIsCarouselPaused(true)}
+          onMouseLeave={() => setIsCarouselPaused(false)}
+        >
+          {/* Main Slide Image (Completely clean without text blocks) */}
+          <div className="relative h-72 sm:h-96 w-full overflow-hidden bg-slate-950">
+            <img
+              key={activeStairProject.id}
+              src={activeStairProject.imageUrl}
+              alt={lang === 'es' ? activeStairProject.title : activeStairProject.titleEn}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover transition-all duration-700 animate-fadeIn"
+            />
+
+            {/* Discreet Top Badges */}
+            <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+              <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-[10px] font-black text-[#FF8407] border border-white/20">
+                {activeStairProject.community}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-[#FF8407] text-black text-[10px] font-black">
+                {activeStairProject.stepsCount} {lang === 'es' ? 'Escalones' : 'Steps'}
               </span>
             </div>
 
-            {/* Staircase Render Image Frame */}
-            <div className="relative h-52 w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-300">
-              <img
-                src={
-                  selectedProduct.staircasePreviewUrl ||
-                  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'
-                }
-                alt="Escalera Square Step Nose Instalada en Siena Reserve"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            {/* Zoom Button */}
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedLightbox({
+                  src: activeStairProject.imageUrl,
+                  title: lang === 'es' ? activeStairProject.title : activeStairProject.titleEn,
+                  subtitle: `${activeStairProject.community} • ${activeStairProject.colorName}`,
+                })
+              }
+              className="absolute top-4 right-4 p-2 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer transition-all border border-white/20 shadow-lg"
+              title={lang === 'es' ? 'Ver en pantalla completa' : 'Full screen'}
+            >
+              <Maximize2 className="w-4 h-4 text-[#FF8407]" />
+            </button>
 
-              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between p-2 rounded-lg bg-black/75 backdrop-blur-md text-white text-[11px] border border-white/10">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span
-                    className="w-3 h-3 rounded-full border border-white shrink-0"
-                    style={{ backgroundColor: selectedProduct.colorHex }}
-                  ></span>
-                  <span className="font-bold truncate">#{selectedProduct.code} {selectedProduct.name}</span>
-                </div>
-                <span className="text-[10px] font-black text-[#FF8407] shrink-0">
-                  {lang === 'es' ? 'Flujo Continuo' : 'Seamless Flow'}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedCardModal('installed')}
-                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black text-white cursor-pointer transition-all border border-white/10"
-                title={lang === 'es' ? 'Ver en grande' : 'Enlarge view'}
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {/* Navigation Arrows */}
+            <button
+              type="button"
+              onClick={handlePrevCarousel}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center border border-white/20 cursor-pointer transition-all hover:scale-110 shadow-lg"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNextCarousel}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center border border-white/20 cursor-pointer transition-all hover:scale-110 shadow-lg"
+              aria-label="Next image"
+            >
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
           </div>
 
-          <div className="mt-3 pt-2.5 border-t border-slate-200 text-[11px] text-slate-600 space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700">{lang === 'es' ? 'Adherencia:' : 'Bonding:'}</span>
-              <span>{lang === 'es' ? 'Pegado estructural de alta resistencia' : 'Heavy-duty structural bonding'}</span>
+          {/* Clean Description & Thumbnails Below Photo */}
+          <div className="p-4 bg-[#F8FAFC] border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h5 className="text-base font-black text-[#0F172A]">
+                {lang === 'es' ? activeStairProject.title : activeStairProject.titleEn}
+              </h5>
+              <p className="text-xs text-[#64748B] mt-0.5">
+                {lang === 'es' ? activeStairProject.description : activeStairProject.descriptionEn}
+              </p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-700">{lang === 'es' ? 'Garantía:' : 'Warranty:'}</span>
-              <span className="text-emerald-700 font-bold">{lang === 'es' ? '100% contra desprendimiento' : '100% against detachment'}</span>
+
+            {/* Thumbnails */}
+            <div className="flex items-center gap-2 overflow-x-auto shrink-0">
+              {stairCarouselItems.map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setCarouselIndex(idx)}
+                  className={`h-11 w-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                    carouselIndex === idx
+                      ? 'border-[#FF8407] scale-105 ring-2 ring-[#FF8407]/40'
+                      : 'border-slate-300 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={item.imageUrl}
+                    alt={item.title}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Info Notice Box */}
-      <div className="p-3.5 rounded-2xl bg-[#F1F5F9] border border-[#CBD5E1] flex items-start gap-3 text-xs text-[#334155]">
+      {/* ================= TECHNICAL NOTICE BOX ================= */}
+      <div className="p-4 rounded-2xl bg-[#F1F5F9] border border-[#CBD5E1] flex items-start gap-3 text-xs text-[#334155]">
         <Info className="w-4 h-4 text-[#FF8407] mt-0.5 shrink-0" />
         <div>
-          <strong className="text-[#0F172A] block">
+          <strong className="text-[#0F172A] block font-black">
             {lang === 'es'
               ? 'Especificaciones Técnicas Square Step Nose'
               : 'Square Step Nose Technical Notes'}
@@ -289,61 +394,42 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
         </div>
       </div>
 
-      {/* Lightbox / Zoom Modal */}
-      {selectedCardModal && (
+      {/* ================= FULLSCREEN LIGHTBOX MODAL ================= */}
+      {selectedLightbox && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => setSelectedCardModal(null)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn"
+          onClick={() => setSelectedLightbox(null)}
         >
           <div
-            className="bg-white rounded-3xl p-5 max-w-2xl w-full border border-slate-300 shadow-2xl relative"
+            className="bg-[#0F172A] rounded-3xl p-4 sm:p-5 max-w-5xl w-full border border-slate-700 shadow-2xl relative text-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
-              <h4 className="font-black text-base text-slate-900">
-                {selectedCardModal === '360'
-                  ? lang === 'es' ? 'Perfil Arquitectónico Square Step Nose' : 'Square Step Nose Architectural Profile'
-                  : lang === 'es' ? 'Escalera de 17 Pasos Instalada' : 'Installed 17-Step Staircase'}
-              </h4>
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-700">
+              <div>
+                <h4 className="font-black text-base sm:text-lg text-white">
+                  {selectedLightbox.title}
+                </h4>
+                {selectedLightbox.subtitle && (
+                  <p className="text-xs text-slate-400 mt-0.5">{selectedLightbox.subtitle}</p>
+                )}
+              </div>
               <button
                 type="button"
-                onClick={() => setSelectedCardModal(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 cursor-pointer"
+                onClick={() => setSelectedLightbox(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {selectedCardModal === '360' ? (
-              <div className="h-80 w-full rounded-2xl bg-[#0F172A] flex items-center justify-center p-6 border border-slate-700">
-                <div className="text-center text-white">
-                  <div className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-[#FF8407]/20 border border-[#FF8407] flex items-center justify-center">
-                    <Layers className="w-12 h-12 text-[#FF8407]" />
-                  </div>
-                  <h5 className="font-black text-lg">Square Step Nose Profile (17 Steps)</h5>
-                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                    {lang === 'es'
-                      ? 'Pieza monobloque moldeada con la misma película de desgaste y veta de tu piso SPC elegido.'
-                      : 'Precision-molded single piece matching the wear layer and grain of your selected SPC flooring.'}
-                  </p>
-                  <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs text-[#FF8407] font-bold">
-                    <span>{selectedProduct.name} ({selectedProduct.thickness}) • {formatCurrency(stairCost)}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="h-80 w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200">
-                <img
-                  src={
-                    selectedProduct.staircasePreviewUrl ||
-                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80'
-                  }
-                  alt="Stairs Preview"
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            )}
+            <div className="max-h-[78vh] w-full rounded-2xl overflow-hidden bg-black flex items-center justify-center">
+              <img
+                src={selectedLightbox.src}
+                alt={selectedLightbox.title}
+                referrerPolicy="no-referrer"
+                className="max-h-[78vh] w-auto max-w-full object-contain"
+              />
+            </div>
           </div>
         </div>
       )}

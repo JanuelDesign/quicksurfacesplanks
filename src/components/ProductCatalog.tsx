@@ -4,6 +4,11 @@ import { FLOORING_PRODUCTS } from '../data/products';
 import { useLanguage } from '../context/LanguageContext';
 import { StaircaseStepSection } from './StaircaseStepSection';
 import {
+  StairTechnicalImage,
+  StairVerticalCard,
+  StairProjectItem,
+} from '../data/stairsGallery';
+import {
   Sparkles,
   Layers,
   Search,
@@ -24,6 +29,9 @@ import {
 interface ProductCatalogProps {
   selectedProduct: FlooringProduct;
   productsList?: FlooringProduct[];
+  stairTechnicalImages?: StairTechnicalImage[];
+  stairVerticalCards?: StairVerticalCard[];
+  stairCarouselItems?: StairProjectItem[];
   onSelectProduct: (product: FlooringProduct) => void;
   onOpenBookingWithProduct?: (product: FlooringProduct) => void;
 }
@@ -31,6 +39,9 @@ interface ProductCatalogProps {
 export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   selectedProduct,
   productsList = FLOORING_PRODUCTS,
+  stairTechnicalImages,
+  stairVerticalCards,
+  stairCarouselItems,
   onSelectProduct,
   onOpenBookingWithProduct,
 }) => {
@@ -382,7 +393,12 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
         </div>
 
         {/* STAIRCASE SPECIFICATION & 17 STEPS SECTION */}
-        <StaircaseStepSection selectedProduct={selectedProduct} />
+        <StaircaseStepSection
+          selectedProduct={selectedProduct}
+          stairTechnicalImages={stairTechnicalImages}
+          stairVerticalCards={stairVerticalCards}
+          stairCarouselItems={stairCarouselItems}
+        />
 
         {/* Modal for Technical Specs (No staircase photos as per request) */}
         {activeModalProduct && (

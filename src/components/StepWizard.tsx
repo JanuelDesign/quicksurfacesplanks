@@ -38,6 +38,7 @@ import {
   Truck,
   Wrench,
   Palette,
+  AlertCircle,
 } from 'lucide-react';
 
 interface StepWizardProps {
@@ -125,6 +126,15 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     preferredDate: '',
     notes: '',
   });
+
+  // Form validation state
+  const [formErrors, setFormErrors] = useState<{
+    fullName?: string;
+    phone?: string;
+    unitNumber?: string;
+  }>({});
+  const [formTouched, setFormTouched] = useState<boolean>(false);
+  const [isSubmitSuccess, setIsSubmitSuccess] = useState<boolean>(false);
 
   // Dynamic Quote Calculation
   const quoteCalc = calculateQuotePrice(selectedModel, selectedProduct, selectedPackage, floorScope);
@@ -241,7 +251,65 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     }
   };
 
-  // WhatsApp formatted lead message
+  // Dynamic bilingual package features bound to current selected product without factory warranty
+  const getPackageDynamicFeatures = (pkg: PricingPackage) => {
+    const isTurnkey = pkg.isTurnkey;
+    if (lang === 'es') {
+      return [
+        `Piso SPC ${selectedProduct.thickness} (${selectedProduct.wearLayer || '20 mil'})`,
+        `Formato tablón: ${selectedProduct.plankSize || '7" x 48"'}`,
+        quoteCalc.hasStairs
+          ? '17 Escalones Square Step Nose a medida incluidos'
+          : 'Cálculo para área sin escaleras',
+        isTurnkey
+          ? 'Mano de obra especializada y remoción de rodapiés'
+          : 'Entrega directa a pie de obra en Homestead ($60.00)',
+      ];
+    } else {
+      return [
+        `SPC Flooring ${selectedProduct.thickness} (${selectedProduct.wearLayer || '20 mil'})`,
+        `Plank Format: ${selectedProduct.plankSize || '7" x 48"'}`,
+        quoteCalc.hasStairs
+          ? '17 Custom Square Step Noses included'
+          : 'Calculated for area without stairs',
+        isTurnkey
+          ? 'Certified contractor labor & precision baseboard reinstall'
+          : 'Direct jobsite delivery in Homestead ($60.00)',
+      ];
+    }
+  };
+
+  // Lead Form Validation
+  const validateLeadForm = (): boolean => {
+    const errors: { fullName?: string; phone?: string; unitNumber?: string } = {};
+
+    if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
+      errors.fullName =
+        lang === 'es'
+          ? 'Por favor ingresa tu nombre completo.'
+          : 'Please enter your full name.';
+    }
+
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 7) {
+      errors.phone =
+        lang === 'es'
+          ? 'Por favor ingresa un número de teléfono válido (mínimo 7 dígitos).'
+          : 'Please enter a valid phone number (minimum 7 digits).';
+    }
+
+    if (!formData.unitNumber.trim()) {
+      errors.unitNumber =
+        lang === 'es'
+          ? 'Por favor indica tu número de unidad o lote en Siena Reserve.'
+          : 'Please enter your unit or lot number in Siena Reserve.';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // WhatsApp formatted lead message with validation
   const generateWhatsAppUrl = () => {
     const phone = '17866583677';
     const scopeLabel = getScopeLabel();
@@ -271,9 +339,9 @@ export const StepWizard: React.FC<StepWizardProps> = ({
 ----------------------------------------
 🔥 *TOTAL ESTIMADO:* ${formatCurrency(quoteCalc.totalPrice)}
 
-👤 *Cliente:* ${formData.fullName || 'No especificado'}
-📱 *Teléfono:* ${formData.phone || 'No especificado'}
-🏠 *Unidad/Lote:* ${formData.unitNumber || 'No especificado'}
+👤 *Cliente:* ${formData.fullName.trim() || 'No especificado'}
+📱 *Teléfono:* ${formData.phone.trim() || 'No especificado'}
+🏠 *Unidad/Lote:* ${formData.unitNumber.trim() || 'No especificado'}
 
 _Hola QuickSurfaces! Deseo confirmar la visita técnica para ver las muestras físicas en mi casa y verificar medidas._`
         : `*QUICKSURFACES ESTIMATE - SIENA RESERVE*
@@ -299,9 +367,9 @@ _Hola QuickSurfaces! Deseo confirmar la visita técnica para ver las muestras f�
 ----------------------------------------
 🔥 *ESTIMATED TOTAL:* ${formatCurrency(quoteCalc.totalPrice)}
 
-👤 *Customer:* ${formData.fullName || 'Not specified'}
-📱 *Phone:* ${formData.phone || 'Not specified'}
-🏠 *Unit/Lot:* ${formData.unitNumber || 'Not specified'}
+👤 *Customer:* ${formData.fullName.trim() || 'Not specified'}
+📱 *Phone:* ${formData.phone.trim() || 'Not specified'}
+🏠 *Unit/Lot:* ${formData.unitNumber.trim() || 'Not specified'}
 
 _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure verification._`;
 
@@ -320,6 +388,28 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
         : `Hello QuickSurfaces team,\n\nHere are the details of my quote for Siena Reserve:\n- Model: ${selectedModel.name}\n- Scope: ${getScopeLabel()}\n- SPC Flooring: #${selectedProduct.code} ${selectedProduct.name} (${selectedProduct.collectionName} ${selectedProduct.thickness})\n- Package: ${selectedPackage.title}\n- Total Estimate: ${formatCurrency(quoteCalc.totalPrice)}\n\nContact Info:\n- Name: ${formData.fullName}\n- Phone: ${formData.phone}\n- Unit: ${formData.unitNumber}\n\nPlease contact me to schedule a visit.`
     );
     return `mailto:sales@quicksurfaces.com?subject=${subject}&body=${body}`;
+  };
+
+  const handleSendWhatsApp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setFormTouched(true);
+    if (!validateLeadForm()) {
+      return;
+    }
+    setIsSubmitSuccess(true);
+    const url = generateWhatsAppUrl();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSendEmail = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setFormTouched(true);
+    if (!validateLeadForm()) {
+      return;
+    }
+    setIsSubmitSuccess(true);
+    const url = generateMailtoUrl();
+    window.location.href = url;
   };
 
   const handlePrint = () => {
@@ -1016,7 +1106,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                       {/* Features Checklist */}
                       <ul className="space-y-1.5 my-3">
-                        {(lang === 'es' ? pkg.features : (pkg.featuresEn || pkg.features)).map((feat, idx) => (
+                        {getPackageDynamicFeatures(pkg).map((feat, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-xs text-[#334155]">
                             <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
                             <span>{feat}</span>
@@ -1182,78 +1272,155 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 </div>
               </div>
 
-              {/* Contact Lead Form */}
+              {/* Contact Lead Form with Validation */}
               <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200">
-                <h4 className="text-sm font-black text-slate-900 mb-1">
-                  {lang === 'es' ? 'Datos para Confirmación de Medidas' : 'Information for Measurement Verification'}
-                </h4>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <h4 className="text-sm font-black text-slate-900">
+                    {lang === 'es' ? 'Datos para Confirmación de Medidas' : 'Information for Measurement Verification'}
+                  </h4>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                    {lang === 'es' ? '* Campos Requeridos' : '* Required Fields'}
+                  </span>
+                </div>
                 <p className="text-xs text-slate-500 mb-3">
                   {lang === 'es'
                     ? 'Llevamos las muestras físicas a tu hogar en Siena Reserve sin compromiso.'
                     : 'We bring physical samples right to your home in Siena Reserve with no obligation.'}
                 </p>
 
+                {/* Validation Error Banner */}
+                {formTouched && Object.keys(formErrors).length > 0 && (
+                  <div className="mb-3 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-center gap-2 animate-fadeIn">
+                    <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>
+                      {lang === 'es'
+                        ? 'Por favor completa los campos requeridos marcados en rojo antes de enviar.'
+                        : 'Please fill in the required fields marked in red before sending.'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Success Banner */}
+                {isSubmitSuccess && (
+                  <div className="mb-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      {lang === 'es'
+                        ? '¡Datos validados correctamente! Tu cotización se está enviando a QuickSurfaces.'
+                        : 'Information validated successfully! Your estimate is being dispatched to QuickSurfaces.'}
+                    </span>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Full Name */}
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                      {lang === 'es' ? 'Nombre Completo' : 'Full Name'}
+                      {lang === 'es' ? 'Nombre Completo *' : 'Full Name *'}
                     </label>
                     <input
                       type="text"
                       placeholder={lang === 'es' ? 'Ej. Carlos Mendoza' : 'e.g. John Smith'}
                       value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
+                      onChange={(e) => {
+                        setFormData({ ...formData, fullName: e.target.value });
+                        if (formErrors.fullName) {
+                          setFormErrors((prev) => ({ ...prev, fullName: undefined }));
+                        }
+                      }}
+                      className={`w-full bg-white border rounded-xl px-3 py-2 text-xs text-slate-900 outline-none transition-all ${
+                        formErrors.fullName
+                          ? 'border-red-500 bg-red-50/40 focus:ring-2 focus:ring-red-400'
+                          : 'border-slate-300 focus:border-[#FF8407] focus:ring-2 focus:ring-[#FF8407]/20'
+                      }`}
                     />
+                    {formErrors.fullName && (
+                      <p className="text-[10px] text-red-600 font-bold mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        {formErrors.fullName}
+                      </p>
+                    )}
                   </div>
 
+                  {/* Phone */}
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                      {lang === 'es' ? 'Teléfono' : 'Phone'}
+                      {lang === 'es' ? 'Teléfono (EE.UU.) *' : 'Phone Number *'}
                     </label>
                     <input
                       type="tel"
                       placeholder="(786) 000-0000"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
+                      onChange={(e) => {
+                        setFormData({ ...formData, phone: e.target.value });
+                        if (formErrors.phone) {
+                          setFormErrors((prev) => ({ ...prev, phone: undefined }));
+                        }
+                      }}
+                      className={`w-full bg-white border rounded-xl px-3 py-2 text-xs text-slate-900 outline-none transition-all ${
+                        formErrors.phone
+                          ? 'border-red-500 bg-red-50/40 focus:ring-2 focus:ring-red-400'
+                          : 'border-slate-300 focus:border-[#FF8407] focus:ring-2 focus:ring-[#FF8407]/20'
+                      }`}
                     />
+                    {formErrors.phone && (
+                      <p className="text-[10px] text-red-600 font-bold mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        {formErrors.phone}
+                      </p>
+                    )}
                   </div>
 
+                  {/* Unit / Lot */}
                   <div>
                     <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                      {lang === 'es' ? 'Unidad / Lote en Siena Reserve' : 'Unit / Lot in Siena Reserve'}
+                      {lang === 'es' ? 'Unidad / Lote en Siena Reserve *' : 'Unit / Lot in Siena Reserve *'}
                     </label>
                     <input
                       type="text"
                       placeholder={lang === 'es' ? 'Ej. Unidad 104' : 'e.g. Unit 104'}
                       value={formData.unitNumber}
-                      onChange={(e) => setFormData({ ...formData, unitNumber: e.target.value })}
-                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#FF8407]"
+                      onChange={(e) => {
+                        setFormData({ ...formData, unitNumber: e.target.value });
+                        if (formErrors.unitNumber) {
+                          setFormErrors((prev) => ({ ...prev, unitNumber: undefined }));
+                        }
+                      }}
+                      className={`w-full bg-white border rounded-xl px-3 py-2 text-xs text-slate-900 outline-none transition-all ${
+                        formErrors.unitNumber
+                          ? 'border-red-500 bg-red-50/40 focus:ring-2 focus:ring-red-400'
+                          : 'border-slate-300 focus:border-[#FF8407] focus:ring-2 focus:ring-[#FF8407]/20'
+                      }`}
                     />
+                    {formErrors.unitNumber && (
+                      <p className="text-[10px] text-red-600 font-bold mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        {formErrors.unitNumber}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons with Validation Trigger */}
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <a
-                  href={generateWhatsAppUrl()}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex-1 py-3.5 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+                <button
+                  type="button"
+                  onClick={handleSendWhatsApp}
+                  className="flex-1 py-3.5 px-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer hover:scale-[1.01]"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>{lang === 'es' ? 'Enviar Cotización por WhatsApp' : 'Send Quote via WhatsApp'}</span>
-                </a>
+                </button>
 
-                <a
-                  href={generateMailtoUrl()}
-                  className="py-3.5 px-5 rounded-2xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                <button
+                  type="button"
+                  onClick={handleSendEmail}
+                  className="py-3.5 px-5 rounded-2xl bg-[#0F172A] hover:bg-[#1E293B] text-white font-black text-sm flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.01]"
                 >
                   <Mail className="w-4 h-4" />
                   <span>{lang === 'es' ? 'Enviar por Email' : 'Send via Email'}</span>
-                </a>
+                </button>
 
                 <button
                   type="button"

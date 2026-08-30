@@ -3,6 +3,14 @@ import { COMMUNITIES as DEFAULT_COMMUNITIES, FLOOR_PLAN_MODELS as DEFAULT_MODELS
 import { FLOORING_PRODUCTS as DEFAULT_PRODUCTS, PRICING_PACKAGES as DEFAULT_PACKAGES } from '../data/products';
 import { GalleryItem, GALLERY_ITEMS as DEFAULT_GALLERY_ITEMS } from '../components/GallerySection';
 import { TestimonialItem, TESTIMONIALS as DEFAULT_TESTIMONIALS } from '../data/testimonials';
+import {
+  StairTechnicalImage,
+  StairVerticalCard,
+  StairProjectItem,
+  STAIR_TECHNICAL_IMAGES as DEFAULT_STAIR_TECHNICAL,
+  STAIR_VERTICAL_CARDS as DEFAULT_STAIR_VERTICAL,
+  INSTALLED_STAIRS_CAROUSEL as DEFAULT_STAIR_CAROUSEL,
+} from '../data/stairsGallery';
 
 const SHEET_ID = '1AMavYDq0jmyc9_8sab_5ICUGY5N860ahiCM0ignx76A';
 
@@ -84,6 +92,9 @@ export interface LiveDatabaseResult {
   packages: PricingPackage[];
   galleryItems: GalleryItem[];
   testimonials: TestimonialItem[];
+  stairTechnicalImages: StairTechnicalImage[];
+  stairVerticalCards: StairVerticalCard[];
+  stairCarouselItems: StairProjectItem[];
   bannerUrl: string;
   isLive: boolean;
 }
@@ -103,12 +114,13 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
       }
     };
 
-    const [commText, floorText, priceText, galleryText, aboutText] = await Promise.all([
+    const [commText, floorText, priceText, galleryText, aboutText, stairsText] = await Promise.all([
       fetchSheet('Communities_Models'),
       fetchSheet('Products_Colors'),
       fetchSheet('Pricing_Packages'),
       fetchSheet('Gallery_Projects'),
       fetchSheet('About_Us_Photos'),
+      fetchSheet('Stairs_Gallery'),
     ]);
 
     let models = DEFAULT_MODELS;
@@ -116,6 +128,9 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
     let packages = DEFAULT_PACKAGES;
     let galleryItems = DEFAULT_GALLERY_ITEMS;
     let testimonials = DEFAULT_TESTIMONIALS;
+    let stairTechnicalImages = DEFAULT_STAIR_TECHNICAL;
+    let stairVerticalCards = DEFAULT_STAIR_VERTICAL;
+    let stairCarouselItems = DEFAULT_STAIR_CAROUSEL;
 
     // 1. Parse Models
     if (commText) {
@@ -433,12 +448,20 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
             features: [
               `Piso SPC ${r[thickIdx] || '5.5mm'} (${r[wearIdx] || '20 mil'})`,
               `Formato: ${r[plankIdx] || '7" x 48"'}`,
-              isTurnkey ? '17 Escalones Square Step Nose incluidos' : 'Entrega directa en Homestead',
-              'Garantía de fábrica 25 años contra humedad',
+              isTurnkey ? '17 Escalones Square Step Nose a medida incluidos' : 'Entrega directa en Homestead ($60.00)',
+            ],
+            featuresEn: [
+              `SPC Flooring ${r[thickIdx] || '5.5mm'} (${r[wearIdx] || '20 mil'})`,
+              `Format: ${r[plankIdx] || '7" x 48"'}`,
+              isTurnkey ? '17 Custom Square Step Noses included' : 'Direct jobsite delivery in Homestead ($60.00)',
             ],
             inclusions: [
-              'Cálculo de cajas con +10% de desperdicio',
+              'Cálculo de cajas con +7% de desperdicio fijo',
               'Acabado impermeable 100% rígido',
+            ],
+            inclusionsEn: [
+              'Boxes calculated with fixed +7% waste factor',
+              '100% rigid waterproof finish',
             ],
             specs: [
               { label: 'Espesor', value: r[thickIdx] || '5.5mm' },
@@ -576,12 +599,102 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
       }
     }
 
+    // 6. Parse Stairs Gallery (Tab: Stairs_Gallery)
+    if (stairsText) {
+      const rows = parseCSV(stairsText);
+      if (rows.length > 1) {
+        const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
+        const sectionIdx = header.findIndex((h) => h === 'section' || h === 'type' || h === 'category');
+        const idIdx = header.indexOf('id');
+        const titleEsIdx = header.findIndex((h) => h === 'title_es' || h === 'title');
+        const titleEnIdx = header.findIndex((h) => h === 'title_en' || h === 'titleen');
+        const subEsIdx = header.findIndex((h) => h === 'subtitle_es' || h === 'subtitle' || h === 'description_es' || h === 'description');
+        const subEnIdx = header.findIndex((h) => h === 'subtitle_en' || h === 'subtitleen' || h === 'description_en' || h === 'descriptionen');
+        const imgIdx = header.findIndex((h) => h === 'image_url' || h === 'image' || h === 'url');
+        const tagEsIdx = header.findIndex((h) => h === 'tag_es' || h === 'tag' || h === 'badge_es' || h === 'badge');
+        const tagEnIdx = header.findIndex((h) => h === 'tag_en' || h === 'tagen' || h === 'badge_en' || h === 'badgeen');
+        const commIdx = header.indexOf('community');
+        const colorNameIdx = header.findIndex((h) => h === 'color_name' || h === 'color');
+        const colorCodeIdx = header.indexOf('color_code');
+        const thickIdx = header.indexOf('thickness');
+        const stepsIdx = header.findIndex((h) => h === 'steps_count' || h === 'steps');
+
+        const parsedTech: StairTechnicalImage[] = [];
+        const parsedVert: StairVerticalCard[] = [];
+        const parsedCarousel: StairProjectItem[] = [];
+
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          const rawImg = imgIdx !== -1 && r[imgIdx] ? normalizeImageUrl(r[imgIdx]) : '';
+          if (!rawImg && !r[titleEsIdx]) continue;
+
+          const sectionVal = (sectionIdx !== -1 && r[sectionIdx] ? r[sectionIdx].toLowerCase() : '').trim();
+          const rowId = (idIdx !== -1 && r[idIdx] ? r[idIdx] : `stair-${i}`).trim();
+          const titleEs = (titleEsIdx !== -1 && r[titleEsIdx]) ? r[titleEsIdx] : 'Escalera QuickSurfaces';
+          const titleEn = (titleEnIdx !== -1 && r[titleEnIdx]) ? r[titleEnIdx] : 'QuickSurfaces Staircase';
+          const subEs = (subEsIdx !== -1 && r[subEsIdx]) ? r[subEsIdx] : '';
+          const subEn = (subEnIdx !== -1 && r[subEnIdx]) ? r[subEnIdx] : '';
+          const tagEs = (tagEsIdx !== -1 && r[tagEsIdx]) ? r[tagEsIdx] : 'Square Step Nose';
+          const tagEn = (tagEnIdx !== -1 && r[tagEnIdx]) ? r[tagEnIdx] : 'Square Step Nose';
+
+          if (sectionVal.includes('tech') || sectionVal.includes('perfil') || sectionVal.includes('diagram')) {
+            parsedTech.push({
+              id: rowId,
+              title: titleEs,
+              titleEn: titleEn,
+              subtitle: subEs,
+              subtitleEn: subEn,
+              imageUrl: rawImg,
+              tag: tagEs,
+              tagEn: tagEn,
+            });
+          } else if (sectionVal.includes('vert') || sectionVal.includes('9:16') || sectionVal.includes('format')) {
+            parsedVert.push({
+              id: rowId,
+              title: titleEs,
+              titleEn: titleEn,
+              subtitle: subEs,
+              subtitleEn: subEn,
+              aspectRatio: '9:16',
+              dimensions: '768x1365',
+              imageUrl: rawImg,
+              badge: tagEs,
+              badgeEn: tagEn,
+            });
+          } else {
+            // Default to carousel
+            const stepsCountVal = stepsIdx !== -1 && r[stepsIdx] ? parseInt(r[stepsIdx]) : 17;
+            parsedCarousel.push({
+              id: rowId,
+              title: titleEs,
+              titleEn: titleEn,
+              community: (commIdx !== -1 && r[commIdx]) ? r[commIdx] : 'Siena Reserve (Homestead, FL)',
+              colorName: (colorNameIdx !== -1 && r[colorNameIdx]) ? r[colorNameIdx] : 'SPC Color',
+              colorCode: (colorCodeIdx !== -1 && r[colorCodeIdx]) ? r[colorCodeIdx] : '01',
+              thickness: (thickIdx !== -1 && r[thickIdx]) ? r[thickIdx] : '5.5mm',
+              imageUrl: rawImg,
+              description: subEs,
+              descriptionEn: subEn,
+              stepsCount: isNaN(stepsCountVal) ? 17 : stepsCountVal,
+            });
+          }
+        }
+
+        if (parsedTech.length > 0) stairTechnicalImages = parsedTech;
+        if (parsedVert.length > 0) stairVerticalCards = parsedVert;
+        if (parsedCarousel.length > 0) stairCarouselItems = parsedCarousel;
+      }
+    }
+
     return {
       models,
       products,
       packages,
       galleryItems,
       testimonials,
+      stairTechnicalImages,
+      stairVerticalCards,
+      stairCarouselItems,
       bannerUrl: SIENA_RESERVE_BANNER_URL,
       isLive: true,
     };
@@ -593,6 +706,9 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
       packages: DEFAULT_PACKAGES,
       galleryItems: DEFAULT_GALLERY_ITEMS,
       testimonials: DEFAULT_TESTIMONIALS,
+      stairTechnicalImages: DEFAULT_STAIR_TECHNICAL,
+      stairVerticalCards: DEFAULT_STAIR_VERTICAL,
+      stairCarouselItems: DEFAULT_STAIR_CAROUSEL,
       bannerUrl: SIENA_RESERVE_BANNER_URL,
       isLive: false,
     };

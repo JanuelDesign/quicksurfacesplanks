@@ -644,6 +644,24 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
                 viewBox="0 0 500 860"
                 className="w-full h-auto select-none rounded-xl drop-shadow-2xl"
               >
+                <defs>
+                  {/* Dynamic Floor Planks Texture for 2nd Floor */}
+                  <pattern id="planksTextureFloor" width="48" height="14" patternUnits="userSpaceOnUse">
+                    <rect width="48" height="14" fill={woodBaseColor} />
+                    <line x1="0" y1="0" x2="48" y2="0" stroke={woodSecondaryColor} strokeWidth="1.2" strokeOpacity="0.8" />
+                    <line x1="0" y1="7" x2="48" y2="7" stroke={woodSecondaryColor} strokeWidth="1.2" strokeOpacity="0.8" />
+                    <line x1="24" y1="0" x2="24" y2="7" stroke={woodSecondaryColor} strokeWidth="1.2" strokeOpacity="0.8" />
+                    <line x1="0" y1="7" x2="0" y2="14" stroke={woodSecondaryColor} strokeWidth="1.2" strokeOpacity="0.8" />
+                    <line x1="48" y1="7" x2="48" y2="14" stroke={woodSecondaryColor} strokeWidth="1.2" strokeOpacity="0.8" />
+                  </pattern>
+
+                  {/* Tile pattern for 2nd Floor non-vinyl areas (Baths) */}
+                  <pattern id="tileTextureBath" width="16" height="16" patternUnits="userSpaceOnUse">
+                    <rect width="16" height="16" fill="#1F2937" />
+                    <path d="M 16 0 L 0 0 0 16" fill="none" stroke="#4B5563" strokeWidth="1" />
+                  </pattern>
+                </defs>
+
                 {/* Exterior Foundation Background */}
                 <rect x="20" y="20" width="460" height="820" rx="16" fill="#0B0F17" stroke="#374151" strokeWidth="2" />
 

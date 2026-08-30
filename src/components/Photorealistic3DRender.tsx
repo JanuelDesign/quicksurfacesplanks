@@ -97,7 +97,7 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
           key={`${model.id}-${renderSrc}`}
           src={renderSrc}
           alt={`Render 3D 2do Piso y Escaleras - ${model.name}`}
-          className="w-full h-[320px] sm:h-[420px] md:h-[480px] object-cover transition-transform duration-700 group-hover:scale-[1.01]"
+          className="w-full h-auto max-h-[640px] object-contain mx-auto transition-transform duration-700 group-hover:scale-[1.01] block"
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {

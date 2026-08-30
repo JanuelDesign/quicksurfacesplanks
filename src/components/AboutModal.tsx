@@ -57,82 +57,139 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, testimo
   const currentTestimonial = testimonials[currentTestimonialIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white text-[#0F172A] w-full max-w-3xl rounded-3xl shadow-2xl border border-[#E2E8F0] overflow-hidden flex flex-col max-h-[92vh] font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/75 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white text-[#0F172A] w-full max-w-5xl lg:max-w-6xl rounded-3xl shadow-2xl border border-[#E2E8F0] overflow-hidden flex flex-col max-h-[94vh] font-sans">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#FF8407] text-white flex items-center justify-center font-black text-xs shadow-sm">
+        <div className="p-4 sm:p-6 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#000000] text-[#FF8407] border border-[#FF8407]/40 flex items-center justify-center font-black text-sm sm:text-base shadow-sm">
               QS
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-[#0F172A]">
-                {lang === 'es' ? 'Sobre Quick Surfaces' : 'About Quick Surfaces'}
-              </h3>
-              <p className="text-xs text-[#64748B]">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg sm:text-2xl font-black text-[#0F172A]">
+                  {lang === 'es' ? 'Sobre Quick Surfaces' : 'About Quick Surfaces'}
+                </h3>
+                <span className="hidden sm:inline-flex px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF8407] border border-[#FF8407]/30 text-[10px] font-black uppercase">
+                  South Florida Leader
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
                 {lang === 'es'
-                  ? 'Especialistas en pisos SPC para condominios en Homestead & Miami, FL'
-                  : 'SPC Luxury Vinyl Specialists for Townhomes in Homestead & Miami, FL'}
+                  ? 'Especialistas en pisos SPC para condominios en Homestead & Miami-Dade, FL'
+                  : 'SPC Luxury Vinyl Specialists for Townhomes in Homestead & Miami-Dade, FL'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white border border-[#CBD5E1] flex items-center justify-center text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer"
+            className="w-9 h-9 rounded-full bg-white border border-[#CBD5E1] flex items-center justify-center text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer shadow-2xs"
             aria-label="Cerrar modal"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
+        {/* Scrollable Body - Optimized Multi-Column on Desktop */}
+        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6">
           {/* Trust stats */}
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3 text-center">
-            <div className="p-3 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
-              <span className="text-xl sm:text-2xl font-black text-[#FF8407] block">+350</span>
-              <span className="text-[10px] sm:text-xs font-bold text-[#64748B]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+            <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+              <span className="text-2xl sm:text-3xl font-black text-[#FF8407] block">+350</span>
+              <span className="text-xs font-bold text-[#64748B] mt-0.5 block">
                 {lang === 'es' ? 'Casas Instaladas' : 'Homes Installed'}
               </span>
             </div>
-            <div className="p-3 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
-              <span className="text-xl sm:text-2xl font-black text-[#FF8407] block">25 {lang === 'es' ? 'Años' : 'Years'}</span>
-              <span className="text-[10px] sm:text-xs font-bold text-[#64748B]">
+            <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+              <span className="text-2xl sm:text-3xl font-black text-[#FF8407] block">25 {lang === 'es' ? 'Años' : 'Years'}</span>
+              <span className="text-xs font-bold text-[#64748B] mt-0.5 block">
                 {lang === 'es' ? 'Garantía de Fábrica' : 'Factory Warranty'}
               </span>
             </div>
-            <div className="p-3 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
-              <span className="text-xl sm:text-2xl font-black text-[#FF8407] block">5.0 ★</span>
-              <span className="text-[10px] sm:text-xs font-bold text-[#64748B]">
+            <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+              <span className="text-2xl sm:text-3xl font-black text-[#FF8407] block">5.0 ★</span>
+              <span className="text-xs font-bold text-[#64748B] mt-0.5 block">
                 {lang === 'es' ? 'Calificación Google' : 'Google Rating'}
+              </span>
+            </div>
+            <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+              <span className="text-2xl sm:text-3xl font-black text-emerald-600 block">48 hrs</span>
+              <span className="text-xs font-bold text-[#64748B] mt-0.5 block">
+                {lang === 'es' ? 'Instalación Rápida' : 'Fast Turnkey Turnaround'}
               </span>
             </div>
           </div>
 
-          {/* Description */}
-          <div className="space-y-3 text-xs sm:text-sm text-[#475569] leading-relaxed">
-            <p>
-              {lang === 'es' ? (
-                <>
-                  En <strong>Quick Surfaces</strong> nos especializamos en la renovación y modernización de pisos para los segundos pisos y escaleras de condominios residenciales en <strong>Homestead, Kendall y Miami-Dade</strong> (incluyendo comunidades como Siena Reserve, Altamira, Terra Sol, Luminara y más).
-                </>
-              ) : (
-                <>
-                  At <strong>Quick Surfaces</strong>, we specialize in high-precision luxury vinyl flooring (SPC) renovations for second stories and custom staircases across residential communities in <strong>Homestead, Kendall, and Miami-Dade</strong>.
-                </>
-              )}
-            </p>
-            <p>
-              {lang === 'es' ? (
-                <>
-                  Contamos con los planos arquitectónicos calibrados y cálculos exactos de metraje para cada modelo de vivienda, lo que nos permite ofrecerte un <strong>precio cerrado garantizado</strong> sin desperdicios innecesarios ni costos ocultos.
-                </>
-              ) : (
-                <>
-                  We maintain calibrated architectural floor plan dimensions and exact square footage takeoffs for each home model, delivering a <strong>guaranteed turnkey price</strong> with zero hidden fees or unexpected extras.
-                </>
-              )}
-            </p>
+          {/* Description & Key Advantages Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-6 space-y-4 text-sm text-[#475569] leading-relaxed bg-[#F8FAFC] p-5 sm:p-6 rounded-3xl border border-[#E2E8F0]">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#FF8407] flex items-center gap-1.5">
+                <Building className="w-4 h-4" />
+                <span>{lang === 'es' ? 'Nuestra Especialidad' : 'Our Specialization'}</span>
+              </h4>
+              <p>
+                {lang === 'es' ? (
+                  <>
+                    En <strong>Quick Surfaces</strong> nos especializamos en la renovación y modernización de pisos para los segundos pisos y escaleras de condominios residenciales en <strong>Homestead, Kendall y Miami-Dade</strong> (incluyendo comunidades como Siena Reserve, Altamira, Terra Sol, Luminara y más).
+                  </>
+                ) : (
+                  <>
+                    At <strong>Quick Surfaces</strong>, we specialize in high-precision luxury vinyl flooring (SPC) renovations for second stories and custom staircases across residential communities in <strong>Homestead, Kendall, and Miami-Dade</strong>.
+                  </>
+                )}
+              </p>
+              <p>
+                {lang === 'es' ? (
+                  <>
+                    Contamos con los planos arquitectónicos calibrados y cálculos exactos de metraje para cada modelo de vivienda, lo que nos permite ofrecerte un <strong>precio cerrado garantizado</strong> sin desperdicios innecesarios ni costos ocultos.
+                  </>
+                ) : (
+                  <>
+                    We maintain calibrated architectural floor plan dimensions and exact square footage takeoffs for each home model, delivering a <strong>guaranteed turnkey price</strong> with zero hidden fees or unexpected extras.
+                  </>
+                )}
+              </p>
+            </div>
+
+            <div className="lg:col-span-6 space-y-3 bg-[#FFF7ED] p-5 sm:p-6 rounded-3xl border border-[#FF8407]/30 flex flex-col justify-between">
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-[#FF8407] mb-3 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{lang === 'es' ? 'Ventajas Diferenciales' : 'Key Advantages'}</span>
+                </h4>
+                <div className="space-y-2.5 text-xs sm:text-sm text-[#0F172A]">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === 'es' ? 'Instalación rápida garantizada en solo 2 días' : 'Guaranteed rapid turnkey installation in 2 days'}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === 'es' ? 'Mano de obra certificada con remoción y reinstalación de rodapiés' : 'Certified installers with baseboard removal & reinstall'}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === 'es' ? '17 escalones Square Step Nose monobloque al ras sin pestañas' : '17 custom Square Step Nose treads flush with zero overlap'}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === 'es' ? 'Muestras físicas directas a tu casa sin costo' : 'Free physical plank samples brought straight to your home'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#FF8407]/20 flex items-center justify-between text-xs text-slate-700">
+                <span className="font-bold">📍 Homestead & Miami-Dade</span>
+                <span className="font-mono font-bold text-[#FF8407]">📞 (786) 658-3677</span>
+              </div>
+            </div>
           </div>
 
           {/* ========================================================

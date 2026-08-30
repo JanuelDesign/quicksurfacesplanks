@@ -6,6 +6,14 @@ import { FloorPlanModel, FlooringProduct, PricingPackage, ResidentialCommunity }
 import { calculateQuotePrice } from './utils/pricingCalculator';
 import { GalleryItem, GALLERY_ITEMS } from './components/GallerySection';
 import { TestimonialItem, TESTIMONIALS } from './data/testimonials';
+import {
+  StairTechnicalImage,
+  StairVerticalCard,
+  StairProjectItem,
+  STAIR_TECHNICAL_IMAGES,
+  STAIR_VERTICAL_CARDS,
+  INSTALLED_STAIRS_CAROUSEL,
+} from './data/stairsGallery';
 import { fetchLiveDatabase } from './services/googleSheetSync';
 
 import { Navbar } from './components/Navbar';
@@ -24,6 +32,9 @@ export default function App() {
   const [livePackages, setLivePackages] = useState<PricingPackage[]>(PRICING_PACKAGES);
   const [liveGallery, setLiveGallery] = useState<GalleryItem[]>(GALLERY_ITEMS);
   const [liveTestimonials, setLiveTestimonials] = useState<TestimonialItem[]>(TESTIMONIALS);
+  const [liveStairTechnical, setLiveStairTechnical] = useState<StairTechnicalImage[]>(STAIR_TECHNICAL_IMAGES);
+  const [liveStairVertical, setLiveStairVertical] = useState<StairVerticalCard[]>(STAIR_VERTICAL_CARDS);
+  const [liveStairCarousel, setLiveStairCarousel] = useState<StairProjectItem[]>(INSTALLED_STAIRS_CAROUSEL);
   const [isSyncedWithSheet, setIsSyncedWithSheet] = useState<boolean>(false);
 
   const [selectedCommunity, setSelectedCommunity] = useState<ResidentialCommunity>(COMMUNITIES[0]);
@@ -48,6 +59,15 @@ export default function App() {
         }
         if (data.testimonials && data.testimonials.length > 0) {
           setLiveTestimonials(data.testimonials);
+        }
+        if (data.stairTechnicalImages && data.stairTechnicalImages.length > 0) {
+          setLiveStairTechnical(data.stairTechnicalImages);
+        }
+        if (data.stairVerticalCards && data.stairVerticalCards.length > 0) {
+          setLiveStairVertical(data.stairVerticalCards);
+        }
+        if (data.stairCarouselItems && data.stairCarouselItems.length > 0) {
+          setLiveStairCarousel(data.stairCarouselItems);
         }
         setIsSyncedWithSheet(true);
 
@@ -167,6 +187,9 @@ export default function App() {
               <ProductCatalog
                 selectedProduct={selectedProduct}
                 productsList={liveProducts}
+                stairTechnicalImages={liveStairTechnical}
+                stairVerticalCards={liveStairVertical}
+                stairCarouselItems={liveStairCarousel}
                 onSelectProduct={(prod) => {
                   setSelectedProduct(prod);
                   setActiveTab('order');
