@@ -150,6 +150,9 @@ export default function App() {
                 modelsList={liveModels}
                 productsList={liveProducts}
                 packagesList={livePackages}
+                stairTechnicalImages={liveStairTechnical}
+                stairVerticalCards={liveStairVertical}
+                stairCarouselItems={liveStairCarousel}
                 isLiveSynced={isSyncedWithSheet}
                 onClose={() => setActiveTab('catalog')}
               />

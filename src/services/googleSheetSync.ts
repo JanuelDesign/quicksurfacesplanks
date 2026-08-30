@@ -68,11 +68,19 @@ function parseCSV(text: string): string[][] {
 export function normalizeImageUrl(url: string | undefined): string {
   if (!url) return '';
   let cleanUrl = url.trim().replace(/^["']|["']$/g, '');
-  if (cleanUrl.includes('github.com') && cleanUrl.includes('/blob/')) {
+  if (cleanUrl.includes('github.com')) {
     cleanUrl = cleanUrl
       .replace('https://github.com/', 'https://raw.githubusercontent.com/')
-      .replace('/blob/', '/');
+      .replace('/blob/', '/')
+      .replace('/raw/', '/');
     cleanUrl = cleanUrl.replace('?raw=true', '');
+  }
+  // If user pasted Google Drive preview link
+  if (cleanUrl.includes('drive.google.com') && cleanUrl.includes('/file/d/')) {
+    const match = cleanUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      cleanUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
   }
   return cleanUrl;
 }
@@ -602,26 +610,84 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
     // 6. Parse Stairs Gallery (Tab: Stairs_Gallery)
     if (stairsText) {
       const rows = parseCSV(stairsText);
-      if (rows.length > 1) {
+      if (rows.length >= 1) {
         const header = rows[0].map((h) => h.toLowerCase().replace(/['"]/g, '').trim());
-        const sectionIdx = header.findIndex((h) => h === 'section' || h === 'type' || h === 'category');
-        const idIdx = header.indexOf('id');
-        const titleEsIdx = header.findIndex((h) => h === 'title_es' || h === 'title');
-        const titleEnIdx = header.findIndex((h) => h === 'title_en' || h === 'titleen');
-        const subEsIdx = header.findIndex((h) => h === 'subtitle_es' || h === 'subtitle' || h === 'description_es' || h === 'description');
-        const subEnIdx = header.findIndex((h) => h === 'subtitle_en' || h === 'subtitleen' || h === 'description_en' || h === 'descriptionen');
-        const imgIdx = header.findIndex((h) => h === 'image_url' || h === 'image' || h === 'url');
-        const tagEsIdx = header.findIndex((h) => h === 'tag_es' || h === 'tag' || h === 'badge_es' || h === 'badge');
-        const tagEnIdx = header.findIndex((h) => h === 'tag_en' || h === 'tagen' || h === 'badge_en' || h === 'badgeen');
-        const commIdx = header.indexOf('community');
-        const colorNameIdx = header.findIndex((h) => h === 'color_name' || h === 'color');
-        const colorCodeIdx = header.indexOf('color_code');
-        const thickIdx = header.indexOf('thickness');
-        const stepsIdx = header.findIndex((h) => h === 'steps_count' || h === 'steps');
+        const sectionIdx = header.findIndex((h) => h.startsWith('section') || h.includes('section') || h.includes('type'));
+        const idIdx = header.findIndex((h) => h.startsWith('id') || h.includes('id'));
+        const titleEsIdx = header.findIndex((h) => h.startsWith('title_es') || h.includes('title_es') || h.includes('title'));
+        const titleEnIdx = header.findIndex((h) => h.startsWith('title_en') || h.includes('title_en') || h.includes('titleen'));
+        const subEsIdx = header.findIndex((h) => h.startsWith('subtitle_es') || h.includes('subtitle_es') || h.includes('subtitle') || h.includes('desc'));
+        const subEnIdx = header.findIndex((h) => h.startsWith('subtitle_en') || h.includes('subtitle_en') || h.includes('subtitleen') || h.includes('desc'));
+        const imgIdx = header.findIndex((h) => h.startsWith('image_url') || h.includes('image') || h.includes('url') || h.includes('http'));
+        const tagEsIdx = header.findIndex((h) => h.startsWith('tag_es') || h.includes('tag') || h.includes('badge'));
+        const tagEnIdx = header.findIndex((h) => h.startsWith('tag_en') || h.includes('tagen') || h.includes('badgeen'));
+        const commIdx = header.findIndex((h) => h.startsWith('community') || h.includes('comm'));
+        const colorNameIdx = header.findIndex((h) => h.startsWith('color_name') || h.includes('color_name') || h.includes('color'));
+        const colorCodeIdx = header.findIndex((h) => h.startsWith('color_code') || h.includes('color_code') || h.includes('code'));
+        const thickIdx = header.findIndex((h) => h.startsWith('thickness') || h.includes('thick'));
+        const stepsIdx = header.findIndex((h) => h.startsWith('steps_count') || h.includes('step'));
 
         const parsedTech: StairTechnicalImage[] = [];
         const parsedVert: StairVerticalCard[] = [];
         const parsedCarousel: StairProjectItem[] = [];
+
+        // Check if row 0 itself contains embedded multi-URLs in the image header
+        const row0ImgCell = imgIdx !== -1 ? rows[0][imgIdx] : '';
+        if (row0ImgCell && row0ImgCell.includes('http')) {
+          const extractedUrls = row0ImgCell.match(/https?:\/\/[^\s"]+/g) || [];
+          if (extractedUrls.length >= 1) {
+            parsedTech.push({
+              id: 'stair-tech-1',
+              title: 'Pieza Square Step Nose (Perfil al Ras)',
+              titleEn: 'Square Step Nose Profile (Flush Finish)',
+              subtitle: 'Acabado monobloque sin pestaña plástica (Zero Overlap)',
+              subtitleEn: 'Monoblock finish without plastic overlap lip (Zero Overlap)',
+              imageUrl: normalizeImageUrl(extractedUrls[0]),
+              tag: 'Perfil 100% al Ras',
+              tagEn: '100% Flush Profile',
+            });
+          }
+          if (extractedUrls.length >= 2) {
+            parsedTech.push({
+              id: 'stair-tech-2',
+              title: 'Diagrama de Ensamble y Fijación Estructural',
+              titleEn: 'Assembly & Structural Adhesion Diagram',
+              subtitle: 'Fijación con polímero elástico de alta adherencia y clic continuo',
+              subtitleEn: 'High-strength elastic polymer bonding and continuous click-lock',
+              imageUrl: normalizeImageUrl(extractedUrls[1]),
+              tag: 'Fijación Polimérica',
+              tagEn: 'Polymer Bonding',
+            });
+          }
+          if (extractedUrls.length >= 3) {
+            parsedVert.push({
+              id: 'stair-vert-1',
+              title: 'Transición al Ras Sin Pestañas',
+              titleEn: 'Flush Transition Without Overlap',
+              subtitle: 'Acabado minimalista moderno de alta seguridad',
+              subtitleEn: 'Modern minimalist high-safety finish',
+              aspectRatio: '9:16',
+              dimensions: '768x1365',
+              imageUrl: normalizeImageUrl(extractedUrls[2]),
+              badge: 'Formato 9:16',
+              badgeEn: 'Format 9:16',
+            });
+          }
+          if (extractedUrls.length >= 4) {
+            parsedVert.push({
+              id: 'stair-vert-2',
+              title: 'Escalera Completa de 17 Pasos',
+              titleEn: 'Complete 17-Step Staircase',
+              subtitle: 'Instalación estructural en Siena Reserve',
+              subtitleEn: 'Structural installation in Siena Reserve',
+              aspectRatio: '9:16',
+              dimensions: '768x1365',
+              imageUrl: normalizeImageUrl(extractedUrls[3]),
+              badge: '17 Escalones',
+              badgeEn: '17 Steps',
+            });
+          }
+        }
 
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
@@ -637,7 +703,7 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
           const tagEs = (tagEsIdx !== -1 && r[tagEsIdx]) ? r[tagEsIdx] : 'Square Step Nose';
           const tagEn = (tagEnIdx !== -1 && r[tagEnIdx]) ? r[tagEnIdx] : 'Square Step Nose';
 
-          if (sectionVal.includes('tech') || sectionVal.includes('perfil') || sectionVal.includes('diagram')) {
+          if (sectionVal.includes('tech') || sectionVal.includes('perfil') || sectionVal.includes('diagram') || rowId.includes('tech')) {
             parsedTech.push({
               id: rowId,
               title: titleEs,
@@ -648,7 +714,7 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
               tag: tagEs,
               tagEn: tagEn,
             });
-          } else if (sectionVal.includes('vert') || sectionVal.includes('9:16') || sectionVal.includes('format')) {
+          } else if (sectionVal.includes('vert') || sectionVal.includes('9:16') || sectionVal.includes('format') || rowId.includes('vert')) {
             parsedVert.push({
               id: rowId,
               title: titleEs,

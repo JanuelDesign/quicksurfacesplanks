@@ -161,6 +161,13 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                     src={item.imageUrl}
                     alt={lang === 'es' ? item.title : item.titleEn}
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('/images/steps/')) {
+                        const fallbackName = item.id.includes('2') || item.id.includes('diag') ? 'steps_square_step_diagrama.webp' : 'steps_square_step.webp';
+                        target.src = `/images/steps/${fallbackName}`;
+                      }
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   {/* Zoom Button */}
@@ -223,6 +230,13 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                     src={card.imageUrl}
                     alt={lang === 'es' ? card.title : card.titleEn}
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('/images/steps/')) {
+                        const fallbackName = card.id.includes('2') ? 'step-card-02-installed.webp' : 'step-card-01-piece.webp';
+                        target.src = `/images/steps/${fallbackName}`;
+                      }
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
 
@@ -292,6 +306,19 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
               src={activeStairProject.imageUrl}
               alt={lang === 'es' ? activeStairProject.title : activeStairProject.titleEn}
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes('/images/steps/')) {
+                  const fallbackMap: Record<string, string> = {
+                    'stair-proj-1': 'step_gallery02.webp',
+                    'stair-proj-2': 'step_gallery03.webp',
+                    'stair-proj-3': 'step_gallery05.webp',
+                    'stair-proj-4': 'step_gallery06.webp',
+                  };
+                  const fallbackFile = fallbackMap[activeStairProject.id] || 'step_gallery02.webp';
+                  target.src = `/images/steps/${fallbackFile}`;
+                }
+              }}
               className="w-full h-full object-cover transition-all duration-700 animate-fadeIn"
             />
 
@@ -368,6 +395,19 @@ export const StaircaseStepSection: React.FC<StaircaseStepSectionProps> = ({
                     src={item.imageUrl}
                     alt={item.title}
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('/images/steps/')) {
+                        const fallbackMap: Record<string, string> = {
+                          'stair-proj-1': 'step_gallery02.webp',
+                          'stair-proj-2': 'step_gallery03.webp',
+                          'stair-proj-3': 'step_gallery05.webp',
+                          'stair-proj-4': 'step_gallery06.webp',
+                        };
+                        const fallbackFile = fallbackMap[item.id] || 'step_gallery02.webp';
+                        target.src = `/images/steps/${fallbackFile}`;
+                      }
+                    }}
                     className="w-full h-full object-cover"
                   />
                 </button>

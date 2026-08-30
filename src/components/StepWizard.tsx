@@ -15,6 +15,7 @@ import { SienaReserveHero } from './SienaReserveHero';
 import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
 import { Photorealistic3DRender } from './Photorealistic3DRender';
 import { StaircaseStepSection } from './StaircaseStepSection';
+import { StairTechnicalImage, StairVerticalCard, StairProjectItem } from '../data/stairsGallery';
 import { ColorSelectorModal } from './ColorSelectorModal';
 import {
   ArrowLeft,
@@ -49,6 +50,9 @@ interface StepWizardProps {
   modelsList?: FloorPlanModel[];
   productsList?: FlooringProduct[];
   packagesList?: PricingPackage[];
+  stairTechnicalImages?: StairTechnicalImage[];
+  stairVerticalCards?: StairVerticalCard[];
+  stairCarouselItems?: StairProjectItem[];
   isLiveSynced?: boolean;
   onClose?: () => void;
 }
@@ -61,6 +65,9 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   modelsList: propModelsList,
   productsList: propProductsList,
   packagesList: propPackagesList,
+  stairTechnicalImages,
+  stairVerticalCards,
+  stairCarouselItems,
   isLiveSynced,
   onClose,
 }) => {
@@ -998,7 +1005,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
             {/* 6. DEDICATED STAIR DETAIL SECTION (Appears when stairs are in scope) */}
             {(floorScope === 'floor1_stairs' || floorScope === 'floor2_stairs') && (
-              <StaircaseStepSection selectedProduct={selectedProduct} />
+              <StaircaseStepSection
+                selectedProduct={selectedProduct}
+                stairTechnicalImages={stairTechnicalImages}
+                stairVerticalCards={stairVerticalCards}
+                stairCarouselItems={stairCarouselItems}
+              />
             )}
           </div>
         )}
