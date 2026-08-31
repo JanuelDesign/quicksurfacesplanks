@@ -16,7 +16,6 @@ import { InteractiveFloorPlan2D } from './InteractiveFloorPlan2D';
 import { Photorealistic3DRender } from './Photorealistic3DRender';
 import { StaircaseStepSection } from './StaircaseStepSection';
 import { StairTechnicalImage, StairVerticalCard, StairProjectItem } from '../data/stairsGallery';
-import { ColorSelectorModal } from './ColorSelectorModal';
 import {
   ArrowLeft,
   ChevronRight,
@@ -104,14 +103,18 @@ export const StepWizard: React.FC<StepWizardProps> = ({
     return productsList[0] || FLOORING_PRODUCTS[0];
   });
   const [viewMode3D, setViewMode3D] = useState<'room' | 'plank'>('room');
-  const [isColorModalOpen, setIsColorModalOpen] = useState<boolean>(false);
   const roomSceneRef = useRef<HTMLDivElement>(null);
+  const colorCarouselRef = useRef<HTMLDivElement>(null);
 
-  const handleSelectProductWithScroll = (product: FlooringProduct) => {
-    setSelectedProduct(product);
-    if (roomSceneRef.current) {
-      roomSceneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const scrollColorCarousel = (direction: 'left' | 'right') => {
+    if (colorCarouselRef.current) {
+      const scrollAmount = direction === 'left' ? -260 : 260;
+      colorCarouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+  };
+
+  const handleSelectProduct = (product: FlooringProduct) => {
+    setSelectedProduct(product);
   };
 
   // Package Selection
@@ -536,7 +539,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 >
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-black text-white leading-tight">
-                      {lang === 'es' ? '1) Solo 1er Piso' : '1) 1st Floor Only'}
+                      {lang === 'es' ? 'Solo 1er Piso' : '1st Floor Only'}
                     </span>
                     {floorScope === 'floor1' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                   </div>
@@ -556,7 +559,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 >
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-black text-white leading-tight">
-                      {lang === 'es' ? '2) 1er Piso + Escaleras' : '2) 1st Floor + Stairs'}
+                      {lang === 'es' ? '1er Piso + Escaleras' : '1st Floor + Stairs'}
                     </span>
                     {floorScope === 'floor1_stairs' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                   </div>
@@ -576,7 +579,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 >
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-black text-white leading-tight">
-                      {lang === 'es' ? '3) Solo 2do Piso' : '3) 2nd Floor Only'}
+                      {lang === 'es' ? 'Solo 2do Piso' : '2nd Floor Only'}
                     </span>
                     {floorScope === 'floor2' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                   </div>
@@ -596,7 +599,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 >
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-black text-white leading-tight">
-                      {lang === 'es' ? '4) 2do Piso + Escaleras' : '4) 2nd Floor + Stairs'}
+                      {lang === 'es' ? '2do Piso + Escaleras' : '2nd Floor + Stairs'}
                     </span>
                     {floorScope === 'floor2_stairs' && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF8407] shrink-0" />}
                   </div>
@@ -879,24 +882,108 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                   <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
                   <span>•</span>
                   <span>{selectedProduct.wearLayer}</span>
+                  <span>•</span>
+                  <span>{selectedProduct.plankSize || '7" x 48"'}</span>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsColorModalOpen(true)}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-black shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.01]"
-                >
-                  <Palette className="w-4 h-4 text-[#FF8407]" />
-                  <span>
-                    {lang === 'es'
-                      ? `Cambiar Color (${selectedProduct.name})`
-                      : `Switch Color (${selectedProduct.name})`}
-                  </span>
-                </button>
               </div>
             </div>
 
-            {/* 4. Smart Box Calculator */}
+            {/* 4. Available Colors Horizontal Carousel / Slider (Swipe on mobile & click to preview) */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
+                    {lang === 'es'
+                      ? `Colores Disponibles (${filteredProducts.length})`
+                      : `Available Colors (${filteredProducts.length})`}
+                  </span>
+                  <span className="text-[11px] text-[#64748B] hidden sm:inline">
+                    • {lang === 'es' ? 'Desliza para explorar en tiempo real' : 'Swipe to explore in real time'}
+                  </span>
+                </div>
+
+                {/* Carousel Arrow Navigation */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => scrollColorCarousel('left')}
+                    className="w-7 h-7 rounded-full bg-[#FFFFFF] border border-[#CBD5E1] flex items-center justify-center text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer shadow-2xs"
+                    aria-label={lang === 'es' ? 'Anterior color' : 'Previous color'}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollColorCarousel('right')}
+                    className="w-7 h-7 rounded-full bg-[#FFFFFF] border border-[#CBD5E1] flex items-center justify-center text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-all cursor-pointer shadow-2xs"
+                    aria-label={lang === 'es' ? 'Siguiente color' : 'Next color'}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Horizontal Slider Container */}
+              <div
+                ref={colorCarouselRef}
+                className="flex gap-3 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent -mx-1 px-1"
+                style={{ scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}
+              >
+                {filteredProducts.map((p, idx) => {
+                  const isSelected = selectedProduct.id === p.id;
+                  return (
+                    <button
+                      key={`${p.id}-${idx}`}
+                      type="button"
+                      onClick={() => handleSelectProduct(p)}
+                      className={`w-40 sm:w-48 shrink-0 snap-start p-2.5 sm:p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between select-none ${
+                        isSelected
+                          ? 'border-[#FF8407] bg-[#FFFBF7] shadow-lg ring-2 ring-[#FF8407]'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] shadow-xs hover:bg-[#F8FAFC]'
+                      }`}
+                    >
+                      <div>
+                        <div className="relative h-24 sm:h-28 w-full rounded-xl overflow-hidden mb-2 bg-[#E2E8F0]">
+                          <img
+                            src={p.plankImageUrl || p.imageUrl}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            loading="lazy"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-1.5 right-1.5 bg-[#FF8407] text-white p-1 rounded-full shadow-md">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-black text-xs text-[#0F172A] block truncate">{p.name}</span>
+                        </div>
+                        <span className="text-[10px] text-[#64748B] block truncate mt-0.5">{p.collectionName}</span>
+                      </div>
+
+                      <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <span className="font-bold text-[#FF8407]">{p.thickness}</span>
+                        {isSelected ? (
+                          <span className="font-black text-[#FF8407] flex items-center gap-0.5">
+                            <CheckCircle2 className="w-3 h-3" />
+                            {lang === 'es' ? 'Elegido' : 'Selected'}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-medium">
+                            {lang === 'es' ? 'Ver' : 'Preview'}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 5. Smart Box Calculator (Located Below Available Colors) */}
             <div className="bg-[#FFFFFF] p-4 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] text-[#FF8407] flex items-center justify-center shrink-0 border border-[#FF8407]/30">
@@ -932,74 +1019,6 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                     {quoteCalc.boxesCount} {lang === 'es' ? 'Cajas' : 'Boxes'} ({quoteCalc.totalBoxesSqft} SF)
                   </span>
                 </div>
-              </div>
-            </div>
-
-            {/* 5. Product Swatches Grid */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
-                    {lang === 'es' ? `Colores Disponibles (${filteredProducts.length})` : `Available Colors (${filteredProducts.length})`}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsColorModalOpen(true)}
-                    className="text-[11px] text-[#FF8407] hover:underline font-bold flex items-center gap-1 cursor-pointer"
-                  >
-                    <Palette className="w-3 h-3" />
-                    <span>{lang === 'es' ? 'Abrir en Modal' : 'Open in Modal'}</span>
-                  </button>
-                </div>
-                <span className="text-xs text-[#64748B]">
-                  {lang === 'es' ? 'Toca para seleccionar y previsualizar' : 'Click to select and preview'}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {filteredProducts.map((p, idx) => {
-                  const isSelected = selectedProduct.id === p.id;
-                  return (
-                    <button
-                      key={`${p.id}-${idx}`}
-                      type="button"
-                      onClick={() => handleSelectProductWithScroll(p)}
-                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'border-[#FF8407] bg-[#FFFBF7] shadow-lg ring-2 ring-[#FF8407]'
-                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] shadow-xs'
-                      }`}
-                    >
-                      <div>
-                        <div className="relative h-24 w-full rounded-xl overflow-hidden mb-2 bg-[#E2E8F0]">
-                          <img
-                            src={p.plankImageUrl || p.imageUrl}
-                            alt={p.name}
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
-
-                        <span className="font-black text-xs text-[#0F172A] block truncate">{p.name}</span>
-                        <span className="text-[10px] text-[#64748B] block truncate">{p.collectionName}</span>
-                      </div>
-
-                      <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                        <span className="font-bold text-[#FF8407]">{p.thickness}</span>
-                        {isSelected ? (
-                          <span className="font-black text-[#FF8407] flex items-center gap-0.5">
-                            <CheckCircle2 className="w-3 h-3" />
-                            {lang === 'es' ? 'Elegido' : 'Selected'}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 font-medium">
-                            {lang === 'es' ? 'Seleccionar' : 'Select'}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
@@ -1511,27 +1530,6 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
           </a>
         )}
       </div>
-
-      {/* Live Color Selector & Room View Modal */}
-      <ColorSelectorModal
-        isOpen={isColorModalOpen}
-        onClose={() => {
-          setIsColorModalOpen(false);
-          if (roomSceneRef.current) {
-            roomSceneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }}
-        products={productsList}
-        selectedProduct={selectedProduct}
-        onSelectProduct={(product) => {
-          setSelectedProduct(product);
-          if (roomSceneRef.current) {
-            roomSceneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }}
-        thicknessFilter={thicknessFilter}
-        onChangeThicknessFilter={(filter) => setThicknessFilter(filter)}
-      />
     </div>
   );
 };

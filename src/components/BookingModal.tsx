@@ -142,13 +142,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const getScopeLabel = () => {
     switch (floorScope) {
       case 'floor1':
-        return lang === 'es' ? '1) Solo 1er Piso' : '1) 1st Floor Only';
+        return lang === 'es' ? 'Solo 1er Piso' : '1st Floor Only';
       case 'floor1_stairs':
-        return lang === 'es' ? '2) 1er Piso + 17 Escalones' : '2) 1st Floor + 17 Stairs';
+        return lang === 'es' ? '1er Piso + 17 Escalones' : '1st Floor + 17 Stairs';
       case 'floor2':
-        return lang === 'es' ? '3) Solo 2do Piso' : '3) 2nd Floor Only';
+        return lang === 'es' ? 'Solo 2do Piso' : '2nd Floor Only';
       case 'floor2_stairs':
-        return lang === 'es' ? '4) 2do Piso + 17 Escalones' : '4) 2nd Floor + 17 Stairs';
+        return lang === 'es' ? '2do Piso + 17 Escalones' : '2nd Floor + 17 Stairs';
       default:
         return lang === 'es' ? '1er Piso + Escaleras' : '1st Floor + Stairs';
     }
@@ -439,10 +439,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {[
-                      { id: 'floor1', labelEs: '1) Solo 1er Piso', labelEn: '1) 1st Floor Only', sf: currentModel.sqftFirstFloorRec || 546 },
-                      { id: 'floor1_stairs', labelEs: '2) 1er Piso + Esc.', labelEn: '2) 1st Fl + Stairs', sf: `${currentModel.sqftFirstFloorRec || 546} SF + 17 Esc.` },
-                      { id: 'floor2', labelEs: '3) Solo 2do Piso', labelEn: '3) 2nd Floor Only', sf: currentModel.sqftSecondFloorRec || 498 },
-                      { id: 'floor2_stairs', labelEs: '4) 2do Piso + Esc.', labelEn: '4) 2nd Fl + Stairs', sf: `${currentModel.sqftSecondFloorRec || 498} SF + 17 Esc.` },
+                      { id: 'floor1', labelEs: 'Solo 1er Piso', labelEn: '1st Floor Only', sf: currentModel.sqftFirstFloorRec || 546 },
+                      { id: 'floor1_stairs', labelEs: '1er Piso + Esc.', labelEn: '1st Fl + Stairs', sf: `${currentModel.sqftFirstFloorRec || 546} SF + 17 Esc.` },
+                      { id: 'floor2', labelEs: 'Solo 2do Piso', labelEn: '2nd Floor Only', sf: currentModel.sqftSecondFloorRec || 498 },
+                      { id: 'floor2_stairs', labelEs: '2do Piso + Esc.', labelEn: '2nd Fl + Stairs', sf: `${currentModel.sqftSecondFloorRec || 498} SF + 17 Esc.` },
                     ].map((item) => {
                       const isSel = floorScope === item.id;
                       return (
