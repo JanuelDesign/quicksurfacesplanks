@@ -50,7 +50,7 @@ export const RoomVisualizer: React.FC<RoomVisualizerProps> = ({
     },
     plank: {
       title: lang === 'es' ? `Tablón Real HD: ${selectedProduct.name}` : `Macro Plank Texture: ${selectedProduct.name}`,
-      desc: lang === 'es' ? `Textura realista sincronizada (EIR), bisel micro-bevel y grosor ${selectedProduct.thickness}` : `Embossed in register grain, micro-bevel edge & ${selectedProduct.thickness} core`,
+      desc: lang === 'es' ? `Textura realista sincronizada (EIR), bisel micro-bevel y grosor total de ${selectedProduct.thickness}` : `Embossed in register grain, micro-bevel edge & ${selectedProduct.thickness} total thickness core`,
       image: selectedProduct.plankImageUrl || selectedProduct.imageUrl,
     },
     stairs: {

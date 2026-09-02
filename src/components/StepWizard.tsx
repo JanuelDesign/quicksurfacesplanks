@@ -264,10 +264,15 @@ export const StepWizard: React.FC<StepWizardProps> = ({
   // Dynamic bilingual package features bound to current selected product without factory warranty
   const getPackageDynamicFeatures = (pkg: PricingPackage) => {
     const isTurnkey = pkg.isTurnkey;
+    const plankFormat =
+      selectedProduct.plankDimensions ||
+      selectedProduct.plankSize ||
+      (selectedProduct.category === '5.5mm' ? '7" x 48"' : '9" x 60"');
+
     if (lang === 'es') {
       return [
-        `Piso SPC ${selectedProduct.thickness} (${selectedProduct.wearLayer || '20 mil'})`,
-        `Formato tablón: ${selectedProduct.plankSize || '7" x 48"'}`,
+        `Piso SPC ${selectedProduct.thickness} espesor total (${selectedProduct.wearLayer || '20 mil'})`,
+        `Formato tablón: ${plankFormat}`,
         quoteCalc.hasStairs
           ? '17 Escalones Square Step Nose a medida incluidos'
           : 'Cálculo para área sin escaleras',
@@ -277,8 +282,8 @@ export const StepWizard: React.FC<StepWizardProps> = ({
       ];
     } else {
       return [
-        `SPC Flooring ${selectedProduct.thickness} (${selectedProduct.wearLayer || '20 mil'})`,
-        `Plank Format: ${selectedProduct.plankSize || '7" x 48"'}`,
+        `SPC Flooring ${selectedProduct.thickness} total thickness (${selectedProduct.wearLayer || '20 mil'})`,
+        `Plank Format: ${plankFormat}`,
         quoteCalc.hasStairs
           ? '17 Custom Square Step Noses included'
           : 'Calculated for area without stairs',
@@ -730,7 +735,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 <div className="flex items-center gap-2">
                   <Layers className="w-4 h-4 text-[#FF8407]" />
                   <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
-                    {lang === 'es' ? 'Colección y Espesor de Piso SPC:' : 'SPC Collection & Thickness:'}
+                    {lang === 'es' ? 'Colección y Espesor Total de Piso SPC:' : 'SPC Collection & Total Thickness:'}
                   </span>
                 </div>
                 <span className="text-xs text-slate-500 font-medium">
@@ -876,14 +881,20 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
               {/* Action Bar Underneath Photo Card */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
-                <div className="text-xs text-[#64748B] flex items-center gap-1.5">
+                <div className="text-xs text-[#64748B] flex items-center gap-1.5 flex-wrap">
                   <span className="font-black text-[#0F172A]">#{selectedProduct.code} {selectedProduct.name}</span>
                   <span>•</span>
-                  <span className="font-bold text-[#FF8407]">{selectedProduct.thickness}</span>
+                  <span className="font-bold text-[#FF8407]">
+                    {selectedProduct.thickness} {lang === 'es' ? 'espesor total' : 'total thickness'}
+                  </span>
                   <span>•</span>
                   <span>{selectedProduct.wearLayer}</span>
                   <span>•</span>
-                  <span>{selectedProduct.plankSize || '7" x 48"'}</span>
+                  <span>
+                    {selectedProduct.plankDimensions ||
+                      selectedProduct.plankSize ||
+                      (selectedProduct.category === '5.5mm' ? '7" x 48"' : '9" x 60"')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1171,12 +1182,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
               <Info className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
               <div>
                 <strong className="font-black block">
-                  {lang === 'es' ? 'Información sobre Precios e Instalación' : 'Pricing & Installation Notes'}
+                  {lang === 'es' ? 'Información sobre Precios e Instalación por Terceros' : 'Pricing & Third-Party Installation Notes'}
                 </strong>
                 <p className="mt-0.5 leading-relaxed text-amber-800 text-[11px]">
                   {lang === 'es'
-                    ? 'Los servicios de instalación y remodelación son ejecutados por aliados expertos certificados. Para la opción Solo Material, el precio final de mano de obra puede variar tras la inspección presencial (ej. nivelación de piso, preparación especial).'
-                    : 'Installation and remodeling services are performed by certified expert partner contractors. For Material Only, installation costs may vary upon on-site inspection (e.g. subfloor leveling, special prep).'}
+                    ? 'Los servicios de instalación, remodelación y remoción de alfombras y pisos viejos son ejecutados por contratistas terceros independientes. QuickSurfaces no se hace responsable por el servicio de instalación ni por el retiro de alfombras o pisos viejos, ya que dicho servicio es prestado y va por cuenta de terceros.'
+                    : 'Installation, remodeling, and old carpet/floor removal services are executed by independent third-party contractors. QuickSurfaces is not responsible for installation or removal services, as these are provided directly by third parties.'}
                 </p>
               </div>
             </div>

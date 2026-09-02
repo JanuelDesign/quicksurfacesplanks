@@ -141,13 +141,13 @@ export const Photorealistic3DRender: React.FC<Photorealistic3DRenderProps> = ({
         <div>
           <strong className="text-[#0F172A] block font-black">
             {lang === 'es'
-              ? 'Nota de Instalación y Servicios Aliados'
-              : 'Installation & Expert Partner Services Note'}
+              ? 'Nota Importante: Servicios de Instalación y Terceros'
+              : 'Important Notice: Third-Party Installation Services'}
           </strong>
           <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
             {lang === 'es'
-              ? 'Instalaciones, remodelaciones y remoción de alfombra / rodapiés son realizadas por nuestros aliados expertos certificados. Los precios de mano de obra y material son transparentes y garantizados tras visita técnica de confirmación.'
-              : 'Installations, remodeling, and carpet / baseboard removal are performed by our qualified certified expert partners. Material and labor pricing is transparent and guaranteed following in-home measurement verification.'}
+              ? 'Los servicios de instalación, remodelación y remoción de alfombras y pisos viejos son realizados por contratistas terceros independientes. QuickSurfaces no se hace responsable por el servicio de instalación ni por el retiro de alfombras o pisos existentes, ya que dicho servicio es prestado y va por cuenta exclusiva de terceros.'
+              : 'Installation, remodeling, and removal of old carpets and flooring are performed by independent third-party contractors. QuickSurfaces is not responsible for installation or removal services, as these are provided directly and exclusively by third parties.'}
           </p>
         </div>
       </div>

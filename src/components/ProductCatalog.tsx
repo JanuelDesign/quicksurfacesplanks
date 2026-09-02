@@ -174,7 +174,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
           <div>
             <div className="flex items-center justify-between mb-2 px-0.5">
               <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-[#0F172A]">
-                {lang === 'es' ? 'Colección & Espesor SPC:' : 'SPC Collection & Thickness:'}
+                {lang === 'es' ? 'Colección & Espesor Total SPC:' : 'SPC Collection & Total Thickness:'}
               </span>
               <span className="text-xs text-[#64748B] font-medium">
                 {lang === 'es' ? `${filteredProducts.length} tonos disponibles` : `${filteredProducts.length} shades available`}
@@ -342,7 +342,7 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
                         <div className="mt-3 pt-3 border-t border-[#E2E8F0] grid grid-cols-2 gap-2 text-[11px]">
                           <div>
-                            <span className="text-[#64748B] block">{lang === 'es' ? 'Espesor:' : 'Thickness:'}</span>
+                            <span className="text-[#64748B] block">{lang === 'es' ? 'Espesor Total:' : 'Total Thickness:'}</span>
                             <span className="font-bold text-[#000000]">{prod.thickness}</span>
                           </div>
                           <div>

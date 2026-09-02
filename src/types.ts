@@ -97,6 +97,7 @@ export interface FlooringProduct {
   thickness: string;
   wearLayer: string;
   plankDimensions: string;
+  plankSize?: string;
   padding: string;
   planksPerBox: number;
   sqftPerBox: number;

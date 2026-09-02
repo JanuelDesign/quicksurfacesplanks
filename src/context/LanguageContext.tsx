@@ -89,7 +89,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     
     // Catalog & Swatches
     catalogHeaderTitle: "Waterproof Rigid Core SPC Vinyl Floor",
-    catalogHeaderSubtitle: "8.0mm Flagship with 22 Mils wear layer & 5.5mm Classic with 20 Mils. 100% waterproof with stairs crafted from matching planks.",
+    catalogHeaderSubtitle: "8.0mm Flagship with 22 Mils wear layer & 5.5mm Classic with 20 Mils total thickness. 100% waterproof with stairs crafted from matching planks.",
     specSheet: "QUICKSURFACES TECHNICAL SPECIFICATIONS",
     
     // Gallery
@@ -199,7 +199,7 @@ const DICTIONARY: Record<Language, Record<string, string>> = {
     
     // Catalog & Swatches
     catalogHeaderTitle: "Waterproof Rigid Core SPC Vinyl Floor",
-    catalogHeaderSubtitle: "Espesor de 8.0mm con capa de desgaste de 22 Mils y 5.5mm con 20 Mils. 100% impermeable con escalones fabricados con los mismos tablones.",
+    catalogHeaderSubtitle: "Espesor total de 8.0mm con capa de desgaste de 22 Mils y 5.5mm con 20 Mils. 100% impermeable con escalones fabricados con los mismos tablones.",
     specSheet: "FICHA TÉCNICA QUICK SURFACES",
     
     // Gallery

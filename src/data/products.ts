@@ -311,7 +311,7 @@ export const FLOORING_PRODUCTS: FlooringProduct[] = [
     collectionName: 'Pulse Shield XL',
     thickness: '6.0mm',
     wearLayer: '20 mil',
-    plankDimensions: '9" x 60" (Plancha Extra Larga)',
+    plankDimensions: '9" x 60"',
     padding: '1.5mm High-Density Sound Insulation EVA',
     planksPerBox: 7,
     sqftPerBox: 26.6,

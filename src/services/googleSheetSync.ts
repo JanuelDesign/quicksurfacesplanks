@@ -472,7 +472,7 @@ export async function fetchLiveDatabase(): Promise<LiveDatabaseResult> {
               '100% rigid waterproof finish',
             ],
             specs: [
-              { label: 'Espesor', value: r[thickIdx] || '5.5mm' },
+              { label: 'Espesor Total', value: r[thickIdx] || '5.5mm' },
               { label: 'Wear Layer', value: r[wearIdx] || '20 mil' },
             ],
           });
