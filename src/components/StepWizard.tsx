@@ -508,7 +508,10 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
             <SienaReserveHero model={selectedModel} />
 
             {/* Scope Selection Section (Distinctive Dark Background) */}
-            <div className="bg-[#0B1120] text-white p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+            <div
+              translate="no"
+              className="notranslate bg-[#0B1120] text-white p-4 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden"
+            >
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF8407]/10 rounded-full blur-3xl pointer-events-none"></div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-4 relative z-10">
@@ -532,11 +535,12 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10">
+              <div translate="no" className="notranslate grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10">
                 <button
                   type="button"
+                  translate="no"
                   onClick={() => setFloorScope('floor1')}
-                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`notranslate p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                     floorScope === 'floor1'
                       ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
                       : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
@@ -555,8 +559,9 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                 <button
                   type="button"
+                  translate="no"
                   onClick={() => setFloorScope('floor1_stairs')}
-                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`notranslate p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                     floorScope === 'floor1_stairs'
                       ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
                       : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
@@ -575,8 +580,9 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                 <button
                   type="button"
+                  translate="no"
                   onClick={() => setFloorScope('floor2')}
-                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`notranslate p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                     floorScope === 'floor2'
                       ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
                       : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
@@ -595,8 +601,9 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
 
                 <button
                   type="button"
+                  translate="no"
                   onClick={() => setFloorScope('floor2_stairs')}
-                  className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`notranslate p-3.5 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                     floorScope === 'floor2_stairs'
                       ? 'border-[#FF8407] bg-[#1E293B] ring-2 ring-[#FF8407] shadow-lg shadow-[#FF8407]/20 text-white'
                       : 'border-slate-800 bg-[#0F172A]/90 hover:bg-[#1E293B] text-slate-300'
@@ -616,7 +623,7 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
             </div>
 
             {/* Model Selection Tabs (B Model, C Model, MC Model, R Model, V Model) */}
-            <div>
+            <div translate="no" className="notranslate">
               <div className="flex items-center justify-between mb-2.5">
                 <div className="min-w-0">
                   <span className="text-xs font-black uppercase tracking-wider text-[#0F172A] block truncate">
@@ -631,15 +638,16 @@ _Hi QuickSurfaces! I would like to schedule an in-home sample review and measure
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+              <div translate="no" className="notranslate grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                 {modelsList.map((m) => {
                   const isSelected = selectedModel.id === m.id || selectedModel.slug === m.slug;
                   return (
                     <button
                       key={m.id}
                       type="button"
+                      translate="no"
                       onClick={() => setSelectedModel(m)}
-                      className={`p-3 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                      className={`notranslate p-3 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected
                           ? 'border-[#FF8407] bg-[#FFFBF7] shadow-md ring-2 ring-[#FF8407]'
                           : 'border-[#E2E8F0] bg-[#FFFFFF] hover:border-[#CBD5E1] shadow-xs'

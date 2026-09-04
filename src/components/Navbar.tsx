@@ -103,10 +103,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Right Controls: Language Selector + CTA */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Language Switcher Button (EN / ES) */}
-          <div className="flex items-center bg-[#F1F5F9] p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-[#E2E8F0] shadow-2xs">
+          <div
+            translate="no"
+            className="notranslate flex items-center bg-[#F1F5F9] p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-[#E2E8F0] shadow-2xs"
+          >
             <button
+              type="button"
+              translate="no"
               onClick={() => setLang('en')}
-              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
+              className={`notranslate px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
                 lang === 'en'
                   ? 'bg-[#000000] text-[#FFFFFF] shadow-xs'
                   : 'text-[#64748B] hover:text-[#000000]'
@@ -116,8 +121,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               EN
             </button>
             <button
+              type="button"
+              translate="no"
               onClick={() => setLang('es')}
-              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
+              className={`notranslate px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-black transition-all cursor-pointer ${
                 lang === 'es'
                   ? 'bg-[#000000] text-[#FFFFFF] shadow-xs'
                   : 'text-[#64748B] hover:text-[#000000]'

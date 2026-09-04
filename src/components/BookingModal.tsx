@@ -433,11 +433,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </div>
 
                 {/* 4 Scope Selector Pills */}
-                <div>
+                <div translate="no" className="notranslate">
                   <label className="block text-[#475569] font-bold mb-1.5 text-[11px]">
                     {lang === 'es' ? 'Área a Remodelar (4 Opciones):' : 'Remodeling Area Scope:'}
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <div translate="no" className="notranslate grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {[
                       { id: 'floor1', labelEs: 'Solo 1er Piso', labelEn: '1st Floor Only', sf: currentModel.sqftFirstFloorRec || 546 },
                       { id: 'floor1_stairs', labelEs: '1er Piso + Esc.', labelEn: '1st Fl + Stairs', sf: `${currentModel.sqftFirstFloorRec || 546} SF + 17 Esc.` },
@@ -449,8 +449,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         <button
                           key={item.id}
                           type="button"
+                          translate="no"
                           onClick={() => setFloorScope(item.id as FloorScope)}
-                          className={`p-2 rounded-xl border text-left cursor-pointer transition-all ${
+                          className={`notranslate p-2 rounded-xl border text-left cursor-pointer transition-all ${
                             isSel
                               ? 'border-[#FF8407] bg-[#FFF7ED] text-[#0F172A] font-black ring-1 ring-[#FF8407]'
                               : 'border-[#CBD5E1] bg-white text-[#475569] hover:bg-[#F1F5F9]'

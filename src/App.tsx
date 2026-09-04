@@ -25,6 +25,7 @@ import { GallerySection } from './components/GallerySection';
 import { BookingModal } from './components/BookingModal';
 import { AppBottomNav, AppTab } from './components/AppBottomNav';
 import { AboutModal } from './components/AboutModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   const [liveModels, setLiveModels] = useState<FloorPlanModel[]>(FLOOR_PLAN_MODELS);
@@ -142,20 +143,22 @@ export default function App() {
           {activeTab === 'order' && (
             <div className="animate-fadeIn space-y-6">
               {/* Step Wizard is the Main App Flow */}
-              <StepWizard
-                initialCommunity={selectedCommunity}
-                initialModel={selectedModel}
-                initialProduct={selectedProduct}
-                initialPackage={selectedPackage}
-                modelsList={liveModels}
-                productsList={liveProducts}
-                packagesList={livePackages}
-                stairTechnicalImages={liveStairTechnical}
-                stairVerticalCards={liveStairVertical}
-                stairCarouselItems={liveStairCarousel}
-                isLiveSynced={isSyncedWithSheet}
-                onClose={() => setActiveTab('catalog')}
-              />
+              <ErrorBoundary>
+                <StepWizard
+                  initialCommunity={selectedCommunity}
+                  initialModel={selectedModel}
+                  initialProduct={selectedProduct}
+                  initialPackage={selectedPackage}
+                  modelsList={liveModels}
+                  productsList={liveProducts}
+                  packagesList={livePackages}
+                  stairTechnicalImages={liveStairTechnical}
+                  stairVerticalCards={liveStairVertical}
+                  stairCarouselItems={liveStairCarousel}
+                  isLiveSynced={isSyncedWithSheet}
+                  onClose={() => setActiveTab('catalog')}
+                />
+              </ErrorBoundary>
             </div>
           )}
 
@@ -222,17 +225,19 @@ export default function App() {
         />
 
         {/* Booking Drawer Modal */}
-        <BookingModal
-          isOpen={isBookingOpen}
-          onClose={() => setIsBookingOpen(false)}
-          initialModel={selectedModel}
-          initialProduct={selectedProduct}
-          initialPackage={selectedPackage}
-          initialFloorScope="floor1_stairs"
-          modelsList={liveModels}
-          productsList={liveProducts}
-          packagesList={livePackages}
-        />
+        <ErrorBoundary>
+          <BookingModal
+            isOpen={isBookingOpen}
+            onClose={() => setIsBookingOpen(false)}
+            initialModel={selectedModel}
+            initialProduct={selectedProduct}
+            initialPackage={selectedPackage}
+            initialFloorScope="floor1_stairs"
+            modelsList={liveModels}
+            productsList={liveProducts}
+            packagesList={livePackages}
+          />
+        </ErrorBoundary>
       </div>
     </LanguageProvider>
   );

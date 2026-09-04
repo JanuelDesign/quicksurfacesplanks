@@ -6,7 +6,7 @@ import { Layers, Sparkles, Eye, Ruler } from 'lucide-react';
 interface InteractiveFloorPlan2DProps {
   model: FloorPlanModel;
   selectedProduct: FlooringProduct;
-  floorScope: FloorScope;
+  floorScope?: FloorScope;
   onChangeFloorScope?: (scope: FloorScope) => void;
   onSelectRoom?: (roomName: string) => void;
 }
@@ -14,7 +14,7 @@ interface InteractiveFloorPlan2DProps {
 export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
   model,
   selectedProduct,
-  floorScope,
+  floorScope = 'floor1_stairs',
   onChangeFloorScope,
   onSelectRoom,
 }) => {
@@ -514,7 +514,10 @@ export const InteractiveFloorPlan2D: React.FC<InteractiveFloorPlan2DProps> = ({
             <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-[#F1F5F9] text-[#334155] border border-[#E2E8F0]">
               {model.name} ({model.sqft} SF) • {model.collection}
             </span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <span
+              translate="no"
+              className="notranslate text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200"
+            >
               {floorScope === 'floor1'
                 ? lang === 'es' ? 'Solo 1er Piso' : '1st Floor Only'
                 : floorScope === 'floor1_stairs'
